@@ -1,0 +1,19 @@
+{
+  "name": "prolink-webtool",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w apps/web",
+    "build": "npm run build -w apps/web -w apps/api",
+    "lint": "npm run lint -w apps/web -w apps/api",
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
+    "infra:logs": "docker compose logs -f floci",
+    "infra:reset": "docker compose down -v && docker compose up -d",
+    "infra:validate": "bash infra/local/validate.sh"
+  }
+}
