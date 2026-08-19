@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ':*)",
+      "WebFetch(domain:www.*)",
+      "Bash(curl -sL -A *)",
+      "Read(//tmp/**)",
+      "Bash(grep *)",
+      "mcp__paper__create_artboard",
+      "mcp__paper__write_html",
+      "mcp__paper__get_screenshot",
+      "mcp__paper__update_styles"
+    ]
+  }
+}

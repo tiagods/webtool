@@ -1,0 +1,87 @@
+---
+id: "020"
+title: "Reconciliação da Ficha de Abertura (ficha ↔ doc ↔ implementação)"
+status: draft
+created: 2026-07-13
+author: "Claude"
+batch_size: "medium"
+depends_on: ["003"]
+---
+
+# Reconciliação da Ficha de Abertura (ficha ↔ doc ↔ implementação)
+
+## Contexto
+
+A auditoria cruzando **ficha original** (`fichas/FICHA CADASTRAL - ABERTURA DE EMPRESA.doc` e `...ABERTURA UNIPESSOAL.doc` — extraídas via `olefile`) contra o **doc de produto** (`docs/ficha-abertura.md`) e a **implementação** (`packages/shared/src/schemas/abertura.ts` + `apps/web/components/forms/*`) revelou desvios não cobertos por nenhuma spec. As specs 002/003 afirmam "schemas refletindo totalmente a documentação", logo estes desvios são *drift*, não decisões intencionais registradas.
+
+**A ficha é a fonte da verdade.** O doc `docs/ficha-abertura.md` já foi atualizado (nesta mesma sessão) para incluir os campos do Passo 2 que faltavam. Falta reconciliar a **implementação**.
+
+## Objetivo
+
+Alinhar a implementação da Abertura à ficha original nos pontos inequívocos:
+
+1. **Passo 2 (Endereço)** — adicionar os 4 campos que a ficha exige e a implementação não tem.
+2. **Passo 3 (Sócios)** — corrigir o valor de pró-labore mínimo desatualizado.
+3. **Passo 3 (Sócios)** — resolver a divergência de campos "extras" (ver **Decisão pendente** abaixo).
+
+## Fora de escopo
+
+- Qualquer mudança na Ficha de Alteração / Spec 012 (formulário separado, sócio não compartilhado).
+- Alteração das fichas originais em `fichas/` (são documentos históricos, imutáveis).
+- Enforcement server-side de completude de documentos (Passo 5) — desvio separado, não faz parte desta reconciliação.
+
+## Design
+
+### Camadas afetadas
+
+| Camada | Arquivo | Ação |
+|--------|---------|------|
+| Shared | `packages/shared/src/schemas/abertura.ts` | MODIFY (`stepEnderecoSchema`, `socioSchema`) |
+| Forms | `apps/web/components/forms/StepEndereco.tsx` | MODIFY (4 campos novos + condicionais) |
+| Forms | `apps/web/components/forms/StepSocios.tsx` | MODIFY (pró-labore; sócio — conforme decisão) |
+| Forms | `apps/web/components/forms/StepRevisao.tsx` | MODIFY (refletir campos novos/removidos) |
+| Motor | `apps/web/app/abertura/StepperEngine.tsx` | MODIFY (campos do `.trigger()` do Passo 2) |
+
+### 1. Passo 2 — campos faltantes (INEQUÍVOCO)
+
+A ficha (Ltda e SLU) pede, além do que já existe:
+
+| Campo | Tipo | Regra |
+|---|---|---|
+| `correspondencia` | `enum('sim','nao')` | Obrigatório — "Este endereço será de correspondência também?" |
+| `enderecoCorrespondencia` | `string` | Condicional — obrigatório se `correspondencia === 'nao'` |
+| `imovelAlugado` | (já existe, migrar `boolean` → `enum('sim','nao')` p/ casar com a ficha) | — |
+| `locadorTipo` | `enum('pessoa_fisica','pessoa_juridica')` | Condicional — obrigatório se `imovelAlugado === 'sim'` |
+| `tipoFuncionamento` | `enum('estabelecimento','ponto_contato')` | Obrigatório — "Estabelecimento com atendimento ou ponto de contato?" |
+
+> `correspondencia` e `tipoFuncionamento` já constam no doc; `locadorTipo` e `enderecoCorrespondencia` foram adicionados ao doc nesta sessão. Schema Zod de referência já está em `docs/ficha-abertura.md` (Passo 2). As condicionais entram via `.superRefine()` no `stepEnderecoSchema` (base sem refine exportada separadamente, para preservar `aberturaFormDraftSchema` — ver lição Spec 010).
+
+### 2. Passo 3 — pró-labore mínimo (INEQUÍVOCO)
+
+`abertura.ts:34` usa `min(1412)` ("Simulando 2024"). Corrigir para o salário mínimo vigente (doc referencia `1518`). **Ideal:** tornar o valor configurável via env var (ver Spec 018 — config-via-env-vars) em vez de hardcode; se a 018 não estiver pronta, aplicar `1518` com comentário datado.
+
+### 3. Passo 3 — campos "extras" do sócio (⚠️ DECISÃO PENDENTE)
+
+A implementação coleta, **totalmente construídos na UI** (`StepSocios.tsx`), campos que **não existem na ficha de Abertura**: `cpf`, `rg`, `nacionalidade`, `nomeMae`, `nomePai`, endereço residencial de registro (`cepRegistro`, `logradouroRegistro`, `numeroRegistro`, `complementoRegistro`, `bairroRegistro` — com auto-preenchimento ViaCEP próprio) e `registroConselho`. Na ficha de Abertura, CPF/RG entram apenas como **upload de documento** (Passo 5), não como campos.
+
+Esses campos pertencem ao **perfil da Ficha de Alteração** (sócio robusto cedente/cessionário), não ao da Abertura. Duas direções possíveis:
+
+- **Opção A — Legitimar (recomendada):** manter os campos (são úteis e já funcionam) e registrar em `docs/ficha-abertura.md` que a Abertura evoluiu para coletar esses dados como campos. *Nada é removido; o doc passa a refletir a implementação.* Contras: a ficha original deixa de ser espelho exato do formulário (mas a ficha `.doc` é histórica).
+- **Opção B — Enxugar:** remover os campos do `socioSchema` e a seção correspondente da UI/Revisão, para casar exatamente com a ficha. Contras: descarta UI funcional e reduz dados coletados; exige varrer usos em `StepDocumentos`, `StepRevisao`, submit e (futuro) PDF.
+
+> **Esta spec não deve sair de `draft` sem o usuário escolher A ou B.** As tasks 3.x abaixo assumem placeholders até a decisão.
+
+## Critérios de aceite
+
+- [ ] **CA1** — `stepEnderecoSchema` inclui `correspondencia`, `enderecoCorrespondencia` (cond.), `locadorTipo` (cond.) e `tipoFuncionamento`, com `imovelAlugado` como `enum('sim','nao')`; condicionais via `.superRefine()` sem quebrar `aberturaFormDraftSchema`.
+- [ ] **CA2** — `StepEndereco.tsx` renderiza os 4 campos, exibindo `locadorTipo` só quando alugado e `enderecoCorrespondencia` só quando `correspondencia === 'nao'`; `StepperEngine` inclui os novos campos no `.trigger()` do passo.
+- [ ] **CA3** — Pró-labore mínimo corrigido (env var se Spec 018 pronta; senão `1518` com comentário datado).
+- [ ] **CA4** — Decisão A/B do sócio registrada na spec e aplicada (doc atualizado na Opção A; schema+UI+revisão enxugados na Opção B).
+- [ ] **CA5** — `docs/ficha-abertura.md` consistente com o schema final (Passo 2 e Passo 3).
+- [ ] **CA6** — `npm run build` e `npm run lint` passam; fluxo E2E de Abertura (Ltda e SLU) validado manualmente ponta a ponta, incluindo as condicionais do Passo 2.
+
+## Notas
+
+- Ficha de Alteração vs ficha de Abertura: os formulários de sócio **não compartilham schema** (perfis distintos) — reforçado em `docs/ficha-abertura.md` (nota de escopo no Passo 3) e assumido na Spec 012.
+- Desvios menores observados e **conscientemente deixados de fora** desta spec (avaliar depois): SLU não trava exatamente 1 sócio no schema (só a UI oculta "+adicionar"); documentos condicionais (certidão de casamento/contrato de locação/registro conselho) são `optional` no Zod sem enforcement de condicionalidade.
+- Extração das fichas: `fitz` (PyMuPDF) para PDF, `olefile` + decode cp1252 para `.doc` binário.
