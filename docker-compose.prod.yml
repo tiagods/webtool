@@ -1,0 +1,70 @@
+services:
+
+  # ─── web — frontend Next.js (páginas, sem acesso a AWS) ────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: prolink-web
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET}
+    restart: unless-stopped
+
+  # ─── api — backend Next.js (Route Handlers + acesso a AWS real) ────────────
+  # Sem AWS_ENDPOINT_URL/AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY: os clients em
+  # lib/aws/*.ts usam a cadeia de credenciais padrão do AWS SDK (IAM role/env do host)
+  # quando AWS_ENDPOINT_URL está ausente.
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: prolink-api
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_DYNAMODB_TABLE: ${AWS_DYNAMODB_TABLE:-fichas-abertura}
+      AWS_DYNAMODB_ALTERACAO_TABLE: ${AWS_DYNAMODB_ALTERACAO_TABLE:-fichas-alteracao}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-prolink-fichas}
+      AWS_SQS_QUEUE_URL: ${AWS_SQS_QUEUE_URL}
+      AWS_SNS_TOPIC_ARN: ${AWS_SNS_TOPIC_ARN}
+      JWT_SECRET: ${JWT_SECRET}
+      SESSION_EXPIRY_SECONDS: "7200"
+    restart: unless-stopped
+
+  # ─── nginx — roteamento interno (web/api), sem exposição direta ─────────────
+  # Porta 80 não é mais publicada no host: o Caddy é o único ponto de entrada
+  # público (TLS termina no Caddy, que repassa para nginx:80 na rede interna).
+  nginx:
+    build:
+      context: ./infra/nginx
+    container_name: prolink-nginx
+    expose:
+      - "80"
+    depends_on:
+      - web
+      - api
+    restart: unless-stopped
+
+  # ─── caddy — ponto de entrada público (TLS automático via Let's Encrypt) ────
+  caddy:
+    image: caddy:2-alpine
+    container_name: prolink-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - nginx
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

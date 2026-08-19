@@ -1,0 +1,3 @@
+prolinkcontabil.com.br, www.prolinkcontabil.com.br {
+	reverse_proxy nginx:80
+}
