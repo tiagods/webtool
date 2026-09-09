@@ -23,7 +23,7 @@ Esta spec cobre o primeiro conjunto de testes (fluxo de Abertura); a Ficha de Al
 ## Fora de escopo
 
 - Pipeline de CI/CD — os testes rodam localmente via comando npm; integrar num pipeline é spec futura.
-- Testes do worker Lambda (Spec 013, ainda não implementado).
+- Testes do worker (Spec 013, ainda não implementado).
 - Testes da Ficha de Alteração Contratual (Spec 012, ainda não implementado).
 - Matriz multi-browser (Firefox/WebKit) — começa só com Chromium; expandir depois se necessário.
 - Testes de regressão visual (screenshot diffing).

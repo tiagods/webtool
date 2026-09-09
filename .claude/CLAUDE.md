@@ -6,7 +6,7 @@
 - **Sem Preguica**: encontrar causas raiz, sem fixes temporarios — padrao de desenvolvedor senior
 - **Orientado por Spec**: sem implementacao sem spec aprovada (exceto hotfixes triviais)
 - **Small Batches**: quebrar trabalho em pecas digestiveis, entregar frequentemente
-- **Usuario Controla o Git**: nunca executar comandos de escrita no git — sugerir, nao agir
+- **Usuario Controla o Git**: nunca executar comandos de escrita no git — sugerir, nao agir proativamente
 
 ---
 
@@ -100,20 +100,9 @@ Spec (definicao) → Aprovacao → Batch (implementacao) → Verificacao → Don
 │   ├── start-batch.md
 │   └── done.md
 ├── skills/                # Instrucoes step-by-step (agente le e segue)
-│   ├── new-entity.md      # Criar entity de dominio
-│   ├── new-port.md        # Criar port (interface ABC)
-│   └── new-adapter.md     # Implementar adapter concreto
 └── agents/                # Subagentes autonomos (delegacao)
     └── code-reviewer.md   # Revisao contra Clean Architecture
 ```
-
-### Skills e Agents
-
-**Skills** — o agente le e executa no contexto atual (mantem contexto do batch):
-- `new-entity` → entity + testes unitarios
-- `new-port` → interface ABC outbound (repository, gateway, client)
-- `new-adapter` → adapter concreto + schema + registro no container + testes
-
 **Agents** — delegacao para subagente isolado (contexto fresco):
 - `code-reviewer` → revisa mudancas contra regras de Clean Architecture antes de fechar batch
 

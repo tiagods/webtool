@@ -1,7 +1,7 @@
 ---
 id: "012"
 title: "Ficha de Alteração Contratual (novo formulário)"
-status: in-progress
+status: done
 created: 2026-07-07
 author: "Claude"
 batch_size: "medium"
@@ -105,12 +105,12 @@ Espelha a estrutura de `apps/web/app/abertura/`:
 - [x] **CA2 — Rota de sessão**: `POST /api/alteracao/session` cria/reusa a sessão e garante o item inicial na tabela de alteração; exige aceite LGPD (403 sem ele).
 - [x] **CA3 — Rascunho**: `GET/POST /api/alteracao/draft` salva e recupera rascunhos parciais (por passo) na tabela de alteração, com o mesmo guard de sessão; renova TTL de 2h.
 - [x] **CA4 — Envio**: `POST /api/alteracao/submit` valida o payload completo, gera protocolo `ALT-{ano}-{seq}`, faz backup do payload em S3, publica na SQS com `formType: 'alteracao'`, marca `enviado` e invalida o cookie.
-- [ ] **CA5 — Retrocompat Abertura**: submit de abertura passa a enviar `formType: 'abertura'`; nenhum comportamento da Abertura (specs 001–009) regride — build e fluxo E2E de abertura continuam funcionando.
+- [x] **CA5 — Retrocompat Abertura**: submit de abertura passa a enviar `formType: 'abertura'`; nenhum comportamento da Abertura (specs 001–009) regride — build e fluxo E2E de abertura continuam funcionando.
 - [x] **CA6 — Passo 1 (UI)**: `/alteracao` renderiza o passo de identificação com preenchimento manual dos dados cadastrais; bloqueia avanço se `situacao !== 'ativa'`.
 - [x] **CA7 — Passo 2 (UI)**: seleção múltipla dos quadros agrupada conforme o doc; exige ao menos 1 quadro.
 - [x] **CA8 — Passo 3 (UI)**: renderiza dinamicamente apenas os sub-formulários dos quadros selecionados (Q01–Q09), com os campos/validações do doc; salva rascunho por quadro completo.
 - [x] **CA9 — Passo 4 (UI)**: comparativo antes/depois por quadro, edição por seção, aceite obrigatório e CTA de envio; redireciona para confirmação com o protocolo.
-- [ ] **CA10 — Verificação E2E**: fluxo completo `/alteracao` preenchido de ponta a ponta resulta em `submit` bem-sucedido (protocolo retornado, item marcado `enviado`), validado manualmente conforme regra de Verificação do `.claude/CLAUDE.md`.
+- [x] **CA10 — Verificação E2E**: fluxo completo `/alteracao` preenchido de ponta a ponta resulta em `submit` bem-sucedido (protocolo retornado, item marcado `enviado`), validado manualmente conforme regra de Verificação do `.claude/CLAUDE.md`.
 
 ## Notas
 
@@ -118,3 +118,4 @@ Espelha a estrutura de `apps/web/app/abertura/`:
 - Protótipo Paper: https://app.paper.design/file/01KP10MY4NWSR343R7HKDZ3KWA/3-0 (ver `[[reference_paper_pages]]` na memória do agente para o mapeamento das páginas do arquivo Paper).
 - **Tamanho**: embora marcada `medium`, a feature é grande (4 passos, 9 quadros, schemas + API + frontend). O `todo.md` deve ser organizado em fases (Shared → API → Frontend → Verificação) para entrega incremental; se necessário, o batch pode ser pausado entre fases.
 - Lições aplicáveis: Spec 010 (`.partial()` + `.refine()` em draft schema) e a regra de propagar falha de salvamento de rascunho para bloquear navegação.
+- **Verificação (Fase 4)**: `POST /api/alteracao/session` criava um item órfão na tabela `fichas-abertura` porque `createOrGetSession` chamava `ensureRascunhoInicial` sem `tableName`. Corrigido — `createOrGetSession(cookieStore, tableName?)` propaga a tabela; call sites de Abertura inalterados (default). Ver `lessons.md` (2026-09-02).

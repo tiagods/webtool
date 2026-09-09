@@ -1,6 +1,6 @@
 ---
 id: "016"
-title: "Testes Unitários — apps/api (Meta 100% / Piso 95%)"
+title: "Testes Unitários — apps/api-golang (Meta 100% / Piso 95%)"
 status: draft
 created: 2026-07-07
 author: "Claude"
@@ -8,7 +8,7 @@ batch_size: "medium"
 depends_on: ["015"]
 ---
 
-# Testes Unitários — apps/api (Meta 100% / Piso 95%)
+# Testes Unitários — apps/api-golang (Meta 100% / Piso 95%)
 
 ## Contexto
 
@@ -22,7 +22,7 @@ Escrever a suíte de testes unitários para todo `apps/api` (`lib/auth.ts`, `lib
 
 - Testes de integração reais contra Floci/AWS (já cobertos pela Spec 014 — E2E).
 - Testes do handler `DELETE /api/session` da Spec 011, caso ainda não esteja implementado no momento de iniciar este batch — se a Spec 011 já estiver `done`, seu handler entra no escopo desta spec; se não, fica para um batch de continuação.
-- Testes do worker Lambda (Spec 013, não implementado).
+- Testes do worker (Spec 013, não implementado).
 - Qualquer refactor de lógica de negócio além do mínimo necessário para tornar código testável (ex.: extrair uma função pura de um handler acoplado a `NextRequest`).
 
 ## Design
