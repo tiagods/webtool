@@ -32,6 +32,11 @@ manter. Aplique-as com bom senso e siga os padrões já adotados pelo projeto.
 6. **Comentarás apenas o porquê**
 	- Faça o código explicar o que acontece por meio de nomes e estrutura.
 	- Use comentários para registrar decisões, restrições ou regras não óbvias.
+	- Comente de forma concisa e clara, evitando redundâncias, evite referencias que nao o codigo em si.
+		- Evite comentários que descrevam o que o código já expressa claramente.
+		- Evite comentarios completos de um fluxo de código, prefira explicar o porquê de uma decisão ou abordagem.
+		- Evite referencias a outros arquivos ou documentações externas, prefira manter o contexto no próprio código.
+		- Evite comentarios que expliquem demais um processo mesmo nao fazendo parte do fluxo de código, prefira explicar o porquê de uma decisão ou abordagem. (ex: main.go -> claramente ja invoca um Start, nao precisa comentar que o Start é invocado, mas sim explicar o porquê de invocar o Start naquele ponto do código)
 
 7. **Tratarás erros de forma previsível**
 	- Valide entradas e trate falhas nos limites apropriados.
