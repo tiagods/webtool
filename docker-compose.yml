@@ -52,7 +52,7 @@ services:
   # Não exposto publicamente em produção; o nginx roteia /api/* para api:3001.
   api:
     build:
-      context: ./apps/api
+      context: ./apps/backend
       dockerfile: Dockerfile
       args:
         APP: api

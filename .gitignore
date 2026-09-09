@@ -37,8 +37,8 @@ pnpm-debug.log*
 # Deploy / infra
 .vercel
 
-# Go (apps/api)
-/apps/api/bin/
+# Go (apps/backend)
+/apps/backend/bin/
 vendor/
 *.exe
 *.test

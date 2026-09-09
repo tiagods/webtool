@@ -4,9 +4,9 @@ Mapeamento de todos os recursos AWS utilizados no projeto, com configuração, s
 
 > **Ambiente local:** todos os recursos são emulados via **Floci** (`floci/floci:latest`) na porta 4566. Scripts de provisionamento em `infra/local/`.
 >
-> **Autenticação em produção:** IAM Role (não IAM user com chaves) quando possível. `apps/api` (binário Go `cmd/api`) e `apps/worker` (`cmd/worker` do mesmo módulo Go) rodam como containers Docker na mesma stack (Lightsail hoje; Fargate no futuro). O SDK Go usa a cadeia de credenciais padrão (IAM role do host/task) quando `AWS_ENDPOINT_URL` está **ausente** — `config.AWS.UsesCustomEndpoint()` só é `true` no local (Floci), onde `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` passam a ser obrigatórias. Nenhuma chave hardcoded em produção. O `apps/worker` **não é Lambda** — é um processo long-running que faz long-polling na SQS (ver seção "Worker" e [`013-worker-pdf-email.md`](../.claude/specs/013-worker-pdf-email.md)).
+> **Autenticação em produção:** IAM Role (não IAM user com chaves) quando possível. `apps/backend` (binário Go `cmd/api`) e `apps/worker` (`cmd/worker` do mesmo módulo Go) rodam como containers Docker na mesma stack (Lightsail hoje; Fargate no futuro). O SDK Go usa a cadeia de credenciais padrão (IAM role do host/task) quando `AWS_ENDPOINT_URL` está **ausente** — `config.AWS.UsesCustomEndpoint()` só é `true` no local (Floci), onde `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` passam a ser obrigatórias. Nenhuma chave hardcoded em produção. O `apps/worker` **não é Lambda** — é um processo long-running que faz long-polling na SQS (ver seção "Worker" e [`013-worker-pdf-email.md`](../.claude/specs/013-worker-pdf-email.md)).
 >
-> **Config:** toda variável de ambiente é lida e validada uma única vez em `apps/api/infrastructure/config` (boot falha rápido com erro agregado listando o que falta). Variáveis: `APP_ENV` (`dev`|`prod`), `JWT_SECRET`, `PORT`, `SESSION_EXPIRY_SECONDS`, `AWS_REGION`, `AWS_DYNAMODB_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL` e (só local) `AWS_ENDPOINT_URL` + chaves estáticas.
+> **Config:** toda variável de ambiente é lida e validada uma única vez em `apps/backend/infrastructure/config` (boot falha rápido com erro agregado listando o que falta). Variáveis: `APP_ENV` (`dev`|`prod`), `JWT_SECRET`, `PORT`, `SESSION_EXPIRY_SECONDS`, `AWS_REGION`, `AWS_DYNAMODB_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL` e (só local) `AWS_ENDPOINT_URL` + chaves estáticas.
 
 ---
 
@@ -17,7 +17,7 @@ Browser
   │
   ├─ PUT (presigned) ──────────────────────────────────→ S3
   │
-  └─ apps/api (container)
+  └─ apps/backend (container)
         │
         ├─ DynamoDB   ← rascunhos, aceites LGPD, contador de protocolo
         ├─ S3         ← documentos dos sócios + backup JSON/PDF
@@ -241,7 +241,7 @@ Recebe mensagens do SNS via subscription e entrega o e-mail ao destinatário fin
 
 ### IAM Task Role
 
-A task do Fargate recebe permissões via **Task Role** — sem `AWS_ACCESS_KEY_ID` ou `AWS_SECRET_ACCESS_KEY` em variáveis de ambiente ou código. O SDK da AWS (Go, em `apps/api`) detecta as credenciais automaticamente via metadata do container quando `AWS_ENDPOINT_URL` não está definido.
+A task do Fargate recebe permissões via **Task Role** — sem `AWS_ACCESS_KEY_ID` ou `AWS_SECRET_ACCESS_KEY` em variáveis de ambiente ou código. O SDK da AWS (Go, em `apps/backend`) detecta as credenciais automaticamente via metadata do container quando `AWS_ENDPOINT_URL` não está definido.
 
 **Permissões necessárias (a detalhar):**
 

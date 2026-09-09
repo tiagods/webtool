@@ -107,6 +107,29 @@ o arquivo com `Write`** ou fazer `Edit` pontual com contexto único por ocorrên
 **Causa raiz**: a rota reusa `createOrGetSession`, que chamava `ensureRascunhoInicial(sessionId)` sem `tableName` → default = tabela de Abertura. A generalização da Spec 012 parametrizou `ensureRascunhoInicial`/`requireSession` por tabela, mas esqueceu `createOrGetSession`, que é o único ponto que faz o bootstrap do item para sessão nova.
 **Regra**: ao adicionar um segundo formulário que reusa helpers de sessão/auth de um formulário existente, auditar **toda** a cadeia de chamadas do helper por parâmetros com default implícito para a tabela/recurso do formulário original — não só as funções citadas na spec. Verificação: rodar o fluxo do novo formulário e conferir que a contagem de itens da tabela do formulário antigo **não muda**.
 
+## 2026-09-08 — Spec 029 (rename apps/backend) — `sed` de path com nomes que se contêm
+
+**Erro/risco**: fazer `sed 's#apps/api\b#apps/backend#g'` em docs também casa o `apps/api` dentro
+de `apps/api-node` e `apps/api-golang` (o `\b` casa entre `i` e `-`), corrompendo os nomes
+compostos (gerou `git mv apps/backend apps/backend` numa nota de rollback).
+**Regra**: quando um token de rename é prefixo de outros (`apps/api` ⊂ `apps/api-node` ⊂
+`apps/api-golang`), fazer o `sed` em ordem: (1) placeholder nos nomes compostos
+(`s#apps/api-node#§X§#g`), (2) tratar `apps/api-golang` explicitamente, (3) `apps/api/` e
+`apps/api\b`, (4) restaurar o placeholder. E reler o diff dos arquivos tocados — `sed` em massa
+sempre deixa 2–3 frases sem sentido que precisam de edição à mão.
+
+## 2026-09-08 — Specs 022–029 nunca commitadas — commit em blocos coerentes ao finalizar
+
+**Contexto**: toda a migração Go (022–027, `done`) + o cutover (028) estavam no working tree
+sem nenhum commit — `apps/api/` inteiro *untracked*, mais mudanças alheias de outros devices
+(`.claude/settings.json` deletado, specs 012/014/016 editadas, `.claude/rules/` novo).
+**Regra**: antes de iniciar um batch que renomeia/apaga o que o anterior produziu, checar
+`git log` — se o trabalho anterior não foi commitado, **parar e organizar os commits primeiro**
+(um "checkpoint" por spec ou por bloco coerente), deixando de fora só o batch atual. Nunca
+empilhar rename-sobre-rename de código *untracked*: perde-se a granularidade de `git revert` e
+o diff fica ilegível. Mudanças de outros devices que aparecem no tree: não commitar às cegas —
+listar para o usuário e deixar as ambíguas (ex.: arquivo deletado) fora dos commits.
+
 ## 2026-09-08 — Spec 028 (Cutover Go) — rename de diretório quebra Dockerfiles fora do módulo
 
 **Erro**: após `git mv apps/api apps/api-node` + `mv apps/api-golang apps/api`, `docker compose build`

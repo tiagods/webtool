@@ -17,32 +17,31 @@ npm run build        # Production build (apps/web)
 npm run lint         # ESLint check (apps/web)
 ```
 
-`apps/api` is a **Go module** — its commands live in `apps/api/Makefile` (run from Git Bash):
+`apps/backend` is a **Go module** — its commands live in `apps/backend/Makefile` (run from Git Bash):
 ```bash
-make -C apps/api run              # go run ./cmd/api  (needs JWT_SECRET + APP_ENV in env)
-make -C apps/api build APP=api    # static binary → apps/api/bin/
-make -C apps/api lint             # go vet + gofmt + golangci-lint
-make -C apps/api test             # go test ./... -race
-make -C apps/api test-integration # needs `docker compose up -d floci aws-init`
+make -C apps/backend run              # go run ./cmd/api  (needs JWT_SECRET + APP_ENV in env)
+make -C apps/backend build APP=api    # static binary → apps/backend/bin/
+make -C apps/backend lint             # go vet + gofmt + golangci-lint
+make -C apps/backend test             # go test ./... -race
+make -C apps/backend test-integration # needs `docker compose up -d floci aws-init`
 ```
 
-Full local flow without Docker: run `npm run dev -w apps/web` (3000) and `make -C apps/api run` (3001) in
+Full local flow without Docker: run `npm run dev -w apps/web` (3000) and `make -C apps/backend run` (3001) in
 parallel — `apps/web/next.config.mjs` proxies `/api/:path*` to `:3001` in dev, so the whole flow works
 through `http://localhost:3000` alone. Via Docker: `npm run infra:up` (`docker compose up -d --build`),
 available at `http://localhost` (port 80, via Nginx).
 
-The Go module has unit + integration tests (`make -C apps/api test`); `apps/web` has no test command yet.
+The Go module has unit + integration tests (`make -C apps/backend test`); `apps/web` has no test command yet.
 The Go validator is verified against the shared Zod schemas by a characterization suite
 (`node scripts/gen-abertura-characterization.mjs` / `gen-alteracao-characterization.mjs`).
 
 ## Architecture
 
-**Monorepo** (npm workspaces for `apps/web` + `apps/api-node` + `packages/*`; `apps/api` is a standalone Go module):
+**Monorepo** (npm workspaces for `apps/web` + `packages/*`; `apps/backend` is a standalone Go module):
 - `apps/web` — Next.js 14+ (App Router) frontend only (pages, form, `middleware.ts` for the LGPD banner). No AWS access.
-- `apps/api` — **Go** (Echo + Clean Architecture): `/api/session`, `/api/draft`, `/api/upload-url`, `/api/submit`, `/api/aceite-termo`, `/api/alteracao/*`, `DELETE /api/session`. `cmd/api` (HTTP) + `cmd/worker` (SQS consumer, Phase 7). **Not exposed publicly in production** — port 3001 is published in `docker-compose*.yml` for local debug, but the production server firewall blocks external access; only Nginx (and same-host traffic) can reach it. Layers: `domain/{entity,ports,service,validation}`, `adapter/web/{handler,presenter}`, `infrastructure/{config,auth,aws,middleware,...}`.
-- `apps/api-node` — legacy Next.js Route Handlers implementation, kept for cutover rollback (spec 028); removed after production verification.
-- `apps/worker` — [Planned Phase 7] the `cmd/worker` binary of the `apps/api` Go module, run as a long-running Docker container: PDF generation, email via SNS→SES. See [`.claude/specs/013-worker-pdf-email.md`](.claude/specs/013-worker-pdf-email.md)
-- `packages/shared` — `@prolink/shared`: Zod schemas and TypeScript types used by `web` and `api-node`; the Go validator in `apps/api` mirrors these schemas (characterization-tested).
+- `apps/backend` — **Go** (Echo + Clean Architecture): `/api/session`, `/api/draft`, `/api/upload-url`, `/api/submit`, `/api/aceite-termo`, `/api/alteracao/*`, `DELETE /api/session`. `cmd/api` (HTTP) + `cmd/worker` (SQS consumer, Phase 7). Rewrite of the original Next.js backend (specs 022–028). **Not exposed publicly in production** — port 3001 is published in `docker-compose*.yml` for local debug, but the production server firewall blocks external access; only Nginx (and same-host traffic) can reach it. Layers: `domain/{entity,ports,service,validation}`, `adapter/web/{handler,presenter}`, `infrastructure/{config,auth,aws,middleware,...}`.
+- `apps/worker` — [Planned Phase 7] the `cmd/worker` binary of the `apps/backend` Go module, run as a long-running Docker container: PDF generation, email via SNS→SES. See [`.claude/specs/013-worker-pdf-email.md`](.claude/specs/013-worker-pdf-email.md)
+- `packages/shared` — `@prolink/shared`: Zod schemas and TypeScript types consumed by `apps/web`; the Go validator in `apps/backend` mirrors these schemas (characterization-tested).
 - `infra/nginx` — reverse proxy, the recommended public entry point (port 80); routes `/` → `web`, `/api/*` → `api`
 
 **Main user flow** (`/abertura`):
@@ -53,11 +52,11 @@ The Go validator is verified against the shared Zod schemas by a characterizatio
 5. Worker container consumes the SQS message, generates the PDF and sends the notification email via SNS→SES
 
 **Key files:**
-- `apps/web/app/abertura/StepperEngine.tsx` — orchestrates steps, form state, and navigation; calls relative `/api/*` paths (routed to `apps/api` by Nginx in production, or by the dev-only rewrite in `apps/web/next.config.mjs` — no client-side branching needed)
+- `apps/web/app/abertura/StepperEngine.tsx` — orchestrates steps, form state, and navigation; calls relative `/api/*` paths (routed to `apps/backend` by Nginx in production, or by the dev-only rewrite in `apps/web/next.config.mjs` — no client-side branching needed)
 - `apps/web/components/forms/` — one component per step (DadosEmpresa, Endereco, Socios, Sociedade, Documentos, Revisao)
-- `packages/shared/src/schemas/` — Zod validation schemas (source of truth for form data shape; the Go validator in `apps/api/domain/validation` mirrors them)
-- `apps/api/domain/validation/` — Go port of the Zod schemas; `testdata/` holds the characterization cases + expected verdicts generated from the shared schemas
-- `apps/api/infrastructure/config/config.go` — the only place that reads env; `apps/api/adapter/web/router.go` wires routes → handlers
+- `packages/shared/src/schemas/` — Zod validation schemas (source of truth for form data shape; the Go validator in `apps/backend/domain/validation` mirrors them)
+- `apps/backend/domain/validation/` — Go port of the Zod schemas; `testdata/` holds the characterization cases + expected verdicts generated from the shared schemas
+- `apps/backend/infrastructure/config/config.go` — the only place that reads env; `apps/backend/adapter/web/router.go` wires routes → handlers
 - `apps/web/tailwind.config.ts` — design token colors (`brand`, `accent`, `sky`, `success`, `error`, `muted`, `border`, `surface`)
 
 **Dependency rule** (Clean Architecture — see `.claude/rules/boas-praticas-go.md` for the Go layout):
@@ -66,7 +65,7 @@ adapters → domain ← use_cases
 infra → adapters, domain, use_cases
 ```
 
-**Shared package import:** use `@prolink/shared` (workspace-linked, no build step needed in dev) — `web`/`api-node` only.
+**Shared package import:** use `@prolink/shared` (workspace-linked, no build step needed in dev) — `apps/web` only. The Go backend has no npm dep; its validator mirrors `packages/shared/src/schemas`.
 
 ## Design System
 

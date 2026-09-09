@@ -24,7 +24,7 @@
    │
    ├─ "/"      ──→ [apps/web :3000]   (páginas, sem acesso a AWS)
    │
-   └─ "/api/*" ──→ [apps/api :3001]   (binário Go cmd/api; porta publicada no
+   └─ "/api/*" ──→ [apps/backend :3001]   (binário Go cmd/api; porta publicada no
                         │              host para debug local; em produção,
                         │              bloqueada pelo firewall p/ tráfego externo)
                         ├─ Rascunho (a cada step) ──→ POST /api/draft ──→ DynamoDB (TTL 2h)
@@ -56,10 +56,9 @@
 |---|---|---|---|
 | Borda / proxy | `infra/nginx` | Nginx | Único ponto de entrada público (porta 80); roteia por path para `web` ou `api` |
 | Frontend | `apps/web` | Next.js 14+ (App Router) | Formulário multi-step, validação, upload — sem acesso a AWS |
-| Backend / API | `apps/api` | **Go** (Echo + Clean Architecture, `cmd/api`) | Sessão, draft, presigned URL, submit, protocolo, alteração — **não exposto publicamente** |
-| Worker | `apps/worker` | `cmd/worker` do módulo Go de `apps/api`, container long-running (não Lambda) | Long-polling na SQS, gerar PDF e publicar evento no SNS |
-| Legado | `apps/api-node` | Next.js 14+ (Route Handlers) | Implementação anterior de `apps/api`; mantida para rollback do cutover (spec 028), removida após verificação em produção |
-| Shared | `packages/shared` | TypeScript + Zod | Schemas, tipos, constantes de `web`/`api-node`; o validador Go de `apps/api` os espelha (caracterização) |
+| Backend / API | `apps/backend` | **Go** (Echo + Clean Architecture, `cmd/api`) | Sessão, draft, presigned URL, submit, protocolo, alteração — **não exposto publicamente** |
+| Worker | `apps/worker` | `cmd/worker` do módulo Go de `apps/backend`, container long-running (não Lambda) | Long-polling na SQS, gerar PDF e publicar evento no SNS |
+| Shared | `packages/shared` | TypeScript + Zod | Schemas, tipos, constantes consumidos por `apps/web`; o validador Go de `apps/backend` os espelha (caracterização) |
 | Sessão | — | JWT httpOnly cookie (2h) | Identificar sessão de preenchimento |
 | Banco | — | DynamoDB | Rascunhos com TTL automático |
 | Arquivos | — | S3 | Documentos dos sócios + JSON de backup |
@@ -151,9 +150,9 @@ O browser nunca envia arquivos para o servidor Next.js — vai direto para o S3:
 
 ---
 
-## API Routes (`apps/api` — não exposto publicamente em produção)
+## API Routes (`apps/backend` — não exposto publicamente em produção)
 
-Servidas pelo binário **Go** `cmd/api` (Echo), alcançáveis pelo browser através do Nginx (`/api/*`). O processo roda na porta `3001`, publicada no host (`ports: "3001:3001"`) para permitir debug local direto — em produção, o firewall do servidor bloqueia o acesso externo a essa porta, então nenhuma requisição de fora chega a `apps/api` sem passar pelo Nginx. Rate limit de 20 req/60s por IP cobre toda a superfície `/api` (→ 429).
+Servidas pelo binário **Go** `cmd/api` (Echo), alcançáveis pelo browser através do Nginx (`/api/*`). O processo roda na porta `3001`, publicada no host (`ports: "3001:3001"`) para permitir debug local direto — em produção, o firewall do servidor bloqueia o acesso externo a essa porta, então nenhuma requisição de fora chega a `apps/backend` sem passar pelo Nginx. Rate limit de 20 req/60s por IP cobre toda a superfície `/api` (→ 429).
 
 | Rota | Método | Descrição |
 |---|---|---|
@@ -187,7 +186,7 @@ POST /api/submit
 
 ### Worker (consumidor SQS)
 
-`apps/worker` é um **container Docker** na mesma stack Compose (nginx + web + api + worker) — o binário `cmd/worker` do módulo Go de `apps/api`, long-running, fazendo long-polling na fila SQS. **Não é Lambda**: nenhuma IaC/pipeline de função gerenciada existe no repositório e o volume (~100 fichas/mês) não justifica escala a zero. A lógica de processamento de uma mensagem é isolada do loop de polling e recebe dependências por injeção (mesmos ports do `cmd/api`). Design completo: [`013-worker-pdf-email.md`](../.claude/specs/013-worker-pdf-email.md).
+`apps/worker` é um **container Docker** na mesma stack Compose (nginx + web + api + worker) — o binário `cmd/worker` do módulo Go de `apps/backend`, long-running, fazendo long-polling na fila SQS. **Não é Lambda**: nenhuma IaC/pipeline de função gerenciada existe no repositório e o volume (~100 fichas/mês) não justifica escala a zero. A lógica de processamento de uma mensagem é isolada do loop de polling e recebe dependências por injeção (mesmos ports do `cmd/api`). Design completo: [`013-worker-pdf-email.md`](../.claude/specs/013-worker-pdf-email.md).
 
 ```
 Loop: SQS ReceiveMessage (WaitTimeSeconds 20, VisibilityTimeout 120)
@@ -250,7 +249,7 @@ Todos os serviços compartilham a mesma rede padrão do projeto Compose, então 
 
 | Requisito | Implementação |
 |---|---|
-| Backend não exposto publicamente | `apps/api` publica a porta 3001 no host (debug local), mas em produção o **firewall do servidor** bloqueia acesso externo a ela — só tráfego local/Nginx alcança |
+| Backend não exposto publicamente | `apps/backend` publica a porta 3001 no host (debug local), mas em produção o **firewall do servidor** bloqueia acesso externo a ela — só tráfego local/Nginx alcança |
 | Dados sensíveis em trânsito | HTTPS obrigatório (Lightsail + certificado) |
 | Dados em repouso | S3 SSE + DynamoDB encryption (padrão AWS) |
 | Acesso aos arquivos | S3 privado — acesso apenas via presigned URLs com validade curta |
@@ -306,7 +305,7 @@ webtool/                          ← raiz do monorepo
 │   │   ├── tsconfig.json         ← extends ../../tsconfig.base.json
 │   │   └── next.config.mjs
 │   │
-│   ├── api/                      ← módulo Go (Echo + Clean Architecture) — não exposto publicamente
+│   ├── backend/                  ← módulo Go (Echo + Clean Architecture) — não exposto publicamente
 │   │   ├── cmd/
 │   │   │   ├── api/main.go       ← entrypoint HTTP (chama infrastructure.StartApp)
 │   │   │   └── worker/main.go    ← entrypoint do consumidor SQS (Fase 7)
@@ -319,9 +318,7 @@ webtool/                          ← raiz do monorepo
 │   │   ├── infrastructure/       ← config, auth (JWT HS256), aws/, middleware, ratelimit, logger
 │   │   ├── go.mod  go.sum  Dockerfile  Makefile
 │   │
-│   ├── api-node/                 ← [legado] Next.js Route Handlers — rollback do cutover (spec 028)
-│   │
-│   └── worker/                   ← [Fase 7] o binário cmd/worker de apps/api, rodando como container
+│   └── worker/                   ← [Fase 7] o binário cmd/worker de apps/backend, rodando como container
 │
 ├── packages/
 │   └── shared/                   ← @prolink/shared
@@ -332,7 +329,7 @@ webtool/                          ← raiz do monorepo
 │       │   │   ├── socios.ts
 │       │   │   └── sociedade.ts  ← schema exclusivo Ltda
 │       │   ├── constants/
-│       │   │   └── termo.ts      ← TERMO_VERSAO_ATUAL (apps/web; o Go de apps/api espelha a constante)
+│       │   │   └── termo.ts      ← TERMO_VERSAO_ATUAL (apps/web; o Go de apps/backend espelha a constante)
 │       │   ├── types/
 │       │   │   └── index.ts
 │       │   └── index.ts          ← barrel export
@@ -345,7 +342,7 @@ webtool/                          ← raiz do monorepo
 └── README.md
 ```
 
-> **npm workspaces**: `npm install` na raiz instala as dependências de `apps/web`, `apps/api-node` e `packages/*`. Schemas Zod e constantes ficam em `@prolink/shared` (importados por `web`/`api-node`). `apps/api` é um **módulo Go** independente — `apps/api/go.mod`, comandos via `apps/api/Makefile`.
+> **npm workspaces**: `npm install` na raiz instala as dependências de `apps/web` e `packages/*`. Schemas Zod e constantes ficam em `@prolink/shared` (importados por `apps/web`). `apps/backend` é um **módulo Go** independente — `apps/backend/go.mod`, comandos via `apps/backend/Makefile`.
 
 ---
 
@@ -366,7 +363,7 @@ webtool/                          ← raiz do monorepo
 
 > `apps/web` mantém `jose` apenas para o `middleware.ts` verificar o cookie `prolink_aceite` (decidir se mostra o banner) — não faz mais nenhuma chamada AWS.
 
-### `apps/api` (Go — backend, não exposto publicamente)
+### `apps/backend` (Go — backend, não exposto publicamente)
 
 Módulo Go (`go.mod`), stdlib-first. Libs principais:
 
@@ -379,7 +376,6 @@ golang.org/x/sync/errgroup              — fan-out (cópia de objetos S3 no sub
 go.uber.org/mock                        — mocks dos ports (testes)
 ```
 
-> `apps/api-node` (legado) mantém as deps Next.js/`@aws-sdk` originais até ser removido.
 
 ### `apps/worker` (container Docker — consumidor SQS)
 

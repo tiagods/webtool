@@ -63,3 +63,6 @@ nenhuma alteração** funciona contra a API Go, e faz a troca definitiva.
 
 - Rollback: reverter o rename e o `docker-compose*.yml` restaura o `apps/api` Node
   (mantido como `apps/api-node` até a verificação em produção).
+- **Atualização (spec 029):** `apps/api` (Go) foi renomeado para `apps/backend` e `apps/api-node`
+  foi removido — o item 6 acima ("deletar `apps/api-node`") foi concluído pela spec 029, com o
+  rollback do cutover passando a ser `git revert` do commit da migração.

@@ -1,7 +1,7 @@
-# Boas práticas de código Go — `apps/api-golang`
+# Boas práticas de código Go — `apps/backend`
 
 Complemento de [`boas-praticas.md`](./boas-praticas.md) para o código Go do monorepo
-`apps/api-golang` (spec 022+). Quando houver conflito entre uma preferência geral e um idioma
+`apps/backend` (spec 022+). Quando houver conflito entre uma preferência geral e um idioma
 Go consagrado, **este arquivo tem precedência**.
 
 Base: [Effective Go](https://go.dev/doc/effective_go), [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments),
@@ -208,5 +208,5 @@ domain/entity        →  stdlib APENAS
 - `golangci-lint run` limpo — **a partir da spec 023** (não exigido no scaffold 022).
   Instalar com `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest`;
   precisa ser **≥ v2.13** para Go 1.27 (versões antigas quebram com "export data version 4").
-  Config em `apps/api-golang/.golangci.yml` (`default: standard` + `revive` + `unconvert`;
+  Config em `apps/backend/.golangci.yml` (`default: standard` + `revive` + `unconvert`;
   `misspell` fora — comentários em pt-BR).

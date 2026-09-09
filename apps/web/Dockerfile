@@ -3,7 +3,6 @@ WORKDIR /repo
 
 COPY package.json package-lock.json tsconfig.base.json ./
 COPY apps/web/package.json apps/web/package.json
-COPY apps/api-node/package.json apps/api-node/package.json
 COPY packages/shared/package.json packages/shared/package.json
 RUN npm ci
 

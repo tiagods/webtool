@@ -3,15 +3,15 @@
 // Roda um conjunto de payloads representativos contra os schemas Zod reais
 // (`alteracaoFormSchema` para o formulário completo, `alteracaoFormDraftSchema`
 // para o rascunho parcial) e grava o veredito esperado (aceito/rejeitado +
-// caminhos das issues). O validador Go de `apps/api/domain/validation`
+// caminhos das issues). O validador Go de `apps/backend/domain/validation`
 // tem que reproduzir exatamente esse veredito — ver `alteracao_test.go`.
 //
 // Uso:
 //   node scripts/gen-alteracao-characterization.mjs
 //
 // Gera (e sobrescreve):
-//   apps/api/domain/validation/testdata/casos_alteracao.json            (entradas)
-//   apps/api/domain/validation/testdata/veredito_alteracao_esperado.json (saídas Zod)
+//   apps/backend/domain/validation/testdata/casos_alteracao.json            (entradas)
+//   apps/backend/domain/validation/testdata/veredito_alteracao_esperado.json (saídas Zod)
 
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -23,7 +23,7 @@ import {
 } from '../packages/shared/src/schemas/alteracao.ts';
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
-const dirTestdata = join(raiz, 'apps/api/domain/validation/testdata');
+const dirTestdata = join(raiz, 'apps/backend/domain/validation/testdata');
 
 // --- Baselines válidos (mutados por caso via structuredClone) ---------------
 

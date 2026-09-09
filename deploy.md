@@ -1,6 +1,6 @@
 # Guia de Deploy - Prolink Webtool
 
-Desde a [Spec 009](.claude/specs/009-separacao-frontend-backend.md), o projeto é composto por um frontend (`apps/web`, Next.js) e um backend (`apps/api`) separados atrás de um Nginx, orquestrados via Docker Compose. Desde as specs 022–028 o backend é um **binário Go** (`cmd/api`, Echo + Clean Architecture); a implementação Next.js anterior fica em `apps/api-node` até a verificação em produção. O caminho de deploy recomendado é **Docker Compose em um servidor com Docker instalado** (VPS, Lightsail, EC2, etc.), usando o arquivo `docker-compose.prod.yml` da raiz do repositório.
+Desde a [Spec 009](.claude/specs/009-separacao-frontend-backend.md), o projeto é composto por um frontend (`apps/web`, Next.js) e um backend (`apps/backend`) separados atrás de um Nginx, orquestrados via Docker Compose. Desde as specs 022–029 o backend é um **binário Go** (`cmd/api`, Echo + Clean Architecture) — a reescrita substituiu a implementação Next.js original. O caminho de deploy recomendado é **Docker Compose em um servidor com Docker instalado** (VPS, Lightsail, EC2, etc.), usando o arquivo `docker-compose.prod.yml` da raiz do repositório.
 
 ---
 
@@ -42,7 +42,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 Isso builda e sobe quatro containers: `web` (:3000, Next.js), `api` (:3001, binário Go), `nginx` (interno, sem porta publicada) e `caddy` (:80, :443). O Nginx roteia `/` → `web` e `/api/*` → `api` (ver `infra/nginx/default.conf` — **inalterado** no cutover para Go); o Caddy termina TLS e repassa tudo para o Nginx internamente (ver Passo 4). A aplicação fica disponível em `https://prolinkcontabil.com.br`.
 
-> **Rollback do cutover Go→Node:** reverter o rename (`git mv apps/api apps/api-golang && git mv apps/api-node apps/api`) e os serviços `api` de `docker-compose*.yml` restaura a implementação Next.js. `infra/nginx` não muda em nenhuma direção.
+> **Rollback do cutover Go→Node:** `git revert` do commit da migração Go (specs 022–028) restaura a implementação Next.js (`apps/api`) e os serviços antigos de `docker-compose*.yml`. `infra/nginx` não muda em nenhuma direção.
 
 ### Passo 4: TLS/HTTPS (Caddy)
 
@@ -69,8 +69,8 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 ## Alternativa: Vercel (apenas para `apps/web`)
 
-A Vercel é adequada para hospedar `apps/web` isoladamente (CDN global, SSL automático, deploy por push), mas **não é recomendada para `apps/api`** nesta arquitetura: o objetivo da Spec 009 é justamente manter o backend fora de acesso público direto via firewall, o que a Vercel (serverless, sempre publicamente acessível) não permite replicar. Além disso, `apps/api` agora é um binário Go — não um app Next.js que a Vercel hospeda nativamente. Se optar por esse caminho:
+A Vercel é adequada para hospedar `apps/web` isoladamente (CDN global, SSL automático, deploy por push), mas **não é recomendada para `apps/backend`** nesta arquitetura: o objetivo da Spec 009 é justamente manter o backend fora de acesso público direto via firewall, o que a Vercel (serverless, sempre publicamente acessível) não permite replicar. Além disso, `apps/backend` agora é um binário Go — não um app Next.js que a Vercel hospeda nativamente. Se optar por esse caminho:
 
 - **Root Directory**: `apps/web`
 - **Framework Preset**: Next.js (detectado automaticamente)
-- `apps/api` (Go) precisaria ser hospedado à parte (Cloud Run, Fly.io, ECS, etc.), e `apps/web` apontaria os rewrites para a URL pública desse serviço (não para `localhost:3001`).
+- `apps/backend` (Go) precisaria ser hospedado à parte (Cloud Run, Fly.io, ECS, etc.), e `apps/web` apontaria os rewrites para a URL pública desse serviço (não para `localhost:3001`).

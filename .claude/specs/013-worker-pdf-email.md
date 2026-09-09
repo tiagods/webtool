@@ -11,6 +11,8 @@ depends_on: ["008"]
 # Worker (container Docker) — Geração de PDF e E-mail (Fase 7)
 
 > **Rascunho — a aprofundar em discussão antes de aprovar.** Layout do PDF e escopo do e-mail (só interno x confirmação para o cliente) ainda em aberto. A decisão de deploy já está fechada: **container Docker** long-running na mesma stack Compose, **não Lambda** (ver Notas).
+>
+> **⚠️ Desatualizado pós-migração Go (specs 022–029).** Esta spec foi escrita para um worker **Node.js/TS** (`apps/worker/src/*.ts`, `@react-pdf/renderer`). Após o cutover, o worker é o binário **`cmd/worker` do módulo Go `apps/backend`** (já existe como stub em `apps/backend/cmd/worker/main.go` + `infrastructure/worker_controller.go`). Toda referência abaixo a `apps/worker/src/`, `apps/api/lib/`, `@prolink/shared` e libs Node precisa ser reescrita em termos Go (reusar os ports de `apps/backend/domain/ports/outbound`) antes da aprovação.
 
 ## Contexto
 

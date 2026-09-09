@@ -19,7 +19,7 @@ services:
   # AWS_ENDPOINT_URL está ausente (config.AWS.UsesCustomEndpoint() == false).
   api:
     build:
-      context: ./apps/api
+      context: ./apps/backend
       dockerfile: Dockerfile
       args:
         APP: api
