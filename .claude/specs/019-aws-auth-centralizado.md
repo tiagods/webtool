@@ -1,12 +1,18 @@
 ---
 id: "019"
 title: "Centralizar autenticação/config dos clients AWS em aws/config.ts"
-status: draft          # draft | review | approved | in-progress | done | rejected
+status: rejected       # draft | review | approved | in-progress | done | rejected
 created: 2026-07-13
 author: "tiagods"
 batch_size: "small"    # small (≤ meio dia) | medium (≤1 dia)
 depends_on: ["018"]    # aws/config.ts consome os valores resolvidos de lib/config.ts (config.aws.*)
 ---
+
+> **REJEITADA (superseded) — 2026-09-08.** Alvo era o `apps/api` Next.js, aposentado no cutover
+> para Go (specs 022–028). No binário Go, a autenticação/config dos clients AWS já é única em
+> `apps/api/infrastructure/aws` (spec 023): um `config.AWS` validado decide endpoint e credenciais
+> (Floci local vs cadeia padrão em prod, via `UsesCustomEndpoint()`); os clients dynamodb/s3/sqs
+> são montados uma vez no ponto de composição. Nada a portar.
 
 # Centralizar autenticação/config dos clients AWS em aws/config.ts
 
@@ -51,7 +57,9 @@ risco de inconsistência.
 ## Fora de escopo
 
 - Não implementar de fato o suporte a IAM roles agora — apenas deixar a base pronta para
-  que essa troca seja local. (Pode virar spec futura.)
+  que essa troca seja local. **Essa spec futura é a [`021-aws-iam-roles-iac-producao.md`](021-aws-iam-roles-iac-producao.md)**
+  (IAM Roles + Task Definitions do Fargate + IaC dos recursos). A 021 depende desta: sem o
+  `awsClientConfig()` sem `credentials` no ramo de produção, a Task Role seria ignorada.
 - Não alterar a lógica de negócio de cada client (queries, comandos, presign).
 - Não mexer em `apps/web` nem `apps/worker`.
 

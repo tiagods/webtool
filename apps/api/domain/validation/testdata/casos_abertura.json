@@ -1,0 +1,1925 @@
+[
+  {
+    "nome": "full_ltda_valido",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "987.65432.10-9",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 50,
+            "isAdministrador": true
+          },
+          {
+            "percentual": 50,
+            "isAdministrador": false
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_slu_valido",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "slu",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_ltda_um_socio",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 100,
+            "isAdministrador": true
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_ltda_quotas_soma_9999_dentro_margem",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "987.65432.10-9",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 49.99,
+            "isAdministrador": true
+          },
+          {
+            "percentual": 50,
+            "isAdministrador": false
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_ltda_quotas_soma_10002_fora_margem",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "987.65432.10-9",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 50.01,
+            "isAdministrador": true
+          },
+          {
+            "percentual": 50.01,
+            "isAdministrador": false
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_ltda_sem_administrador",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "987.65432.10-9",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 50,
+            "isAdministrador": false
+          },
+          {
+            "percentual": 50,
+            "isAdministrador": false
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_ltda_quotas_quantidade_diferente_de_socios",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "987.65432.10-9",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 100,
+            "isAdministrador": true
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_ltda_sem_sociedade",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "987.65432.10-9",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_socio_participacao_societaria_sem_cnpj",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "slu",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": true,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_documentos_nao_aceitos",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "987.65432.10-9",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 50,
+            "isAdministrador": true
+          },
+          {
+            "percentual": 50,
+            "isAdministrador": false
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": false
+    }
+  },
+  {
+    "nome": "full_cep_sede_invalido",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "1310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "987.65432.10-9",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 50,
+            "isAdministrador": true
+          },
+          {
+            "percentual": 50,
+            "isAdministrador": false
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_cpf_socio_invalido",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "12345678900",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "987.65432.10-9",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 50,
+            "isAdministrador": true
+          },
+          {
+            "percentual": 50,
+            "isAdministrador": false
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_pis_socio_invalido",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "12345678901",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 50,
+            "isAdministrador": true
+          },
+          {
+            "percentual": 50,
+            "isAdministrador": false
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_email_socio_invalido",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao-sem-arroba",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "987.65432.10-9",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 50,
+            "isAdministrador": true
+          },
+          {
+            "percentual": 50,
+            "isAdministrador": false
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_atividade_curta",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Consultoria"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "987.65432.10-9",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 50,
+            "isAdministrador": true
+          },
+          {
+            "percentual": 50,
+            "isAdministrador": false
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_prolabore_abaixo_minimo",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1000,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "987.65432.10-9",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 50,
+            "isAdministrador": true
+          },
+          {
+            "percentual": 50,
+            "isAdministrador": false
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_estado_civil_invalido",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "namorando",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "987.65432.10-9",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 50,
+            "isAdministrador": true
+          },
+          {
+            "percentual": 50,
+            "isAdministrador": false
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_multiplos_erros_field_e_crossfield",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "xxx",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 50,
+            "isAdministrador": true
+          },
+          {
+            "percentual": 50,
+            "isAdministrador": false
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": false
+    }
+  },
+  {
+    "nome": "full_tipo_constituicao_invalido",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "eireli",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "987.65432.10-9",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 50,
+            "isAdministrador": true
+          },
+          {
+            "percentual": 50,
+            "isAdministrador": false
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_dados_empresa_ausente",
+    "modo": "full",
+    "input": {
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "987.65432.10-9",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 50,
+            "isAdministrador": true
+          },
+          {
+            "percentual": 50,
+            "isAdministrador": false
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_dados_socios_ausente",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "slu",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "full_chave_topo_desconhecida_ignorada",
+    "modo": "full",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      },
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          },
+          {
+            "nome": "Ana Pereira Costa",
+            "pis": "987.65432.10-9",
+            "cpf": "987.654.321-00",
+            "rg": "98.765.432-1 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "advogada",
+            "proLabore": 2000,
+            "telefoneCelular": "(11) 91234-5678",
+            "telefoneFixo": "",
+            "email": "ana@example.com",
+            "estadoCivil": "casado_comunhao_parcial",
+            "nomeMae": "Clara Pereira Costa",
+            "nomePai": "",
+            "cepRegistro": "04567-000",
+            "logradouroRegistro": "Rua das Flores",
+            "numeroRegistro": "50",
+            "complementoRegistro": "",
+            "bairroRegistro": "Jardim Paulista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      },
+      "sociedade": {
+        "capitalSocial": 10000,
+        "quotas": [
+          {
+            "percentual": 50,
+            "isAdministrador": true
+          },
+          {
+            "percentual": 50,
+            "isAdministrador": false
+          }
+        ],
+        "tipoAdministracao": "isoladamente",
+        "banco": "Banco do Brasil"
+      },
+      "senhaGovBr": "",
+      "documentosAceitos": true,
+      "campoExtra": "ignorar"
+    }
+  },
+  {
+    "nome": "draft_vazio",
+    "modo": "draft",
+    "input": {}
+  },
+  {
+    "nome": "draft_so_dados_empresa",
+    "modo": "draft",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      }
+    }
+  },
+  {
+    "nome": "draft_documentos_aceitos_false",
+    "modo": "draft",
+    "input": {
+      "documentosAceitos": false
+    }
+  },
+  {
+    "nome": "draft_documentos_aceitos_true",
+    "modo": "draft",
+    "input": {
+      "documentosAceitos": true
+    }
+  },
+  {
+    "nome": "draft_chave_topo_desconhecida",
+    "modo": "draft",
+    "input": {
+      "foo": "bar"
+    }
+  },
+  {
+    "nome": "draft_step_incompleto",
+    "modo": "draft",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda"
+      }
+    }
+  },
+  {
+    "nome": "draft_parcial_valido_empresa_e_endereco",
+    "modo": "draft",
+    "input": {
+      "dadosEmpresa": {
+        "tipoConstituicao": "ltda",
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda",
+        "nomeFantasia": "Prolink",
+        "atividade": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "endereco": {
+        "cep": "01310-100",
+        "logradouro": "Avenida Paulista",
+        "numero": "1578",
+        "complemento": "Sala 5",
+        "bairro": "Bela Vista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "iptu": "123456789",
+        "imovelAlugado": false
+      }
+    }
+  },
+  {
+    "nome": "draft_socios_parcial",
+    "modo": "draft",
+    "input": {
+      "dadosSocios": {
+        "socios": [
+          {
+            "nome": "Joao da Silva Santos",
+            "pis": "123.45678.90-1",
+            "cpf": "123.456.789-00",
+            "rg": "12.345.678-9 SSP/SP",
+            "nacionalidade": "brasileira",
+            "profissao": "engenheiro",
+            "proLabore": 1412,
+            "telefoneCelular": "(11) 98765-4321",
+            "telefoneFixo": "",
+            "email": "joao@example.com",
+            "estadoCivil": "solteiro",
+            "nomeMae": "Maria da Silva Santos",
+            "nomePai": "",
+            "cepRegistro": "01310-100",
+            "logradouroRegistro": "Avenida Paulista",
+            "numeroRegistro": "1000",
+            "complementoRegistro": "",
+            "bairroRegistro": "Bela Vista",
+            "registroConselho": "",
+            "teveParticipacaoSocietaria": false,
+            "cnpjParticipacao": ""
+          }
+        ]
+      }
+    }
+  },
+  {
+    "nome": "draft_sociedade_incompleta",
+    "modo": "draft",
+    "input": {
+      "sociedade": {
+        "capitalSocial": 0
+      }
+    }
+  }
+]

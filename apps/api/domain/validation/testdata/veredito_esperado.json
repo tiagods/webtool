@@ -1,0 +1,441 @@
+[
+  {
+    "nome": "full_ltda_valido",
+    "modo": "full",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "full_slu_valido",
+    "modo": "full",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "full_ltda_um_socio",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "dadosSocios/socios"
+    ],
+    "issues": [
+      {
+        "path": "dadosSocios/socios",
+        "code": "custom",
+        "message": "Sociedade Limitada (Ltda) requer pelo menos 2 sócios."
+      }
+    ]
+  },
+  {
+    "nome": "full_ltda_quotas_soma_9999_dentro_margem",
+    "modo": "full",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "full_ltda_quotas_soma_10002_fora_margem",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "sociedade/quotas"
+    ],
+    "issues": [
+      {
+        "path": "sociedade/quotas",
+        "code": "custom",
+        "message": "A soma das quotas deve fechar exatamente 100%."
+      }
+    ]
+  },
+  {
+    "nome": "full_ltda_sem_administrador",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "sociedade/quotas"
+    ],
+    "issues": [
+      {
+        "path": "sociedade/quotas",
+        "code": "custom",
+        "message": "A sociedade deve conter ao menos 1 administrador."
+      }
+    ]
+  },
+  {
+    "nome": "full_ltda_quotas_quantidade_diferente_de_socios",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "sociedade/quotas"
+    ],
+    "issues": [
+      {
+        "path": "sociedade/quotas",
+        "code": "custom",
+        "message": "Cada sócio precisa de uma quota definida."
+      }
+    ]
+  },
+  {
+    "nome": "full_ltda_sem_sociedade",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "sociedade"
+    ],
+    "issues": [
+      {
+        "path": "sociedade",
+        "code": "custom",
+        "message": "Preencha os dados da sociedade."
+      }
+    ]
+  },
+  {
+    "nome": "full_socio_participacao_societaria_sem_cnpj",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "dadosSocios/socios/0/cnpjParticipacao"
+    ],
+    "issues": [
+      {
+        "path": "dadosSocios/socios/0/cnpjParticipacao",
+        "code": "custom",
+        "message": "Informe o CNPJ da empresa anterior"
+      }
+    ]
+  },
+  {
+    "nome": "full_documentos_nao_aceitos",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "documentosAceitos"
+    ],
+    "issues": [
+      {
+        "path": "documentosAceitos",
+        "code": "custom",
+        "message": "Você precisa aceitar os termos de consentimento"
+      }
+    ]
+  },
+  {
+    "nome": "full_cep_sede_invalido",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "endereco/cep"
+    ],
+    "issues": [
+      {
+        "path": "endereco/cep",
+        "code": "invalid_string",
+        "message": "CEP inválido"
+      }
+    ]
+  },
+  {
+    "nome": "full_cpf_socio_invalido",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "dadosSocios/socios/0/cpf"
+    ],
+    "issues": [
+      {
+        "path": "dadosSocios/socios/0/cpf",
+        "code": "invalid_string",
+        "message": "CPF inválido"
+      }
+    ]
+  },
+  {
+    "nome": "full_pis_socio_invalido",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "dadosSocios/socios/1/pis"
+    ],
+    "issues": [
+      {
+        "path": "dadosSocios/socios/1/pis",
+        "code": "invalid_string",
+        "message": "PIS inválido"
+      }
+    ]
+  },
+  {
+    "nome": "full_email_socio_invalido",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "dadosSocios/socios/0/email"
+    ],
+    "issues": [
+      {
+        "path": "dadosSocios/socios/0/email",
+        "code": "invalid_string",
+        "message": "E-mail inválido"
+      }
+    ]
+  },
+  {
+    "nome": "full_atividade_curta",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "dadosEmpresa/atividade"
+    ],
+    "issues": [
+      {
+        "path": "dadosEmpresa/atividade",
+        "code": "too_small",
+        "message": "Descreva a atividade com mais detalhes (mín. 20 caracteres)"
+      }
+    ]
+  },
+  {
+    "nome": "full_prolabore_abaixo_minimo",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "dadosSocios/socios/0/proLabore"
+    ],
+    "issues": [
+      {
+        "path": "dadosSocios/socios/0/proLabore",
+        "code": "too_small",
+        "message": "O pró-labore mínimo é de 1 salário mínimo (R$ 1.412,00)"
+      }
+    ]
+  },
+  {
+    "nome": "full_estado_civil_invalido",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "dadosSocios/socios/0/estadoCivil"
+    ],
+    "issues": [
+      {
+        "path": "dadosSocios/socios/0/estadoCivil",
+        "code": "invalid_enum_value",
+        "message": "Invalid enum value. Expected 'solteiro' | 'casado_comunhao_parcial' | 'casado_comunhao_universal' | 'casado_separacao_bens' | 'casado_separacao_obrigatoria' | 'viuvo' | 'separado_judicialmente', received 'namorando'"
+      }
+    ]
+  },
+  {
+    "nome": "full_multiplos_erros_field_e_crossfield",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "dadosSocios/socios",
+      "documentosAceitos",
+      "endereco/cep",
+      "sociedade/quotas"
+    ],
+    "issues": [
+      {
+        "path": "endereco/cep",
+        "code": "invalid_string",
+        "message": "CEP inválido"
+      },
+      {
+        "path": "documentosAceitos",
+        "code": "custom",
+        "message": "Você precisa aceitar os termos de consentimento"
+      },
+      {
+        "path": "dadosSocios/socios",
+        "code": "custom",
+        "message": "Sociedade Limitada (Ltda) requer pelo menos 2 sócios."
+      },
+      {
+        "path": "sociedade/quotas",
+        "code": "custom",
+        "message": "Cada sócio precisa de uma quota definida."
+      }
+    ]
+  },
+  {
+    "nome": "full_tipo_constituicao_invalido",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "dadosEmpresa/tipoConstituicao"
+    ],
+    "issues": [
+      {
+        "path": "dadosEmpresa/tipoConstituicao",
+        "code": "invalid_enum_value",
+        "message": "Invalid enum value. Expected 'ltda' | 'slu', received 'eireli'"
+      }
+    ]
+  },
+  {
+    "nome": "full_dados_empresa_ausente",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "dadosEmpresa"
+    ],
+    "issues": [
+      {
+        "path": "dadosEmpresa",
+        "code": "invalid_type",
+        "message": "Required"
+      }
+    ]
+  },
+  {
+    "nome": "full_dados_socios_ausente",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "dadosSocios"
+    ],
+    "issues": [
+      {
+        "path": "dadosSocios",
+        "code": "invalid_type",
+        "message": "Required"
+      }
+    ]
+  },
+  {
+    "nome": "full_chave_topo_desconhecida_ignorada",
+    "modo": "full",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "draft_vazio",
+    "modo": "draft",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "draft_so_dados_empresa",
+    "modo": "draft",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "draft_documentos_aceitos_false",
+    "modo": "draft",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "draft_documentos_aceitos_true",
+    "modo": "draft",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "draft_chave_topo_desconhecida",
+    "modo": "draft",
+    "aceito": false,
+    "issuePaths": [
+      "(root)"
+    ],
+    "issues": [
+      {
+        "path": "(root)",
+        "code": "unrecognized_keys",
+        "message": "Unrecognized key(s) in object: 'foo'"
+      }
+    ]
+  },
+  {
+    "nome": "draft_step_incompleto",
+    "modo": "draft",
+    "aceito": false,
+    "issuePaths": [
+      "dadosEmpresa/atividade",
+      "dadosEmpresa/nomeEmpresarial1",
+      "dadosEmpresa/nomeEmpresarial2",
+      "dadosEmpresa/nomeEmpresarial3"
+    ],
+    "issues": [
+      {
+        "path": "dadosEmpresa/nomeEmpresarial1",
+        "code": "invalid_type",
+        "message": "Required"
+      },
+      {
+        "path": "dadosEmpresa/nomeEmpresarial2",
+        "code": "invalid_type",
+        "message": "Required"
+      },
+      {
+        "path": "dadosEmpresa/nomeEmpresarial3",
+        "code": "invalid_type",
+        "message": "Required"
+      },
+      {
+        "path": "dadosEmpresa/atividade",
+        "code": "invalid_type",
+        "message": "Required"
+      }
+    ]
+  },
+  {
+    "nome": "draft_parcial_valido_empresa_e_endereco",
+    "modo": "draft",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "draft_socios_parcial",
+    "modo": "draft",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "draft_sociedade_incompleta",
+    "modo": "draft",
+    "aceito": false,
+    "issuePaths": [
+      "sociedade/banco",
+      "sociedade/capitalSocial",
+      "sociedade/quotas",
+      "sociedade/tipoAdministracao"
+    ],
+    "issues": [
+      {
+        "path": "sociedade/capitalSocial",
+        "code": "too_small",
+        "message": "Informe um valor para o Capital Social"
+      },
+      {
+        "path": "sociedade/quotas",
+        "code": "invalid_type",
+        "message": "Required"
+      },
+      {
+        "path": "sociedade/tipoAdministracao",
+        "code": "invalid_type",
+        "message": "Required"
+      },
+      {
+        "path": "sociedade/banco",
+        "code": "invalid_type",
+        "message": "Required"
+      }
+    ]
+  }
+]

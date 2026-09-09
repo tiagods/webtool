@@ -1,6 +1,6 @@
 # Guia de Deploy - Prolink Webtool
 
-Desde a [Spec 009](.claude/specs/009-separacao-frontend-backend.md), o projeto é composto por dois serviços Next.js separados (`apps/web` e `apps/api`) atrás de um Nginx, orquestrados via Docker Compose. O caminho de deploy recomendado é **Docker Compose em um servidor com Docker instalado** (VPS, Lightsail, EC2, etc.), usando o arquivo `docker-compose.prod.yml` da raiz do repositório.
+Desde a [Spec 009](.claude/specs/009-separacao-frontend-backend.md), o projeto é composto por um frontend (`apps/web`, Next.js) e um backend (`apps/api`) separados atrás de um Nginx, orquestrados via Docker Compose. Desde as specs 022–028 o backend é um **binário Go** (`cmd/api`, Echo + Clean Architecture); a implementação Next.js anterior fica em `apps/api-node` até a verificação em produção. O caminho de deploy recomendado é **Docker Compose em um servidor com Docker instalado** (VPS, Lightsail, EC2, etc.), usando o arquivo `docker-compose.prod.yml` da raiz do repositório.
 
 ---
 
@@ -19,7 +19,7 @@ Desde a [Spec 009](.claude/specs/009-separacao-frontend-backend.md), o projeto �
      sudo ufw deny 3001/tcp
      sudo ufw enable
      ```
-4. Configure as credenciais AWS reais para o serviço `api` — via variáveis de ambiente do host, IAM role da instância (recomendado em EC2/Lightsail), ou um `.env` na raiz do projeto lido pelo Compose (`AWS_REGION`, `AWS_DYNAMODB_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL`, `AWS_SNS_TOPIC_ARN`, `JWT_SECRET`). Sem `AWS_ENDPOINT_URL` definido, os clients em `apps/api/lib/aws/*.ts` usam a cadeia de credenciais padrão do AWS SDK — nenhuma mudança de código é necessária entre dev (Floci) e produção.
+4. Configure as credenciais AWS reais para o serviço `api` — via variáveis de ambiente do host, IAM role da instância (recomendado em EC2/Lightsail), ou um `.env` na raiz do projeto lido pelo Compose. O `docker-compose.prod.yml` já injeta `APP_ENV=prod` e passa `AWS_REGION`, `AWS_DYNAMODB_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL`, `JWT_SECRET` — todos **obrigatórios** (o boot do binário Go falha rápido listando o que faltar). Sem `AWS_ENDPOINT_URL`, o SDK Go usa a cadeia de credenciais padrão (IAM role/env do host) — nenhuma mudança de código entre dev (Floci) e produção.
 5. Aponte o DNS do domínio de produção (`prolinkcontabil.com.br` e `www.prolinkcontabil.com.br`) para o IP público do servidor — pré-requisito para a emissão automática do certificado TLS no Passo 4.
 6. Configure o CORS do bucket S3 real, restrito ao domínio de produção:
    ```bash
@@ -40,7 +40,9 @@ cd prolink-webtool
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-Isso builda e sobe quatro containers: `web` (:3000), `api` (:3001), `nginx` (interno, sem porta publicada) e `caddy` (:80, :443). O Nginx roteia `/` → `web` e `/api/*` → `api` (ver `infra/nginx/default.conf`); o Caddy termina TLS e repassa tudo para o Nginx internamente (ver Passo 4). A aplicação fica disponível em `https://prolinkcontabil.com.br`.
+Isso builda e sobe quatro containers: `web` (:3000, Next.js), `api` (:3001, binário Go), `nginx` (interno, sem porta publicada) e `caddy` (:80, :443). O Nginx roteia `/` → `web` e `/api/*` → `api` (ver `infra/nginx/default.conf` — **inalterado** no cutover para Go); o Caddy termina TLS e repassa tudo para o Nginx internamente (ver Passo 4). A aplicação fica disponível em `https://prolinkcontabil.com.br`.
+
+> **Rollback do cutover Go→Node:** reverter o rename (`git mv apps/api apps/api-golang && git mv apps/api-node apps/api`) e os serviços `api` de `docker-compose*.yml` restaura a implementação Next.js. `infra/nginx` não muda em nenhuma direção.
 
 ### Passo 4: TLS/HTTPS (Caddy)
 
@@ -67,8 +69,8 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 ## Alternativa: Vercel (apenas para `apps/web`)
 
-A Vercel é adequada para hospedar `apps/web` isoladamente (CDN global, SSL automático, deploy por push), mas **não é recomendada para `apps/api`** nesta arquitetura: o objetivo da Spec 009 é justamente manter o backend fora de acesso público direto via firewall, o que a Vercel (serverless, sempre publicamente acessível) não permite replicar. Usar a Vercel exigiria expor `apps/api` publicamente e depender só de outras camadas de segurança (rate limiting, auth) — uma escolha válida, mas diferente do modelo desta spec. Se optar por esse caminho:
+A Vercel é adequada para hospedar `apps/web` isoladamente (CDN global, SSL automático, deploy por push), mas **não é recomendada para `apps/api`** nesta arquitetura: o objetivo da Spec 009 é justamente manter o backend fora de acesso público direto via firewall, o que a Vercel (serverless, sempre publicamente acessível) não permite replicar. Além disso, `apps/api` agora é um binário Go — não um app Next.js que a Vercel hospeda nativamente. Se optar por esse caminho:
 
 - **Root Directory**: `apps/web`
 - **Framework Preset**: Next.js (detectado automaticamente)
-- `apps/api` precisaria de um projeto Vercel separado, e `apps/web` apontaria `NEXT_PUBLIC_BASE_URL`/rewrites para a URL pública da Vercel do `apps/api` (não para `localhost:3001`).
+- `apps/api` (Go) precisaria ser hospedado à parte (Cloud Run, Fly.io, ECS, etc.), e `apps/web` apontaria os rewrites para a URL pública desse serviço (não para `localhost:3001`).

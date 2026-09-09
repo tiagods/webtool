@@ -1,12 +1,17 @@
 ---
 id: "018"
 title: "Centralizar configuração em config.ts e externalizar valores chumbados"
-status: draft          # draft | review | approved | in-progress | done | rejected
+status: rejected       # draft | review | approved | in-progress | done | rejected
 created: 2026-07-13
 author: "tiagods"
 batch_size: "small"    # small (≤ meio dia) | medium (≤1 dia)
 depends_on: []         # IDs de specs que precisam estar done
 ---
+
+> **REJEITADA (superseded) — 2026-09-08.** O alvo desta spec era o `apps/api` Next.js, aposentado
+> no cutover para Go (specs 022–028). O binário Go já nasce com configuração centralizada e validada
+> em `apps/api/infrastructure/config` (único ponto que lê o ambiente, boot falha rápido com erro
+> agregado, zero valor chumbado — `.claude/rules/boas-praticas-go.md` §7/§9). Nada a portar.
 
 # Centralizar configuração em config.ts e externalizar valores chumbados
 
@@ -160,6 +165,7 @@ Exceções que ficam fora do config por serem específicas do runtime: `process.
 - [ ] Todas as constantes do inventário são resolvidas via `config.ts` com default idêntico ao valor atual
 - [ ] `apps/api/.env.local.example` e `apps/web/.env.local.example` listam todas as variáveis do respectivo escopo com seus defaults
 - [ ] `README.md` tem uma seção "Variáveis de Ambiente" com tabela (nome, escopo, default, descrição)
+- [ ] `README.md` e ambos os `.env.local.example` marcam `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` e `AWS_ENDPOINT_URL` como **exclusivas de dev local (Floci)** — em produção não são definidas (a IAM Task Role do Fargate fornece as credenciais; ver Spec 021)
 - [ ] Sem mudança de comportamento quando nenhuma env var nova é definida (defaults preservam o atual)
 - [ ] Lint passando (`npm run lint`)
 - [ ] Build passando (`npm run build`)
@@ -168,6 +174,11 @@ Exceções que ficam fora do config por serem específicas do runtime: `process.
 
 - **Compatibilidade**: por serem apenas fallbacks com o mesmo valor, a mudança é
   retrocompatível — nenhum ambiente existente quebra.
+- **Credenciais AWS estáticas (`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`) são dev-only**:
+  o `config.aws` continua lendo-as com default `test` (só têm efeito quando `AWS_ENDPOINT_URL`
+  está setado — ver Spec 019), mas em produção **não devem existir**. A Spec 021 entrega as
+  IAM Roles do Fargate que as substituem. Esta spec só precisa garantir que os `.env.example`
+  e o README deixem isso explícito para ninguém copiar credenciais para produção.
 - **`ALLOWED_CONTENT_TYPES`** (decisão aprovada): **manter chumbado** — lista fixa
   (`pdf`/`jpg`/`png`) no código; baixo valor em externalizar e evita erro de parsing.
 - **`AWS_SNS_TOPIC_ARN`** (decisão aprovada): **manter** nos `.env.example` e documentar

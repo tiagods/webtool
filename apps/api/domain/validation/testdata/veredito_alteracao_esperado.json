@@ -1,0 +1,433 @@
+[
+  {
+    "nome": "full_valido_q02",
+    "modo": "full",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "full_valido_todos_quadros",
+    "modo": "full",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "full_identificacao_inapta",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "identificacao/situacao"
+    ],
+    "issues": [
+      {
+        "path": "identificacao/situacao",
+        "code": "custom",
+        "message": "Apenas empresas com situação ATIVA podem prosseguir com a alteração."
+      }
+    ]
+  },
+  {
+    "nome": "full_identificacao_baixada",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "identificacao/situacao"
+    ],
+    "issues": [
+      {
+        "path": "identificacao/situacao",
+        "code": "custom",
+        "message": "Apenas empresas com situação ATIVA podem prosseguir com a alteração."
+      }
+    ]
+  },
+  {
+    "nome": "full_identificacao_situacao_invalida",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "identificacao/situacao"
+    ],
+    "issues": [
+      {
+        "path": "identificacao/situacao",
+        "code": "invalid_enum_value",
+        "message": "Invalid enum value. Expected 'ativa' | 'inapta' | 'baixada', received 'suspensa'"
+      }
+    ]
+  },
+  {
+    "nome": "full_identificacao_ausente",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "identificacao"
+    ],
+    "issues": [
+      {
+        "path": "identificacao",
+        "code": "invalid_type",
+        "message": "Required"
+      }
+    ]
+  },
+  {
+    "nome": "full_cnpj_invalido",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "identificacao/cnpj"
+    ],
+    "issues": [
+      {
+        "path": "identificacao/cnpj",
+        "code": "invalid_string",
+        "message": "CNPJ inválido"
+      }
+    ]
+  },
+  {
+    "nome": "full_endereco_atual_cep_invalido",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "identificacao/enderecoAtual/cep"
+    ],
+    "issues": [
+      {
+        "path": "identificacao/enderecoAtual/cep",
+        "code": "invalid_string",
+        "message": "CEP inválido"
+      }
+    ]
+  },
+  {
+    "nome": "full_quadros_vazio",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "quadros"
+    ],
+    "issues": [
+      {
+        "path": "quadros",
+        "code": "too_small",
+        "message": "Selecione pelo menos um quadro"
+      }
+    ]
+  },
+  {
+    "nome": "full_quadro_selecionado_sem_bloco",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "q01"
+    ],
+    "issues": [
+      {
+        "path": "q01",
+        "code": "custom",
+        "message": "Preencha os dados do quadro selecionado (nome_empresarial)"
+      }
+    ]
+  },
+  {
+    "nome": "full_dois_quadros_um_sem_bloco",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "q03"
+    ],
+    "issues": [
+      {
+        "path": "q03",
+        "code": "custom",
+        "message": "Preencha os dados do quadro selecionado (endereco)"
+      }
+    ]
+  },
+  {
+    "nome": "full_objeto_social_curto",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "q02/novoObjetoSocial"
+    ],
+    "issues": [
+      {
+        "path": "q02/novoObjetoSocial",
+        "code": "too_small",
+        "message": "Descreva a atividade com mais detalhes (mín. 20 caracteres)"
+      }
+    ]
+  },
+  {
+    "nome": "full_q04_cedente_ok",
+    "modo": "full",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "full_q04_cessionario_sem_prolabore",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "q04/membros/0/proLabore"
+    ],
+    "issues": [
+      {
+        "path": "q04/membros/0/proLabore",
+        "code": "invalid_type",
+        "message": "Required"
+      }
+    ]
+  },
+  {
+    "nome": "full_q04_tipo_invalido",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "q04/membros/0/tipo"
+    ],
+    "issues": [
+      {
+        "path": "q04/membros/0/tipo",
+        "code": "invalid_union_discriminator",
+        "message": "Invalid discriminator value. Expected 'cedente' | 'cessionario'"
+      }
+    ]
+  },
+  {
+    "nome": "full_q04_participacao_anterior_sem_cnpj",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "q04/membros/0/cnpjAnterior"
+    ],
+    "issues": [
+      {
+        "path": "q04/membros/0/cnpjAnterior",
+        "code": "custom",
+        "message": "Informe o CNPJ da empresa anterior"
+      }
+    ]
+  },
+  {
+    "nome": "full_q05_aumento_sem_integralizacao",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "q05/especificarIntegralizacao",
+      "q05/valorIntegralizacao"
+    ],
+    "issues": [
+      {
+        "path": "q05/valorIntegralizacao",
+        "code": "custom",
+        "message": "Informe o valor da integralização"
+      },
+      {
+        "path": "q05/especificarIntegralizacao",
+        "code": "custom",
+        "message": "Especifique a forma de integralização"
+      }
+    ]
+  },
+  {
+    "nome": "full_q05_reducao_ok",
+    "modo": "full",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "full_q07_outras_sem_especificar",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "q07/especificar"
+    ],
+    "issues": [
+      {
+        "path": "q07/especificar",
+        "code": "custom",
+        "message": "Especifique a transformação"
+      }
+    ]
+  },
+  {
+    "nome": "full_aceite_false",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "aceite"
+    ],
+    "issues": [
+      {
+        "path": "aceite",
+        "code": "custom",
+        "message": "Você precisa aceitar os termos de consentimento"
+      }
+    ]
+  },
+  {
+    "nome": "full_aceite_ausente",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "aceite"
+    ],
+    "issues": [
+      {
+        "path": "aceite",
+        "code": "invalid_type",
+        "message": "Required"
+      }
+    ]
+  },
+  {
+    "nome": "full_multiplos_erros_field_e_refine",
+    "modo": "full",
+    "aceito": false,
+    "issuePaths": [
+      "aceite",
+      "identificacao/situacao",
+      "q02"
+    ],
+    "issues": [
+      {
+        "path": "identificacao/situacao",
+        "code": "custom",
+        "message": "Apenas empresas com situação ATIVA podem prosseguir com a alteração."
+      },
+      {
+        "path": "aceite",
+        "code": "custom",
+        "message": "Você precisa aceitar os termos de consentimento"
+      },
+      {
+        "path": "q02",
+        "code": "custom",
+        "message": "Preencha os dados do quadro selecionado (objeto_social)"
+      }
+    ]
+  },
+  {
+    "nome": "full_chave_topo_desconhecida_ignorada",
+    "modo": "full",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "draft_vazio",
+    "modo": "draft",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "draft_so_identificacao",
+    "modo": "draft",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "draft_identificacao_inapta",
+    "modo": "draft",
+    "aceito": false,
+    "issuePaths": [
+      "identificacao/situacao"
+    ],
+    "issues": [
+      {
+        "path": "identificacao/situacao",
+        "code": "custom",
+        "message": "Apenas empresas com situação ATIVA podem prosseguir com a alteração."
+      }
+    ]
+  },
+  {
+    "nome": "draft_chave_topo_desconhecida",
+    "modo": "draft",
+    "aceito": false,
+    "issuePaths": [
+      "(root)"
+    ],
+    "issues": [
+      {
+        "path": "(root)",
+        "code": "unrecognized_keys",
+        "message": "Unrecognized key(s) in object: 'foo'"
+      }
+    ]
+  },
+  {
+    "nome": "draft_aceite_false",
+    "modo": "draft",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "draft_quadros_selecionados_sem_blocos",
+    "modo": "draft",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "draft_q04_parcial",
+    "modo": "draft",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  },
+  {
+    "nome": "draft_q05_aumento_incompleto",
+    "modo": "draft",
+    "aceito": false,
+    "issuePaths": [
+      "q05/especificarIntegralizacao",
+      "q05/valorIntegralizacao"
+    ],
+    "issues": [
+      {
+        "path": "q05/valorIntegralizacao",
+        "code": "custom",
+        "message": "Informe o valor da integralização"
+      },
+      {
+        "path": "q05/especificarIntegralizacao",
+        "code": "custom",
+        "message": "Especifique a forma de integralização"
+      }
+    ]
+  },
+  {
+    "nome": "draft_q07_outras_sem_especificar",
+    "modo": "draft",
+    "aceito": false,
+    "issuePaths": [
+      "q07/especificar"
+    ],
+    "issues": [
+      {
+        "path": "q07/especificar",
+        "code": "custom",
+        "message": "Especifique a transformação"
+      }
+    ]
+  },
+  {
+    "nome": "draft_parcial_valido_identificacao_e_q02",
+    "modo": "draft",
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
+  }
+]

@@ -1,0 +1,27 @@
+# golangci-lint v2 — introduzido na spec 023. `make lint` executa este linter
+# além de `go vet` + `gofmt -l`.
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  # `standard` = errcheck, govet, ineffassign, staticcheck, unused.
+  # misspell fica fora: os comentários do projeto são em pt-BR.
+  default: standard
+  enable:
+    - unconvert
+    - revive
+  settings:
+    revive:
+      rules:
+        - name: exported
+        - name: context-as-argument
+        - name: error-strings
+        - name: error-return
+        - name: var-declaration
+        - name: unexported-return
+
+formatters:
+  enable:
+    - gofmt

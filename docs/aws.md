@@ -4,7 +4,9 @@ Mapeamento de todos os recursos AWS utilizados no projeto, com configuração, s
 
 > **Ambiente local:** todos os recursos são emulados via **Floci** (`floci/floci:latest`) na porta 4566. Scripts de provisionamento em `infra/local/`.
 >
-> **Autenticação em produção:** IAM Role (não IAM user com chaves). O Next.js roda em Fargate — a task recebe permissões via Task Role. O Lambda recebe permissões via Execution Role. Nenhuma `AWS_ACCESS_KEY_ID` hardcoded em produção.
+> **Autenticação em produção:** IAM Role (não IAM user com chaves) quando possível. `apps/api` (binário Go `cmd/api`) e `apps/worker` (`cmd/worker` do mesmo módulo Go) rodam como containers Docker na mesma stack (Lightsail hoje; Fargate no futuro). O SDK Go usa a cadeia de credenciais padrão (IAM role do host/task) quando `AWS_ENDPOINT_URL` está **ausente** — `config.AWS.UsesCustomEndpoint()` só é `true` no local (Floci), onde `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` passam a ser obrigatórias. Nenhuma chave hardcoded em produção. O `apps/worker` **não é Lambda** — é um processo long-running que faz long-polling na SQS (ver seção "Worker" e [`013-worker-pdf-email.md`](../.claude/specs/013-worker-pdf-email.md)).
+>
+> **Config:** toda variável de ambiente é lida e validada uma única vez em `apps/api/infrastructure/config` (boot falha rápido com erro agregado listando o que falta). Variáveis: `APP_ENV` (`dev`|`prod`), `JWT_SECRET`, `PORT`, `SESSION_EXPIRY_SECONDS`, `AWS_REGION`, `AWS_DYNAMODB_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL` e (só local) `AWS_ENDPOINT_URL` + chaves estáticas.
 
 ---
 
@@ -15,14 +17,14 @@ Browser
   │
   ├─ PUT (presigned) ──────────────────────────────────→ S3
   │
-  └─ Next.js (Fargate)
+  └─ apps/api (container)
         │
         ├─ DynamoDB   ← rascunhos, aceites LGPD, contador de protocolo
         ├─ S3         ← documentos dos sócios + backup JSON/PDF
         ├─ SQS        ← fila de processamento assíncrono
         │
-        └─ Lambda (worker)
-              ├─ DynamoDB   ← lê payload, atualiza status
+        └─ apps/worker (container — long-polling na SQS)
+              ├─ DynamoDB   ← lê payload, zera dados sensíveis, atualiza status
               ├─ S3         ← salva PDF gerado
               └─ SNS        ← publica evento de e-mail
                     │
@@ -55,11 +57,11 @@ Browser
 
 > O atributo TTL é um Unix timestamp em segundos. A deleção pelo DynamoDB ocorre em até 48h após o timestamp — comportamento esperado e aceitável para conformidade LGPD.
 >
-> **Após submit:** `payload` e `documentosKeys` são zerados (`null`) no mesmo `UpdateItem` que muda o status. O Lambda worker também zera esses campos ao processar (defesa em profundidade).
+> **Após submit:** `payload` e `documentosKeys` são zerados (`null`) no mesmo `UpdateItem` que muda o status. O worker também zera esses campos ao processar (defesa em profundidade).
 
 ### Segurança
 
-- Acesso exclusivo via IAM Role (Fargate Task Role / Lambda Execution Role)
+- Acesso exclusivo via IAM Role do host (container `api` / container `worker`)
 - Sem acesso público
 - Encryption at rest habilitada por padrão na AWS
 - `ConditionExpression` no submit previne sobrescrita de sessão já enviada
@@ -104,7 +106,7 @@ prolink-fichas/
   protocolos/
     {protocolo}/
       ficha.json      ← backup imutável do payload no momento do submit
-      ficha.pdf       ← PDF gerado pelo Lambda
+      ficha.pdf       ← PDF gerado pelo worker
 ```
 
 > Prefixo `{sessionId}/` é temporário. No submit, os objetos são copiados para `protocolos/{protocolo}/` e o prefixo da sessão é deletado imediatamente.
@@ -158,21 +160,21 @@ Objetos em `protocolos/` são permanentes (sem regra de expiração) — retidos
 
 | Parâmetro | Valor | Motivo |
 |---|---|---|
-| `VisibilityTimeout` | 60s | Janela de processamento do Lambda |
+| `VisibilityTimeout` | 120s | Janela de processamento do worker (geração de PDF) |
 | `MessageRetentionPeriod` | 86400s (24h) | Reprocessamento em caso de falha |
-| `MaxReceiveCount` (DLQ) | A definir | Redirecionar para DLQ após N falhas |
+| `MaxReceiveCount` (DLQ) | 5 | Redireciona para `prolink-abertura-dlq` após 5 falhas |
 
 ### Payload da mensagem
 
 ```json
-{ "sessionId": "uuid", "protocolo": "PRO-2026-000001", "tipo": "ltda" }
+{ "sessionId": "uuid", "protocolo": "PRO-2026-000001", "tipo": "ltda", "formType": "abertura" }
 ```
 
-> Não inclui dados pessoais — o Lambda busca o payload no DynamoDB/S3 usando o `sessionId`.
+> Não inclui dados pessoais — o worker busca o payload no DynamoDB/S3 usando o `sessionId`.
 
 ### Segurança
 
-- Acesso via IAM Role (Fargate escreve, Lambda lê)
+- Acesso via IAM Role (container `api` escreve, container `worker` lê)
 - Sem acesso público
 
 ### Estimativa de custo — 100 submissões/mês
@@ -193,11 +195,11 @@ Objetos em `protocolos/` são permanentes (sem regra de expiração) — retidos
 |---|---|---|
 | `email` (SES) | `contato@prolinkcontabil.com.br` | Notificação de nova ficha recebida |
 
-> O Lambda **não chama o SES diretamente** — publica no SNS. O SES é uma subscription do tópico. Isso desacopla o worker de e-mail e permite adicionar outras subscriptions no futuro (ex: webhook, Slack).
+> O worker **não chama o SES diretamente** — publica no SNS. O SES é uma subscription do tópico. Isso desacopla o worker do e-mail e permite adicionar outras subscriptions no futuro (ex: webhook, Slack).
 
 ### Segurança
 
-- Acesso via IAM Role (Lambda publica, ninguém mais)
+- Acesso via IAM Role (worker publica, ninguém mais)
 - Sem acesso público
 
 ### Estimativa de custo — 100 submissões/mês
@@ -222,7 +224,7 @@ Recebe mensagens do SNS via subscription e entrega o e-mail ao destinatário fin
 
 ---
 
-## Fargate (Next.js)
+## Fargate (containers)
 
 **Cluster:** `prolink-web`
 **Task Definition:** `prolink-web-task`
@@ -239,7 +241,7 @@ Recebe mensagens do SNS via subscription e entrega o e-mail ao destinatário fin
 
 ### IAM Task Role
 
-A task do Fargate recebe permissões via **Task Role** — sem `AWS_ACCESS_KEY_ID` ou `AWS_SECRET_ACCESS_KEY` em variáveis de ambiente ou código. O SDK da AWS detecta as credenciais automaticamente via metadata do container.
+A task do Fargate recebe permissões via **Task Role** — sem `AWS_ACCESS_KEY_ID` ou `AWS_SECRET_ACCESS_KEY` em variáveis de ambiente ou código. O SDK da AWS (Go, em `apps/api`) detecta as credenciais automaticamente via metadata do container quando `AWS_ENDPOINT_URL` não está definido.
 
 **Permissões necessárias (a detalhar):**
 
@@ -253,14 +255,16 @@ A task do Fargate recebe permissões via **Task Role** — sem `AWS_ACCESS_KEY_I
 
 ---
 
-## Lambda (worker SQS)
+## Worker (consumidor SQS)
 
-**Função:** `prolink-abertura-worker`
-**Runtime:** Node.js 20.x
+**Serviço:** `apps/worker` — **container Docker** na mesma stack Compose (nginx + web + api + worker)
+**Runtime:** Node.js 20.x — processo long-running (não Lambda)
 **Região:** `us-east-1`
-**Trigger:** SQS `prolink-abertura`
+**Consumo:** long-polling `ReceiveMessage` na fila `prolink-abertura` (`WaitTimeSeconds: 20`)
 
-### IAM Execution Role
+> **Por que container e não Lambda:** nenhuma IaC/pipeline de função gerenciada existe no repositório; a stack já é Docker Compose; o volume (~100 fichas/mês) não justifica escala a zero. A função `processMessage()` é isolada do loop de polling e recebe dependências por injeção — migrar para Lambda no futuro é um wrapper fino sobre a mesma função. Ver [`013-worker-pdf-email.md`](../.claude/specs/013-worker-pdf-email.md).
+
+### IAM Role (do host / task)
 
 | Serviço | Ações |
 |---|---|
@@ -269,19 +273,19 @@ A task do Fargate recebe permissões via **Task Role** — sem `AWS_ACCESS_KEY_I
 | SNS | `Publish` no tópico `prolink-abertura-emails` |
 | SQS | `ReceiveMessage`, `DeleteMessage`, `GetQueueAttributes` na fila `prolink-abertura` |
 
-### Configuração (referência — detalhar no futuro)
+### Configuração
 
-| Parâmetro | Valor provisório |
+| Parâmetro | Valor |
 |---|---|
-| Timeout | 30s |
-| Memória | 512MB |
-| Concorrência | 1 (evita processamento duplicado) |
-| DLQ | A definir |
+| Concorrência | 1 container, `MaxNumberOfMessages: 5` por poll (processadas em paralelo) |
+| `VisibilityTimeout` | 120s (definido na fila) |
+| Retry | Nativo do SQS — sem `DeleteMessage` em falha, a mensagem reentrega |
+| DLQ | `prolink-abertura-dlq`, `maxReceiveCount: 5` |
+| Shutdown | `SIGTERM` encerra o loop após terminar as mensagens em voo |
 
-### Estimativa de custo — 100 invocações/mês
+### Estimativa de custo
 
-100 invocações × 30s × 512MB = 1.536.000 GB-segundos
-Free tier: 400.000 GB-segundos/mês → excedente: 1.136.000 × $0,0000166667 = **~$0,02/mês**
+Container na mesma instância Lightsail dos demais serviços — **sem custo AWS adicional** (não há invocações Lambda faturadas). Um container ocioso fazendo long-polling consome recursos desprezíveis na instância já contratada.
 
 ---
 
@@ -294,9 +298,9 @@ Free tier: 400.000 GB-segundos/mês → excedente: 1.136.000 × $0,0000166667 = 
 | SQS | $0,00 (free tier) |
 | SNS | $0,00 (free tier) |
 | SES | ~$0,01 |
-| Lambda | ~$0,02 |
-| **AWS (total)** | **~$0,05** |
-| Fargate (Next.js 24/7) | ~$8–12 (a calcular com sizing definitivo) |
+| Worker | $0,00 (container na instância já contratada) |
+| **AWS (total)** | **~$0,03** |
+| Hospedagem (Lightsail — nginx + web + api + worker 24/7) | ~$8–12 (a calcular com sizing definitivo) |
 | **Total geral** | **~$8–12/mês** |
 
-> O Fargate domina o custo total. Os serviços gerenciados (DynamoDB, S3, SQS, SNS, SES, Lambda) somam centavos — escalam sem custo significativo até milhares de submissões/mês.
+> A hospedagem dos containers domina o custo total. Os serviços gerenciados (DynamoDB, S3, SQS, SNS, SES) somam centavos — escalam sem custo significativo até milhares de submissões/mês.

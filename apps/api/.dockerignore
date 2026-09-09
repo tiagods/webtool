@@ -1,0 +1,13 @@
+Dockerfile
+.dockerignore
+Makefile
+*.md
+bin/
+vendor/
+*.exe
+*.test
+*.out
+*.prof
+.env
+.env.*
+.git

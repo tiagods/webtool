@@ -1,0 +1,989 @@
+[
+  {
+    "nome": "full_valido_q02",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "objeto_social"
+      ],
+      "q02": {
+        "novoObjetoSocial": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "aceite": true
+    }
+  },
+  {
+    "nome": "full_valido_todos_quadros",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "nome_empresarial",
+        "objeto_social",
+        "endereco",
+        "quadro_societario",
+        "capital_social",
+        "redistribuicao_capital",
+        "natureza_juridica",
+        "administracao",
+        "outras_alteracoes"
+      ],
+      "q01": {
+        "nomeEmpresarial1": "Prolink Servicos Ltda",
+        "nomeEmpresarial2": "Prolink Consultoria Ltda",
+        "nomeEmpresarial3": "Prolink Solucoes Ltda"
+      },
+      "q02": {
+        "novoObjetoSocial": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "q03": {
+        "logradouro": "Rua Nova",
+        "bairro": "Jardim Paulista",
+        "municipio": "Sao Paulo",
+        "estado": "SP",
+        "cep": "04567-000",
+        "iptu": "987654321"
+      },
+      "q04": {
+        "membros": [
+          {
+            "nomeCompleto": "Joao da Silva Santos",
+            "naturalidade": "Sao Paulo",
+            "estadoNaturalidade": "SP",
+            "profissao": "engenheiro",
+            "rg": "12345678",
+            "digitoRg": "9",
+            "orgaoExpedidor": "SSP",
+            "estadoExpedidor": "SP",
+            "cpf": "123.456.789-00",
+            "dataExpedicaoRg": "2010-01-15",
+            "dataNascimento": "1985-06-20",
+            "pis": "12345678901",
+            "logradouro": "Rua das Flores",
+            "numero": "100",
+            "bairro": "Centro",
+            "municipio": "Sao Paulo",
+            "estado": "SP",
+            "cep": "01310-100",
+            "celular": "(11) 98765-4321",
+            "email": "joao@example.com",
+            "nomeMae": "Maria da Silva Santos",
+            "participacaoAnterior": "nao",
+            "percentualParticipacao": 50,
+            "valorParticipacao": 5000,
+            "estadoCivil": "solteiro",
+            "tipo": "cedente"
+          },
+          {
+            "nomeCompleto": "Ana Pereira Costa",
+            "naturalidade": "Sao Paulo",
+            "estadoNaturalidade": "SP",
+            "profissao": "engenheiro",
+            "rg": "12345678",
+            "digitoRg": "9",
+            "orgaoExpedidor": "SSP",
+            "estadoExpedidor": "SP",
+            "cpf": "987.654.321-00",
+            "dataExpedicaoRg": "2010-01-15",
+            "dataNascimento": "1985-06-20",
+            "pis": "12345678901",
+            "logradouro": "Rua das Flores",
+            "numero": "100",
+            "bairro": "Centro",
+            "municipio": "Sao Paulo",
+            "estado": "SP",
+            "cep": "01310-100",
+            "celular": "(11) 98765-4321",
+            "email": "ana@example.com",
+            "nomeMae": "Clara Pereira Costa",
+            "participacaoAnterior": "nao",
+            "percentualParticipacao": 50,
+            "valorParticipacao": 5000,
+            "estadoCivil": "casado_comunhao_parcial",
+            "tipo": "cessionario",
+            "socioAdministrador": "sim",
+            "proLabore": 2000
+          }
+        ]
+      },
+      "q05": {
+        "valorCapitalSocial": 20000,
+        "tipoAlteracao": "aumento",
+        "valorIntegralizacao": 10000,
+        "especificarIntegralizacao": "em moeda corrente nacional"
+      },
+      "q06": {
+        "socios": [
+          {
+            "nomeSocio": "Joao da Silva Santos",
+            "percentual": 50,
+            "valor": 5000
+          },
+          {
+            "nomeSocio": "Ana Pereira Costa",
+            "percentual": 50,
+            "valor": 5000
+          }
+        ]
+      },
+      "q07": {
+        "tipoTransformacao": "outras",
+        "especificar": "transformacao em cooperativa"
+      },
+      "q08": {
+        "administradores": [
+          "Joao da Silva Santos",
+          "Ana Pereira Costa"
+        ]
+      },
+      "q09": {
+        "descricao": "Alteracao diversa descrita com detalhes suficientes"
+      },
+      "aceite": true
+    }
+  },
+  {
+    "nome": "full_identificacao_inapta",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "inapta"
+      },
+      "quadros": [
+        "objeto_social"
+      ],
+      "q02": {
+        "novoObjetoSocial": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "aceite": true
+    }
+  },
+  {
+    "nome": "full_identificacao_baixada",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "baixada"
+      },
+      "quadros": [
+        "objeto_social"
+      ],
+      "q02": {
+        "novoObjetoSocial": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "aceite": true
+    }
+  },
+  {
+    "nome": "full_identificacao_situacao_invalida",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "suspensa"
+      },
+      "quadros": [
+        "objeto_social"
+      ],
+      "q02": {
+        "novoObjetoSocial": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "aceite": true
+    }
+  },
+  {
+    "nome": "full_identificacao_ausente",
+    "modo": "full",
+    "input": {
+      "quadros": [
+        "objeto_social"
+      ],
+      "q02": {
+        "novoObjetoSocial": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "aceite": true
+    }
+  },
+  {
+    "nome": "full_cnpj_invalido",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12345678000190",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "objeto_social"
+      ],
+      "q02": {
+        "novoObjetoSocial": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "aceite": true
+    }
+  },
+  {
+    "nome": "full_endereco_atual_cep_invalido",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "1310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "objeto_social"
+      ],
+      "q02": {
+        "novoObjetoSocial": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "aceite": true
+    }
+  },
+  {
+    "nome": "full_quadros_vazio",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [],
+      "q02": {
+        "novoObjetoSocial": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "aceite": true
+    }
+  },
+  {
+    "nome": "full_quadro_selecionado_sem_bloco",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "nome_empresarial"
+      ],
+      "aceite": true
+    }
+  },
+  {
+    "nome": "full_dois_quadros_um_sem_bloco",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "objeto_social",
+        "endereco"
+      ],
+      "q02": {
+        "novoObjetoSocial": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "aceite": true
+    }
+  },
+  {
+    "nome": "full_objeto_social_curto",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "objeto_social"
+      ],
+      "q02": {
+        "novoObjetoSocial": "Consultoria"
+      },
+      "aceite": true
+    }
+  },
+  {
+    "nome": "full_q04_cedente_ok",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "quadro_societario"
+      ],
+      "aceite": true,
+      "q04": {
+        "membros": [
+          {
+            "nomeCompleto": "Joao da Silva Santos",
+            "naturalidade": "Sao Paulo",
+            "estadoNaturalidade": "SP",
+            "profissao": "engenheiro",
+            "rg": "12345678",
+            "digitoRg": "9",
+            "orgaoExpedidor": "SSP",
+            "estadoExpedidor": "SP",
+            "cpf": "123.456.789-00",
+            "dataExpedicaoRg": "2010-01-15",
+            "dataNascimento": "1985-06-20",
+            "pis": "12345678901",
+            "logradouro": "Rua das Flores",
+            "numero": "100",
+            "bairro": "Centro",
+            "municipio": "Sao Paulo",
+            "estado": "SP",
+            "cep": "01310-100",
+            "celular": "(11) 98765-4321",
+            "email": "joao@example.com",
+            "nomeMae": "Maria da Silva Santos",
+            "participacaoAnterior": "nao",
+            "percentualParticipacao": 50,
+            "valorParticipacao": 5000,
+            "estadoCivil": "solteiro",
+            "tipo": "cedente"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "nome": "full_q04_cessionario_sem_prolabore",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "quadro_societario"
+      ],
+      "aceite": true,
+      "q04": {
+        "membros": [
+          {
+            "nomeCompleto": "Ana Pereira Costa",
+            "naturalidade": "Sao Paulo",
+            "estadoNaturalidade": "SP",
+            "profissao": "engenheiro",
+            "rg": "12345678",
+            "digitoRg": "9",
+            "orgaoExpedidor": "SSP",
+            "estadoExpedidor": "SP",
+            "cpf": "987.654.321-00",
+            "dataExpedicaoRg": "2010-01-15",
+            "dataNascimento": "1985-06-20",
+            "pis": "12345678901",
+            "logradouro": "Rua das Flores",
+            "numero": "100",
+            "bairro": "Centro",
+            "municipio": "Sao Paulo",
+            "estado": "SP",
+            "cep": "01310-100",
+            "celular": "(11) 98765-4321",
+            "email": "ana@example.com",
+            "nomeMae": "Clara Pereira Costa",
+            "participacaoAnterior": "nao",
+            "percentualParticipacao": 50,
+            "valorParticipacao": 5000,
+            "estadoCivil": "casado_comunhao_parcial",
+            "tipo": "cessionario",
+            "socioAdministrador": "sim"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "nome": "full_q04_tipo_invalido",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "quadro_societario"
+      ],
+      "aceite": true,
+      "q04": {
+        "membros": [
+          {
+            "nomeCompleto": "Joao da Silva Santos",
+            "naturalidade": "Sao Paulo",
+            "estadoNaturalidade": "SP",
+            "profissao": "engenheiro",
+            "rg": "12345678",
+            "digitoRg": "9",
+            "orgaoExpedidor": "SSP",
+            "estadoExpedidor": "SP",
+            "cpf": "123.456.789-00",
+            "dataExpedicaoRg": "2010-01-15",
+            "dataNascimento": "1985-06-20",
+            "pis": "12345678901",
+            "logradouro": "Rua das Flores",
+            "numero": "100",
+            "bairro": "Centro",
+            "municipio": "Sao Paulo",
+            "estado": "SP",
+            "cep": "01310-100",
+            "celular": "(11) 98765-4321",
+            "email": "joao@example.com",
+            "nomeMae": "Maria da Silva Santos",
+            "participacaoAnterior": "nao",
+            "percentualParticipacao": 50,
+            "valorParticipacao": 5000,
+            "estadoCivil": "solteiro",
+            "tipo": "terceiro"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "nome": "full_q04_participacao_anterior_sem_cnpj",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "quadro_societario"
+      ],
+      "aceite": true,
+      "q04": {
+        "membros": [
+          {
+            "nomeCompleto": "Joao da Silva Santos",
+            "naturalidade": "Sao Paulo",
+            "estadoNaturalidade": "SP",
+            "profissao": "engenheiro",
+            "rg": "12345678",
+            "digitoRg": "9",
+            "orgaoExpedidor": "SSP",
+            "estadoExpedidor": "SP",
+            "cpf": "123.456.789-00",
+            "dataExpedicaoRg": "2010-01-15",
+            "dataNascimento": "1985-06-20",
+            "pis": "12345678901",
+            "logradouro": "Rua das Flores",
+            "numero": "100",
+            "bairro": "Centro",
+            "municipio": "Sao Paulo",
+            "estado": "SP",
+            "cep": "01310-100",
+            "celular": "(11) 98765-4321",
+            "email": "joao@example.com",
+            "nomeMae": "Maria da Silva Santos",
+            "participacaoAnterior": "sim",
+            "percentualParticipacao": 50,
+            "valorParticipacao": 5000,
+            "estadoCivil": "solteiro",
+            "tipo": "cedente"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "nome": "full_q05_aumento_sem_integralizacao",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "capital_social"
+      ],
+      "aceite": true,
+      "q05": {
+        "valorCapitalSocial": 10000,
+        "tipoAlteracao": "aumento"
+      }
+    }
+  },
+  {
+    "nome": "full_q05_reducao_ok",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "capital_social"
+      ],
+      "aceite": true,
+      "q05": {
+        "valorCapitalSocial": 10000,
+        "tipoAlteracao": "reducao"
+      }
+    }
+  },
+  {
+    "nome": "full_q07_outras_sem_especificar",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "natureza_juridica"
+      ],
+      "aceite": true,
+      "q07": {
+        "tipoTransformacao": "outras"
+      }
+    }
+  },
+  {
+    "nome": "full_aceite_false",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "objeto_social"
+      ],
+      "q02": {
+        "novoObjetoSocial": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "aceite": false
+    }
+  },
+  {
+    "nome": "full_aceite_ausente",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "objeto_social"
+      ],
+      "q02": {
+        "novoObjetoSocial": "Prestacao de servicos de consultoria empresarial e contabil"
+      }
+    }
+  },
+  {
+    "nome": "full_multiplos_erros_field_e_refine",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "inapta"
+      },
+      "quadros": [
+        "objeto_social"
+      ],
+      "aceite": false
+    }
+  },
+  {
+    "nome": "full_chave_topo_desconhecida_ignorada",
+    "modo": "full",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "objeto_social"
+      ],
+      "q02": {
+        "novoObjetoSocial": "Prestacao de servicos de consultoria empresarial e contabil"
+      },
+      "aceite": true,
+      "campoExtra": "ignorar"
+    }
+  },
+  {
+    "nome": "draft_vazio",
+    "modo": "draft",
+    "input": {}
+  },
+  {
+    "nome": "draft_so_identificacao",
+    "modo": "draft",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      }
+    }
+  },
+  {
+    "nome": "draft_identificacao_inapta",
+    "modo": "draft",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "inapta"
+      }
+    }
+  },
+  {
+    "nome": "draft_chave_topo_desconhecida",
+    "modo": "draft",
+    "input": {
+      "foo": "bar"
+    }
+  },
+  {
+    "nome": "draft_aceite_false",
+    "modo": "draft",
+    "input": {
+      "aceite": false
+    }
+  },
+  {
+    "nome": "draft_quadros_selecionados_sem_blocos",
+    "modo": "draft",
+    "input": {
+      "quadros": [
+        "objeto_social",
+        "endereco"
+      ]
+    }
+  },
+  {
+    "nome": "draft_q04_parcial",
+    "modo": "draft",
+    "input": {
+      "q04": {
+        "membros": [
+          {
+            "nomeCompleto": "Joao da Silva Santos",
+            "naturalidade": "Sao Paulo",
+            "estadoNaturalidade": "SP",
+            "profissao": "engenheiro",
+            "rg": "12345678",
+            "digitoRg": "9",
+            "orgaoExpedidor": "SSP",
+            "estadoExpedidor": "SP",
+            "cpf": "123.456.789-00",
+            "dataExpedicaoRg": "2010-01-15",
+            "dataNascimento": "1985-06-20",
+            "pis": "12345678901",
+            "logradouro": "Rua das Flores",
+            "numero": "100",
+            "bairro": "Centro",
+            "municipio": "Sao Paulo",
+            "estado": "SP",
+            "cep": "01310-100",
+            "celular": "(11) 98765-4321",
+            "email": "joao@example.com",
+            "nomeMae": "Maria da Silva Santos",
+            "participacaoAnterior": "nao",
+            "percentualParticipacao": 50,
+            "valorParticipacao": 5000,
+            "estadoCivil": "solteiro",
+            "tipo": "cedente"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "nome": "draft_q05_aumento_incompleto",
+    "modo": "draft",
+    "input": {
+      "q05": {
+        "valorCapitalSocial": 10000,
+        "tipoAlteracao": "aumento"
+      }
+    }
+  },
+  {
+    "nome": "draft_q07_outras_sem_especificar",
+    "modo": "draft",
+    "input": {
+      "q07": {
+        "tipoTransformacao": "outras"
+      }
+    }
+  },
+  {
+    "nome": "draft_parcial_valido_identificacao_e_q02",
+    "modo": "draft",
+    "input": {
+      "identificacao": {
+        "cnpj": "12.345.678/0001-90",
+        "razaoSocial": "Prolink Servicos Ltda",
+        "nomeFantasia": "Prolink",
+        "tipoConstituicao": "ltda",
+        "enderecoAtual": {
+          "logradouro": "Avenida Paulista",
+          "bairro": "Bela Vista",
+          "municipio": "Sao Paulo",
+          "estado": "SP",
+          "cep": "01310-100"
+        },
+        "situacao": "ativa"
+      },
+      "quadros": [
+        "objeto_social"
+      ],
+      "q02": {
+        "novoObjetoSocial": "Prestacao de servicos de consultoria empresarial e contabil"
+      }
+    }
+  }
+]

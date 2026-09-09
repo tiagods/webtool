@@ -48,11 +48,14 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
     restart: unless-stopped
 
-  # ─── api — backend Next.js (Route Handlers + acesso a AWS) ──────────────────
+  # ─── api — backend Go (Echo + Clean Architecture, spec 022–028) ─────────────
+  # Não exposto publicamente em produção; o nginx roteia /api/* para api:3001.
   api:
     build:
-      context: .
-      dockerfile: apps/api/Dockerfile
+      context: ./apps/api
+      dockerfile: Dockerfile
+      args:
+        APP: api
     container_name: prolink-api
     ports:
       - "3001:3001"
@@ -60,18 +63,24 @@ services:
       floci:
         condition: service_healthy
     environment:
-      NODE_ENV: production
+      APP_ENV: dev
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+      SESSION_EXPIRY_SECONDS: "7200"
       AWS_ENDPOINT_URL: http://floci:4566
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       AWS_DYNAMODB_TABLE: fichas-abertura
       AWS_DYNAMODB_ALTERACAO_TABLE: fichas-alteracao
+      AWS_DYNAMODB_ACEITES_TABLE: prolink-aceites-lgpd
       AWS_S3_BUCKET: prolink-fichas
       AWS_SQS_QUEUE_URL: http://floci:4566/000000000000/prolink-abertura
-      AWS_SNS_TOPIC_ARN: arn:aws:sns:us-east-1:000000000000:prolink-abertura-emails
-      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
-      SESSION_EXPIRY_SECONDS: "7200"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
     restart: unless-stopped
 
   # ─── nginx — ponto de entrada público (porta 80) ────────────────────────────

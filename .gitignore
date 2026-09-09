@@ -37,6 +37,14 @@ pnpm-debug.log*
 # Deploy / infra
 .vercel
 
+# Go (apps/api)
+/apps/api/bin/
+vendor/
+*.exe
+*.test
+*.out
+*.prof
+
 # Editor / OS
 .DS_Store
 Thumbs.db

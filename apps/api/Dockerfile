@@ -1,23 +1,33 @@
-FROM node:20-alpine AS builder
-WORKDIR /repo
+# syntax=docker/dockerfile:1
 
-COPY package.json package-lock.json tsconfig.base.json ./
-COPY apps/web/package.json apps/web/package.json
-COPY apps/api/package.json apps/api/package.json
-COPY packages/shared/package.json packages/shared/package.json
-RUN npm ci
+# Um unico Dockerfile serve os dois binarios do monorepo. Selecione com:
+#   docker build --build-arg APP=api    (padrao)
+#   docker build --build-arg APP=worker
+# O contexto de build e apps/api/ (ver docker-compose.yml).
 
-COPY packages/shared packages/shared
-COPY apps/api apps/api
-RUN npm run build -w apps/api
+FROM golang:1.27-alpine AS builder
+WORKDIR /src
 
-FROM node:20-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-ENV PORT=3001
+COPY go.mod go.sum ./
+RUN go mod download
 
-COPY --from=builder /repo/apps/api/.next/standalone ./
-COPY --from=builder /repo/apps/api/.next/static ./apps/api/.next/static
+COPY . .
 
-EXPOSE 3001
-CMD ["node", "apps/api/server.js"]
+ARG APP=api
+RUN go vet ./... \
+ && CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags='-s -w' \
+      -o /out/service ./cmd/${APP}
+
+FROM alpine:3.20 AS runtime
+RUN apk add --no-cache ca-certificates \
+ && adduser -D -u 10001 appuser
+USER appuser
+
+COPY --from=builder /out/service /usr/local/bin/service
+
+# Porta canonica da API (o worker nao expoe porta). Sobrescrevivel via env PORT.
+ARG PORT=3001
+ENV PORT=${PORT}
+EXPOSE ${PORT}
+
+ENTRYPOINT ["/usr/local/bin/service"]
