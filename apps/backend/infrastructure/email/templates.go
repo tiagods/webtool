@@ -41,11 +41,11 @@ type DadosEmailAbertura struct {
 
 // SocioEmail são os dados de um sócio exibidos no e-mail.
 type SocioEmail struct {
-	Nome          string
-	CPF           string
-	Email         string
-	Qualificacao  string
-	ProLabore     string
+	Nome         string
+	CPF          string
+	Email        string
+	Qualificacao string
+	ProLabore    string
 }
 
 // DocLink é um link presigned gerado para download de documento.

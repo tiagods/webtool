@@ -123,19 +123,19 @@ func (ns *NotificarSubmissao) gerarLinks(ctx context.Context, docs map[string]st
 }
 
 type aberturaPayload struct {
-	RazaoSocial      string `json:"razaoSocial"`
-	NomeFantasia     string `json:"nomeFantasia"`
-	CNPJ             string `json:"cnpj"`
-	NaturezaJuridica string `json:"naturezaJuridica"`
-	TipoConstituicao string `json:"tipoConstituicao"`
-	Logradouro       string `json:"logradouro"`
-	Numero           string `json:"numero"`
-	Bairro           string `json:"bairro"`
-	Municipio        string `json:"municipio"`
-	UF               string `json:"estado"`
-	CEP              string `json:"cep"`
-	CapitalSocial    string `json:"capitalSocial"`
-	Administracao    string `json:"tipoAdministracao"`
+	RazaoSocial      string         `json:"razaoSocial"`
+	NomeFantasia     string         `json:"nomeFantasia"`
+	CNPJ             string         `json:"cnpj"`
+	NaturezaJuridica string         `json:"naturezaJuridica"`
+	TipoConstituicao string         `json:"tipoConstituicao"`
+	Logradouro       string         `json:"logradouro"`
+	Numero           string         `json:"numero"`
+	Bairro           string         `json:"bairro"`
+	Municipio        string         `json:"municipio"`
+	UF               string         `json:"estado"`
+	CEP              string         `json:"cep"`
+	CapitalSocial    string         `json:"capitalSocial"`
+	Administracao    string         `json:"tipoAdministracao"`
 	Socios           []socioPayload `json:"socios"`
 }
 
@@ -190,4 +190,3 @@ func extrairAlteracao(raw json.RawMessage) (*email.DadosEmailAlteracao, error) {
 		Situacao: p.Situacao, Quadros: p.Quadros,
 	}, nil
 }
-
