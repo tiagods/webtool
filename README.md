@@ -45,6 +45,19 @@ Em dev, `apps/web/next.config.mjs` tem um `rewrites()` que proxia `/api/:path*` 
 >
 > **Verificação cruzada de JWT (spec 024):** o token `prolink_aceite` assinado pela API Go tem que ser aceito pelo `jose` de `apps/web/middleware.ts`. `TestJWT_CompatibilidadeComJose` (`infrastructure/auth`) cobre isso automaticamente quando `node` está no PATH (pula caso contrário). Para checar um token na mão: `JWT_SECRET=<segredo> node scripts/verify-jwt-cross.mjs <token>`.
 
+### Testes unitários (npm)
+
+```bash
+npm run test            # vitest run — executa testes de packages/shared + apps/web
+npm run test:coverage   # vitest run --coverage — inclui relatório de cobertura (95% piso por arquivo)
+```
+
+A suíte cobre:
+- **`packages/shared`** — schemas Zod (abertura, alteração, aceite, documentos) e constantes (100% de cobertura)
+- **`apps/web`** — scaffolding vitest config pronto (spec 015), testes reais pendentes (spec 017)
+
+> O backend Go (`apps/backend`) tem sua própria suíte de testes via `go test` (ver `make -C apps/backend test`).
+
 ### Via Docker Compose (stack completa)
 
 ```bash

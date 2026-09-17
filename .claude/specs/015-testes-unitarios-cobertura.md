@@ -1,7 +1,7 @@
 ---
 id: "015"
 title: "Testes Unitários — Framework, Meta 100% / Piso 95% de Cobertura por Arquivo"
-status: draft
+status: done
 created: 2026-07-07
 updated: 2026-09-16
 author: "Claude"

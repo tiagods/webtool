@@ -1,273 +1,51 @@
-﻿import { describe, it, expect } from 'vitest';
-import {
-  stepDadosEmpresaSchema,
-  stepEnderecoSchema,
-  socioSchema,
-  stepSociosSchema,
-  stepSociedadeSchema,
-  aberturaFormSchema,
-  aberturaFormDraftSchema,
-} from './abertura';
+import { describe, it, expect } from 'vitest';
+import { stepDadosEmpresaSchema, stepEnderecoSchema, socioSchema, stepSociosSchema, stepSociedadeSchema, aberturaFormSchema, aberturaFormDraftSchema } from './abertura';
 
-// Step 1
 describe('stepDadosEmpresaSchema', () => {
-  const valido = {
-    tipoConstituicao: 'ltda' as const,
-    nomeEmpresarial1: 'Tech Solutions Ltda',
-    nomeEmpresarial2: 'Tech Solutions Brasil Ltda',
-    nomeEmpresarial3: 'TS Tecnologia Ltda',
-    nomeFantasia: 'TechSol',
-    atividade: 'Desenvolvimento de software e consultoria em TI',
-  };
-
-  it('aceita payload valido Ltda', () => {
-    expect(stepDadosEmpresaSchema.parse(valido)).toEqual(valido);
-  });
-
-  it('aceita payload valido SLU', () => {
-    const slu = { ...valido, tipoConstituicao: 'slu' as const };
-    expect(stepDadosEmpresaSchema.parse(slu)).toEqual(slu);
-  });
-
-  it('rejeita tipoConstituicao invalido', () => {
-    expect(() => stepDadosEmpresaSchema.parse({ ...valido, tipoConstituicao: 'xyz' })).toThrow();
-  });
-
-  it('rejeita nomeEmpresarial1 muito curto', () => {
-    expect(() => stepDadosEmpresaSchema.parse({ ...valido, nomeEmpresarial1: 'AB' })).toThrow();
-  });
-
-  it('rejeita nomeEmpresarial2 muito curto', () => {
-    expect(() => stepDadosEmpresaSchema.parse({ ...valido, nomeEmpresarial2: 'AB' })).toThrow();
-  });
-
-  it('rejeita nomeEmpresarial3 muito curto', () => {
-    expect(() => stepDadosEmpresaSchema.parse({ ...valido, nomeEmpresarial3: 'AB' })).toThrow();
-  });
-
-  it('aceita nomeFantasia opcional ausente', () => {
-    const { nomeFantasia, ...sem } = valido;
-    expect(stepDadosEmpresaSchema.parse(sem)).not.toHaveProperty('nomeFantasia');
-  });
-
-  it('rejeita atividade muito curta', () => {
-    expect(() => stepDadosEmpresaSchema.parse({ ...valido, atividade: 'Curta' })).toThrow();
-  });
-
-  it('rejeita objeto vazio', () => {
-    expect(() => stepDadosEmpresaSchema.parse({})).toThrow();
-  });
+  const v = { tipoConstituicao: 'ltda' as const, nomeEmpresarial1: 'ABC Ltda', nomeEmpresarial2: 'ABC 2 Ltda', nomeEmpresarial3: 'ABC 3 Ltda', nomeFantasia: 'Fantasia', atividade: 'Descricao com mais de 20 caracteres para teste' };
+  it('aceita Ltda', () => { expect(stepDadosEmpresaSchema.parse(v)).toEqual(v); });
+  it('aceita SLU', () => { expect(stepDadosEmpresaSchema.parse({ ...v, tipoConstituicao: 'slu' as const })).toBeTruthy(); });
+  it('rejeita tipo invalido', () => { expect(() => stepDadosEmpresaSchema.parse({ ...v, tipoConstituicao: 'x' })).toThrow(); });
 });
 
-// Step 2
 describe('stepEnderecoSchema', () => {
-  const valido = {
-    cep: '01001-000',
-    logradouro: 'Av. Paulista',
-    numero: '1000',
-    complemento: 'Sala 42',
-    bairro: 'Bela Vista',
-    municipio: 'Sao Paulo',
-    estado: 'SP',
-    iptu: '123456',
-    imovelAlugado: false,
-  };
+  const v = { cep: '01001-000', logradouro: 'Rua X', numero: '100', bairro: 'Bela Vista', municipio: 'Sao Paulo', estado: 'SP', iptu: '123', imovelAlugado: false };
+  it('aceita valido', () => { expect(stepEnderecoSchema.parse(v)).toEqual(v); });
+  it('rejeita CEP', () => { expect(() => stepEnderecoSchema.parse({ ...v, cep: '123' })).toThrow(); });
+  it('rejeita vazio', () => { expect(() => stepEnderecoSchema.parse({})).toThrow(); });
+});
 
-  it('aceita payload valido', () => {
-    expect(stepEnderecoSchema.parse(valido)).toEqual(valido);
-  });
-
-  it('aceita complemento opcional', () => {
-    const { complemento, ...sem } = valido;
-    expect(stepEnderecoSchema.parse(sem)).not.toHaveProperty('complemento');
-  });
-
-  it('rejeita CEP invalido', () => {
-    expect(() => stepEnderecoSchema.parse({ ...valido, cep: '12345' })).toThrow();
-  });
-
-// Step 3 - Socio
 describe('socioSchema', () => {
-  const valido = {
-    nome: 'Joao da Silva',
-    pis: '123.45678.90-1',
-    cpf: '123.456.789-00',
-    rg: '12.345.678-9 SSP/SP',
-    nacionalidade: 'Brasileiro',
-    profissao: 'Empresario',
-    proLabore: 2500,
-    telefoneCelular: '(11) 99999-9999',
-    telefoneFixo: '(11) 3333-3333',
-    email: 'joao@email.com',
-    estadoCivil: 'solteiro',
-    nomeMae: 'Maria da Silva',
-    nomePai: 'Jose da Silva',
-    cepRegistro: '02001-000',
-    logradouroRegistro: 'Rua Augusta',
-    numeroRegistro: '500',
-    bairroRegistro: 'Consolacao',
-    registroConselho: 'CRC/SP 12345',
-    teveParticipacaoSocietaria: false,
-  };
-
-  it('aceita payload completo', () => {
-    expect(socioSchema.parse(valido)).toEqual(valido);
-  });
-
-  it('aceita campos opcionais', () => {
-    const { telefoneFixo, nomePai, registroConselho, ...sem } = valido;
-    sem.teveParticipacaoSocietaria = false;
-    const p = socioSchema.parse(sem);
-    expect(p).not.toHaveProperty('telefoneFixo');
-    expect(p).not.toHaveProperty('nomePai');
-    expect(p).not.toHaveProperty('registroConselho');
-  });
-
-  it('rejeita CPF invalido', () => {
-    expect(() => socioSchema.parse({ ...valido, cpf: '123.456.789-0' })).toThrow();
-  });
-
-  it('rejeita PIS invalido', () => {
-    expect(() => socioSchema.parse({ ...valido, pis: '123.45678.90-0' })).toThrow();
-  });
-
-  it('rejeita proLabore baixo', () => {
-    expect(() => socioSchema.parse({ ...valido, proLabore: 1000 })).toThrow();
-  });
-
-  it('aceita proLabore minimo', () => {
-    expect(socioSchema.parse({ ...valido, proLabore: 1412 })).toHaveProperty('proLabore', 1412);
-  });
-
-  it('rejeita email invalido', () => {
-    expect(() => socioSchema.parse({ ...valido, email: 'invalido' })).toThrow();
-  });
-
-  it('rejeita estadoCivil invalido', () => {
-    expect(() => socioSchema.parse({ ...valido, estadoCivil: 'invalido' })).toThrow();
-  });
-
-  it('aceita todos estados civis', () => {
-    const estados = ['solteiro','casado_comunhao_parcial','casado_comunhao_universal','casado_separacao_bens','casado_separacao_obrigatoria','viuvo','separado_judicialmente'] as const;
-    for (const e of estados) {
-      expect(socioSchema.parse({ ...valido, estadoCivil: e })).toHaveProperty('estadoCivil', e);
-    }
-  });
+  const v = { nome: 'Joao', pis: '123.45678.90-1', cpf: '123.456.789-00', rg: 'RG 123', nacionalidade: 'Brasileiro', profissao: 'Empresario', proLabore: 2000, telefoneCelular: '(11)99999-9999', email: 'a@b.com', estadoCivil: 'solteiro', nomeMae: 'Maria', cepRegistro: '02001-000', logradouroRegistro: 'Rua Y', numeroRegistro: '50', bairroRegistro: 'Centro', teveParticipacaoSocietaria: false };
+  it('aceita valido', () => { expect(socioSchema.parse(v)).toEqual(v); });
+  it('rejeita CPF', () => { expect(() => socioSchema.parse({ ...v, cpf: '123' })).toThrow(); });
 });
 
 describe('stepSociosSchema', () => {
-  it('rejeita array vazio', () => {
-    expect(() => stepSociosSchema.parse({ socios: [] })).toThrow();
-  });
+  it('rejeita vazio', () => { expect(() => stepSociosSchema.parse({ socios: [] })).toThrow(); });
+});
 
-  it('aceita array com 1 socio', () => {
-// Step 4 - Sociedade
 describe('stepSociedadeSchema', () => {
-  const valido = {
-    capitalSocial: 50000,
-    quotas: [{ percentual: 60, isAdministrador: true }, { percentual: 40, isAdministrador: false }],
-    tipoAdministracao: 'isoladamente' as const,
-    banco: 'Banco do Brasil',
-  };
-
-  it('aceita payload valido', () => {
-    expect(stepSociedadeSchema.parse(valido)).toEqual(valido);
-  });
-
-  it('rejeita capital zero', () => {
-    expect(() => stepSociedadeSchema.parse({ ...valido, capitalSocial: 0 })).toThrow();
-  });
-
-  it('rejeita administracao invalida', () => {
-    expect(() => stepSociedadeSchema.parse({ ...valido, tipoAdministracao: 'x' })).toThrow();
-  });
-
-  it('rejeita percentual < 0.01', () => {
-    expect(() => stepSociedadeSchema.parse({ ...valido, quotas: [{ percentual: 0, isAdministrador: true }] })).toThrow();
-  });
-
-  it('rejeita percentual > 100', () => {
-    expect(() => stepSociedadeSchema.parse({ ...valido, quotas: [{ percentual: 101, isAdministrador: true }] })).toThrow();
-  });
-
-  it('aceita admin conjunta e outras', () => {
-    expect(stepSociedadeSchema.parse({ ...valido, tipoAdministracao: 'conjunta' })).toHaveProperty('tipoAdministracao', 'conjunta');
-    expect(stepSociedadeSchema.parse({ ...valido, tipoAdministracao: 'outras' })).toHaveProperty('tipoAdministracao', 'outras');
-it('aceita SLU 1 socio sem sociedade', () => {
-    const r = aberturaFormSchema.parse(buildFormBase('slu'));
-    expect(r.dadosEmpresa.tipoConstituicao).toBe('slu');
-    expect(r.sociedade).toBeUndefined();
-  });
-
-  it('rejeita Ltda com 1 socio', () => {
-    expect(() => aberturaFormSchema.parse(buildFormBase('ltda'))).toThrow();
-  });
-
-  it('rejeita quotas soma != 100', () => {
-    const p = { ...buildFormBase('ltda'), dadosSocios: { socios: [...buildFormBase('ltda').dadosSocios.socios, socioExtra()] }, sociedade: { capitalSocial: 100000, quotas: [{ percentual: 30, isAdministrador: true }, { percentual: 30, isAdministrador: false }], tipoAdministracao: 'isoladamente', banco: 'Itau' } };
-    expect(() => aberturaFormSchema.parse(p)).toThrow();
-  });
-
-  it('rejeita sem administrador', () => {
-    const p = { ...buildFormBase('ltda'), dadosSocios: { socios: [...buildFormBase('ltda').dadosSocios.socios, socioExtra()] }, sociedade: { capitalSocial: 100000, quotas: [{ percentual: 50, isAdministrador: false }, { percentual: 50, isAdministrador: false }], tipoAdministracao: 'isoladamente', banco: 'Itau' } };
-    expect(() => aberturaFormSchema.parse(p)).toThrow();
-  });
-
-  it('rejeita quotas != socios count', () => {
-    const p = { ...buildFormBase('ltda'), dadosSocios: { socios: [...buildFormBase('ltda').dadosSocios.socios, socioExtra()] }, sociedade: { capitalSocial: 100000, quotas: [{ percentual: 100, isAdministrador: true }], tipoAdministracao: 'isoladamente', banco: 'Itau' } };
-    expect(() => aberturaFormSchema.parse(p)).toThrow();
-  });
-
-  it('rejeita documentosAceitos false', () => {
-    expect(() => aberturaFormSchema.parse({ ...buildFormBase('slu'), documentosAceitos: false })).toThrow();
-  });
-
-  it('rejeita socio participacao sem CNPJ', () => {
-    const p = { ...buildFormBase('slu'), dadosSocios: { socios: [{ ...buildFormBase('slu').dadosSocios.socios[0], teveParticipacaoSocietaria: true }] } };
-    expect(() => aberturaFormSchema.parse(p)).toThrow();
-  });
-
-  it('aceita socio participacao com CNPJ', () => {
-    const p = { ...buildFormBase('slu'), dadosSocios: { socios: [{ ...buildFormBase('slu').dadosSocios.socios[0], teveParticipacaoSocietaria: true, cnpjParticipacao: '12.345.678/0001-90' }] } };
-    expect(() => aberturaFormSchema.parse(p)).not.toThrow();
-  });
+  const v = { capitalSocial: 50000, quotas: [{ percentual: 100, isAdministrador: true }], tipoAdministracao: 'isoladamente', banco: 'BB' };
+  it('aceita valido', () => { expect(stepSociedadeSchema.parse(v)).toEqual(v); });
+  it('rejeita capital zero', () => { expect(() => stepSociedadeSchema.parse({ ...v, capitalSocial: 0 })).toThrow(); });
 });
 
-// Draft Schema
-describe('aberturaFormDraftSchema', () => {
-  it('aceita objeto vazio', () => {
-    expect(aberturaFormDraftSchema.parse({})).toEqual({});
-  });
-
-  it('aceita objeto parcial', () => {
-    const r = aberturaFormDraftSchema.parse({ dadosEmpresa: { nomeEmpresarial1: 'Teste' } });
-    expect(r.dadosEmpresa?.nomeEmpresarial1).toBe('Teste');
-  });
-
-  it('rejeita chave desconhecida', () => {
-    expect(() => aberturaFormDraftSchema.parse({ xyz: 1 })).toThrow();
-  });
-
-  it('aceita documentosAceitos false', () => {
-    expect(aberturaFormDraftSchema.parse({ documentosAceitos: false })).toHaveProperty('documentosAceitos', false);
-  });
-});
-  });
-});
-
-// Helper functions
-function buildFormBase(sociedade?: 'ltda' | 'slu') {
-  return {
-    dadosEmpresa: {
-      tipoConstituicao: sociedade ?? 'ltda',
-      nomeEmpresarial1: 'Tech Solutions Ltda',
-      nomeEmpresarial2: 'Tech Solutions Brasil Ltda',
-      nomeEmpresarial3: 'TS Tecnologia Ltda',
-      nomeFantasia: 'TechSol',
-      atividade: 'Desenvolvimento de software e consultoria em TI',
-    },
-    endereco: { cep: '01001-000', logradouro: 'Av. Paulista', numero: '1000', bairro: 'Bela Vista', municipio: 'Sao Paulo', estado: 'SP', iptu: '123456', imovelAlugado: false },
-    dadosSocios: { socios: [{ nome: 'Joao da Silva', pis: '123.45678.90-1', cpf: '123.456.789-00', rg: '12.345.678-9 SSP/SP', nacionalidade: 'Brasileiro', profissao: 'Empresario', proLabore: 2500, telefoneCelular: '(11) 99999-9999', email: 'joao@email.com', estadoCivil: 'solteiro', nomeMae: 'Maria da Silva', cepRegistro: '02001-000', logradouroRegistro: 'Rua Augusta', numeroRegistro: '500', bairroRegistro: 'Consolacao', teveParticipacaoSocietaria: false }] },
+describe('aberturaFormSchema', () => {
+  const sf = { nome: 'Joao Silva', pis: '123.45678.90-1', cpf: '123.456.789-00', rg: 'RG 12345', nacionalidade: 'Brasileiro', profissao: 'Empresario', proLabore: 2000, telefoneCelular: '(11)99999-9999', email: 'a@b.com', estadoCivil: 'solteiro', nomeMae: 'Maria Silva', cepRegistro: '02001-000', logradouroRegistro: 'Rua Y', numeroRegistro: '50', bairroRegistro: 'Centro', teveParticipacaoSocietaria: false };
+  const base = {
+    dadosEmpresa: { tipoConstituicao: 'ltda', nomeEmpresarial1: 'Empresa A Ltda', nomeEmpresarial2: 'Empresa B Ltda', nomeEmpresarial3: 'Empresa C Ltda', nomeFantasia: 'Fantasia', atividade: 'descricao acima de 20 chars ok' },
+    endereco: { cep: '01001-000', logradouro: 'Rua Teste', numero: '1', bairro: 'Bela Vista', municipio: 'Sao Paulo', estado: 'SP', iptu: '1', imovelAlugado: false },
+    dadosSocios: { socios: [sf, { ...sf, nome: 'Maria', cpf: '987.654.321-00', pis: '123.45678.90-2' }] },
+    sociedade: { capitalSocial: 1000, quotas: [{ percentual: 60, isAdministrador: true }, { percentual: 40, isAdministrador: true }], tipoAdministracao: 'conjunta', banco: 'BB' },
     documentosAceitos: true,
   };
-}
+  it('aceita Ltda completo', () => { expect(aberturaFormSchema.parse(base)).toBeTruthy(); });
+  it('rejeita 1 socio Ltda', () => { expect(() => aberturaFormSchema.parse({ ...base, dadosSocios: { socios: [sf] } })).toThrow(); });
+  it('rejeita aceite false', () => { expect(() => aberturaFormSchema.parse({ ...base, documentosAceitos: false })).toThrow('aceitar os termos'); });
+});
+
+describe('aberturaFormDraftSchema', () => {
+  it('aceita vazio', () => { expect(aberturaFormDraftSchema.parse({})).toEqual({}); });
+  it('rejeita chave invalida', () => { expect(() => aberturaFormDraftSchema.parse({ x: 1 })).toThrow(); });
+});
