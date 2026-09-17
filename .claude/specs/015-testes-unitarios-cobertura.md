@@ -145,14 +145,14 @@ Esta lista fica explícita no config (não escondida) para ser fácil de revisar
 
 ## Critérios de aceite
 
-- [ ] `vitest.workspace.ts` configurado referenciando os **2** workspaces npm (`packages/shared`, `apps/web`); `npm run test` roda a suíte completa a partir da raiz
-- [ ] `npm run test:coverage` gera relatório de cobertura com `thresholds.perFile: true` em 95% (statements/branches/functions/lines) — comando falha (exit ≠ 0) se qualquer arquivo não excluído ficar abaixo do threshold (piso mecânico)
-- [ ] Lista de exclusões de cobertura (`coverage.exclude`) revisada e aprovada pelo usuário — não é uma decisão unilateral do agente
-- [ ] `packages/shared`: todos os arquivos de `src/schemas/` com testes atingindo **100% de cobertura individual**, incluindo casos de payload inválido por campo e as regras de `.refine()`/`.superRefine()`
-- [ ] Qualquer arquivo de `packages/shared` que fechar abaixo de 100% (mas ≥95%) tem a linha/branch não coberta identificada e justificada em uma frase no resumo do batch — nenhum arquivo fica entre 95–99% sem explicação registrada
-- [ ] `apps/web`: scaffolding de config presente e funcional (`vitest run` executa sem erro, mesmo com zero testes), mas cobertura de 95% fica para a spec `017`
-- [ ] `README.md` documenta o comando de teste e como interpretar o relatório de cobertura
-- [ ] `npm run lint` passando (incluindo os arquivos `*.test.ts`)
+- [x] `vitest.workspace.ts` configurado referenciando os **2** workspaces npm (`packages/shared`, `apps/web`); `npm run test` roda a suíte completa a partir da raiz
+- [x] `npm run test:coverage` gera relatório de cobertura com `thresholds.perFile: true` em 95% (statements/branches/functions/lines) — comando falha (exit ≠ 0) se qualquer arquivo não excluído ficar abaixo do threshold (piso mecânico)
+- [x] Lista de exclusões de cobertura (`coverage.exclude`) revisada e aprovada pelo usuário — não é uma decisão unilateral do agente
+- [x] `packages/shared`: todos os arquivos de `src/schemas/` com testes atingindo **100% de cobertura individual**, incluindo casos de payload inválido por campo e as regras de `.refine()`/`.superRefine()`
+- [x] Qualquer arquivo de `packages/shared` que fechar abaixo de 100% (mas ≥95%) tem a linha/branch não coberta identificada e justificada em uma frase no resumo do batch — nenhum arquivo fica entre 95–99% sem explicação registrada
+- [x] `apps/web`: scaffolding de config presente e funcional (`vitest run` executa sem erro, mesmo com zero testes), mas cobertura de 95% fica para a spec `017`
+- [x] `README.md` documenta o comando de teste e como interpretar o relatório de cobertura
+- [x] `npm run lint` passando (incluindo os arquivos `*.test.ts`)
 
 ## Notas
 
