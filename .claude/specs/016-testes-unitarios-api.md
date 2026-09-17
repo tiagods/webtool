@@ -1,12 +1,34 @@
 ---
 id: "016"
 title: "Testes Unitários — apps/api-golang (Meta 100% / Piso 95%)"
-status: draft
+status: rejected       # draft | review | approved | in-progress | done | rejected
 created: 2026-07-07
+updated: 2026-09-16
 author: "Claude"
 batch_size: "medium"
 depends_on: ["015"]
 ---
+
+> **REJEITADA (superseded) — 2026-09-16.** A spec foi escrita quando o backend era `apps/api`
+> (Next.js/TypeScript). Após o cutover para Go (specs 022–028) e o rename para `apps/backend`
+> (spec 029), o alvo e o ecossistema mudaram completamente:
+>
+> - O código que esta spec pretendia testar (`lib/auth.ts`, `lib/rateLimit.ts`,
+>   `lib/aws/dynamodb.ts`, `app/api/*/route.ts`) **não existe mais** — foi todo reescrito em Go.
+> - O Go já tem seu próprio framework de testes (`go test`) com:
+>   - Suíte de caracterização para paridade Zod ↔ Go (`testdata/` gerado por
+>     `scripts/gen-abertura-characterization.mjs`)
+>   - Testes unitários (`make -C apps/backend test` roda `go test ./... -race`)
+>   - Testes de integração contra Floci (`make -C apps/backend test-integration`)
+> - Não faz sentido configurar Vitest ou `aws-sdk-client-mock` para testar código Go.
+>
+> **O que fazer se a cobertura de `apps/backend` for insuficiente:** criar uma nova spec
+> específica para o backend Go (ex.: `testes-unitarios-go.md`) com `go test -cover`,
+> mocking via interfaces nativas Go, e integração com o `Makefile` existente — escopo
+> separado desta spec, que é baseada em premissas anuladas.
+>
+> A cobertura com Vitest para `packages/shared` + `apps/web` continua sendo coberta pela
+> **015** (adaptada) e **017**.
 
 # Testes Unitários — apps/api-golang (Meta 100% / Piso 95%)
 

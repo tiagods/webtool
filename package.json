@@ -10,10 +10,19 @@
     "dev": "npm run dev -w apps/web",
     "build": "npm run build -w apps/web",
     "lint": "npm run lint -w apps/web",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "infra:up": "docker compose up -d",
     "infra:down": "docker compose down",
     "infra:logs": "docker compose logs -f floci",
     "infra:reset": "docker compose down -v && docker compose up -d",
     "infra:validate": "bash infra/local/validate.sh"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@vitest/coverage-v8": "^3.1.1",
+    "jsdom": "^26.1.0",
+    "vitest": "^3.1.1"
   }
 }
