@@ -42,7 +42,7 @@ func (m *SMTPMailer) Send(ctx context.Context, data outbound.EmailData) error {
 
 	var buf strings.Builder
 	for k, v := range header {
-		buf.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
+		fmt.Fprintf(&buf, "%s: %s\r\n", k, v)
 	}
 	buf.WriteString("\r\n")
 	buf.WriteString(data.BodyHTML)
@@ -68,7 +68,7 @@ func sendMail(cfg config.SMTP, msg string) error {
 	if err != nil {
 		return fmt.Errorf("conectar ao servidor SMTP: %w", err)
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	if ok, _ := client.Extension("STARTTLS"); ok {
 		tlsCfg := &tls.Config{ServerName: cfg.Host}
@@ -116,13 +116,13 @@ func sendMailTLS(addr string, auth smtp.Auth, from string, to []string, msg stri
 	if err != nil {
 		return fmt.Errorf("conexão TLS: %w", err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	client, err := smtp.NewClient(conn, addr)
 	if err != nil {
 		return fmt.Errorf("cliente SMTP: %w", err)
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	if auth != nil {
 		if err := client.Auth(auth); err != nil {

@@ -79,7 +79,9 @@ func StartWorker() error {
 		var subMsg entity.SubmissaoMessage
 		if err := json.Unmarshal([]byte(*msg.Body), &subMsg); err != nil {
 			slog.Error("mensagem SQS inválida", "err", err)
-			deleteMessage(ctx, clients.SQS, cfg.AWS.SQSQueueURL, *msg.ReceiptHandle)
+			if err := deleteMessage(ctx, clients.SQS, cfg.AWS.SQSQueueURL, *msg.ReceiptHandle); err != nil {
+				slog.Error("erro ao deletar mensagem inválida", "err", err)
+			}
 			sleep(ctx, workerPollDelay)
 			continue
 		}
