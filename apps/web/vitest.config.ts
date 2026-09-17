@@ -6,6 +6,9 @@ import { coverageThresholds, coverageExclude } from '../../vitest.shared';
 const appDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  esbuild: {
+    jsx: 'automatic',
+  },
   resolve: {
     alias: {
       '@': appDir,
