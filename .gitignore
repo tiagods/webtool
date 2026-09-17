@@ -58,5 +58,6 @@ Thumbs.db
 .claude/worktrees/
 .claude/tasks/todo*.md
 
-# Cline (.clinerules) - symlinks/junctions para .claude
+# Links locais para .claude (symlinks/junctions) - ver AGENTS.md
 .clinerules/
+.agents/
