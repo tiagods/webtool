@@ -66,7 +66,7 @@ describe('aberturaFormSchema', () => {
   it('rejeita sem admin (refine)', () => { expect(() => aberturaFormSchema.parse({ ...base, sociedade: { ...base.sociedade, quotas: [{ percentual: 50, isAdministrador: false }, { percentual: 50, isAdministrador: false }] } })).toThrow(/ao menos 1 administrador/); });
   it('rejeita quotas != socios count (refine)', () => { expect(() => aberturaFormSchema.parse({ ...base, sociedade: { ...base.sociedade, quotas: [{ percentual: 100, isAdministrador: true }] } })).toThrow(/Cada s.cio precisa/); });
   it('rejeita participacao sem CNPJ (refine)', () => { expect(() => aberturaFormSchema.parse({ ...base, dadosEmpresa: { ...base.dadosEmpresa, tipoConstituicao: 'slu' as const }, dadosSocios: { socios: [{ ...sf, teveParticipacaoSocietaria: true }] } })).toThrow(/CNPJ da empresa anterior/); });
-it('rejeita Ltda sem sociedade (refine)', () => { const p = { ...base }; delete p.sociedade; expect(() => aberturaFormSchema.parse(p)).toThrow(/Preencha os dados da sociedade/); });
+it('rejeita Ltda sem sociedade (refine)', () => { const { sociedade, ...semSociedade } = base; expect(() => aberturaFormSchema.parse(semSociedade)).toThrow(/Preencha os dados da sociedade/); });
   it('rejeita aceite false', () => { expect(() => aberturaFormSchema.parse({ ...base, documentosAceitos: false })).toThrow(/aceitar os termos/); });
 });
 
