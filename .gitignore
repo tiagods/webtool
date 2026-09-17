@@ -55,3 +55,8 @@ Thumbs.db
 # Claude Code local session state
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
+.claude/worktrees/
+.claude/tasks/todo*.md
+
+# Cline (.clinerules) - symlinks/junctions para .claude
+.clinerules/

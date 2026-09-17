@@ -19,6 +19,20 @@ Uma spec é um documento curto que descreve **o que** vai ser construído, **por
 - Specs rejeitadas ficam com `status: rejected` e o motivo no campo `notes`
 - Nunca delete specs — elas são histórico de decisão
 
+## Dependências — o que bloqueia e o que não
+
+| Campo | Semântica |
+|-------|-----------|
+| `depends_on` | **Hard**: sem essa spec a mudança não compila ou não faz sentido. Use com parcimônia |
+| `prefer_after` | Ordem preferida. O `/start-batch` apenas **avisa** e segue |
+| `touches` | Globs dos paths que a spec altera. Serve para detectar colisão entre batches paralelos |
+
+- Dependência com `status: rejected` conta como **satisfeita** — a spec foi descartada, não está
+  pendente. Nesse caso limpe o campo em vez de deixar a spec presa
+- Dependência em `draft`/`review`/`in-progress` **não bloqueia**: o `/start-batch` relata o risco
+  (e a colisão de `touches`, se houver) e deixa a decisão com o usuário
+- Ordem cronológica de numeração **não** é dependência: só declare o que é de fato necessário
+
 ## Nomenclatura
 
 ```

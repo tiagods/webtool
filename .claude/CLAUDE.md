@@ -6,7 +6,7 @@
 - **Sem Preguica**: encontrar causas raiz, sem fixes temporarios — padrao de desenvolvedor senior
 - **Orientado por Spec**: sem implementacao sem spec aprovada (exceto hotfixes triviais)
 - **Small Batches**: quebrar trabalho em pecas digestiveis, entregar frequentemente
-- **Usuario Controla o Git**: nunca executar comandos de escrita no git — sugerir, nao agir proativamente
+- **Git Organizado**: o agente opera o git normalmente (commit, branch, push, PR) seguindo a Convencao de Git — commits pequenos, por escopo, nunca globais
 
 ---
 
@@ -42,8 +42,9 @@
 - Pular isso para fixes simples e obvios — nao over-engineer
 - Desafiar seu proprio trabalho antes de apresentar
 
-### 7. Execucao de Tasks — Uma por Uma
-- Trabalhar em **uma task do `todo.md` por vez** — nao iniciar a proxima antes de concluir a atual
+### 7. Execucao de Tasks — Uma por Uma Dentro do Batch
+- Trabalhar em **uma task do `todo.md` por vez dentro de cada batch** — nao iniciar a proxima
+  antes de concluir a atual. Batches diferentes rodam em paralelo, um por worktree
 - Ao concluir cada task: **atualizar imediatamente o `todo.md`** marcando o item como `[x]`
 - Nunca acumular tasks concluidas para marcar depois — marcar no momento exato da conclusao
 - Ao iniciar uma task: marcar com `[/]` (em andamento) para sinalizar progresso
@@ -69,17 +70,23 @@ Spec (definicao) → Aprovacao → Batch (implementacao) → Verificacao → Don
 
 1. **Criar spec**: `/new-spec [nome]` — cria spec a partir do template em `.claude/specs/`
 2. **Revisar e aprovar**: discutir design, marcar `status: approved`
-3. **Iniciar batch**: `/start-batch [spec]` — cria `.claude/tasks/todo.md` a partir da spec
+3. **Iniciar batch**: `/start-batch [spec]` — abre a **worktree da spec** (`EnterWorktree`) e
+   cria o `.claude/tasks/todo.md` dela
 4. **Implementar**: seguir o checklist, marcar progresso com `[/]` (em andamento) e `[x]` (concluido)
 5. **Explicar mudancas**: resumo de alto nivel a cada passo
 6. **Capturar licoes**: atualizar `.claude/tasks/lessons.md` apos correcoes
-7. **Finalizar**: `/done` — verifica testes, atualiza lessons, gera walkthrough e limpa
+7. **Finalizar**: `/done` — roda os gates do escopo, commita, pusha, abre o PR, gera walkthrough
+   e fecha a worktree
 
 ### Regras de Small Batches
 
 - **Uma spec = maximo 1 dia de trabalho**
 - Features grandes devem ser quebradas em multiplas specs sequenciais
-- Cada spec tem `depends_on` para garantir ordem
+- **Um batch por worktree** — varios batches podem estar abertos ao mesmo tempo; `git worktree
+  list` e o board. O stack local (`infra:up`, `dev`, `test-integration`) e a excecao: uma
+  worktree por vez, porque `container_name` e portas sao fixas
+- `depends_on` e **hard** (sem isso nao compila); `prefer_after` apenas avisa; dependencia
+  `rejected` conta como satisfeita — ver `.claude/specs/README.md`
 - Nunca implemente sem spec aprovada (exceto hotfixes triviais)
 
 ### Estrutura do `.claude/`
@@ -87,6 +94,7 @@ Spec (definicao) → Aprovacao → Batch (implementacao) → Verificacao → Don
 ```
 .claude/
 ├── CLAUDE.md              # Este arquivo
+├── settings.json          # worktree.baseRef + permissoes (commitado)
 ├── specs/                 # Definicoes de features (spec-first)
 │   ├── README.md
 │   ├── _template.md
@@ -94,7 +102,9 @@ Spec (definicao) → Aprovacao → Batch (implementacao) → Verificacao → Don
 ├── tasks/                 # Gestao de trabalho
 │   ├── README.md
 │   ├── lessons.md         # Acumulativo — nunca resetar
-│   └── todo.md            # Batch atual — criado/removido por batch
+│   └── todo.md            # Batch atual — um por worktree, gitignorado
+├── worktrees/             # Uma worktree por batch (gitignorado)
+│   └── spec/NNN-slug/
 ├── commands/              # Slash commands reutilizaveis
 │   ├── new-spec.md
 │   ├── start-batch.md
@@ -115,28 +125,69 @@ adapters --> domain <-- use_cases
 infra --> adapters, domain, use_cases
 ```
 
-## Comandos Git — Proibidos
+---
 
-> **NUNCA execute comandos de escrita no Git de forma proativa.** O usuario e o unico responsavel por gerenciar o repositorio.
+## Convencao de Git
 
-Comandos **proibidos** para qualquer agente:
+O agente opera o git livremente dentro desta convencao — `commit`, `branch`, `push`,
+`merge`, `rebase`, PR — sem pedir permissao.
 
-| Proibido | Motivo |
-|----------|--------|
-| `git commit` | Usuario decide o que e quando comitar |
-| `git push` | Usuario decide quando subir |
-| `git merge` | Usuario decide estrategia de merge |
-| `git rebase` | Usuario decide estrategia de rebase |
-| `git cherry-pick` | Usuario decide o que aplicar |
-| `git tag` | Usuario decide versionamento |
-| `git reset --hard` | Risco de perda de dados |
-| `git clean -fd` | Risco de perda de arquivos |
+**Unica protecao: perda de dados.** Comandos que descartam trabalho de forma irrecuperavel
+exigem **confirmacao explicita do usuario** antes de rodar:
 
-Os commandos de escrita so podem ser executados com devida autorização expressa do usuario.
+- `git reset --hard`
+- `git clean -fd`
+- `git checkout -- <path>` / `git restore <path>` (descarta alteracao nao commitada)
+- `git push --force` / `-f` (sobrescreve commits no remoto)
+- `git branch -D` de branch nao mergeada
+- `git stash drop` / `git stash clear`
+- qualquer `git filter-*`
 
-Comandos **permitidos** (somente leitura):
+### Branch
 
-- `git status`, `git diff`, `git log`, `git branch`, `git show`
-- `git stash list`, `git remote -v`
+- Uma branch por spec, **numa worktree isolada**: o `/start-batch` chama `EnterWorktree` com
+  `name: "spec/NNN-slug-da-spec"`, que cria a branch a partir de `origin/main`
+  (`worktree.baseRef: fresh` em `.claude/settings.json`) em `.claude/worktrees/`
+- Fora de spec: `fix/descricao-curta`, `chore/descricao-curta`
+- Nao implementar direto na `main` — batches paralelos em `main` disputam a mesma arvore
+- A worktree nasce de `origin/main`: trabalho **nao commitado nao e herdado**. Commite ou
+  descarte antes de abrir o batch
 
-> Se precisar sugerir uma operacao git, **informe o comando ao usuario** e deixe ele executar.
+### Commits — organizados, nunca globais
+
+- **Proibido commit global**: sem `git add .`, sem `git add -A`, sem `git commit -am`
+- Sempre `git add` com **caminhos explicitos** dos arquivos daquela unidade de trabalho
+- **Um commit = uma unidade logica** — uma task do `todo.md` ou um criterio de aceite
+- Se a arvore tem mudancas de mais de uma spec, **separar por caminho**; nunca misturar
+  duas specs no mesmo commit
+- Antes de cada commit: `git status` + `git diff --stat` dos paths que vao entrar, para
+  confirmar o que esta sendo incluido
+- Conventional Commits: `tipo(escopo): descricao no imperativo`
+  - tipos: `feat` `fix` `refactor` `docs` `test` `chore` `build`
+  - escopo: `backend` `web` `shared` `infra` `specs` `deps`
+  - corpo (quando necessario) explica o **porque**; rodape referencia a spec: `Spec: 031`
+- Commits gerados pelo agente levam o rodape de atribuicao
+  `Co-Authored-By: Claude <modelo> <noreply@anthropic.com>`
+
+### Push — so com a spec comprovadamente concluida
+
+Durante o batch os commits ficam **locais**. O push acontece **uma vez**, no `/done`, e
+somente quando as quatro condicoes estao satisfeitas:
+
+1. Todos os itens do `todo.md` marcados `[x]`
+2. Todos os criterios de aceite da spec marcados `[x]`
+3. Gates do escopo tocado **executados e verdes** (prova de conclusao — nao basta afirmar)
+4. `status: done` na spec e `todo.md` finalizado/removido
+
+- Push na branch da spec, nunca direto na `main`
+- Faltando qualquer condicao: **nao dar push** — reportar o que falta e parar
+- `--force-with-lease` apenas na propria branch da spec, e so com confirmacao (perda de dados)
+
+### Pull Request
+
+- Abrir o PR ao fechar a spec (`/done`), da branch da spec para a `main`
+- Titulo: `NNN — titulo da spec`
+- Corpo: objetivo, criterios de aceite atendidos, como testar, gates executados
+- **Ao fechar o PR, submeter as mudancas de forma organizada**: historico revisado antes do
+  merge (commits agrupados por unidade logica, sem "wip"/"fix typo" soltos), merge na `main`
+  e branch removida depois

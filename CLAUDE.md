@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Agent Rules
 
-The agent workflow is defined in [`.claude/CLAUDE.md`](.claude/CLAUDE.md). Read it at the start of every session — it defines the spec-first development cycle, git restrictions, and self-improvement rules.
+The agent workflow is defined in [`.claude/CLAUDE.md`](.claude/CLAUDE.md). Read it at the start of every session — it defines the spec-first development cycle, the git convention (organized commits, push only on a proven-done spec), and self-improvement rules.
 
 ## Commands
 
@@ -30,6 +30,11 @@ Full local flow without Docker: run `npm run dev -w apps/web` (3000) and `make -
 parallel — `apps/web/next.config.mjs` proxies `/api/:path*` to `:3001` in dev, so the whole flow works
 through `http://localhost:3000` alone. Via Docker: `npm run infra:up` (`docker compose up -d --build`),
 available at `http://localhost` (port 80, via Nginx).
+
+**One stack at a time across worktrees:** `docker-compose.yml` hardcodes `container_name: prolink-*`
+and publishes fixed host ports (4566, 3000, 3001, 80), so `npm run infra:up`, `npm run dev` and
+`make -C apps/backend test-integration` can only run in one worktree at a time. Editing code and
+running `make -C apps/backend test` / `npm run lint` in parallel worktrees is fine.
 
 The Go module has unit + integration tests (`make -C apps/backend test`); `apps/web` has no test command yet.
 The Go validator is verified against the shared Zod schemas by a characterization suite

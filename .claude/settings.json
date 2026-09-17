@@ -1,0 +1,50 @@
+{
+  "worktree": {
+    "baseRef": "fresh",
+    "symlinkDirectories": ["node_modules"]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git branch*)",
+      "Bash(git remote -v)",
+      "Bash(git rev-parse*)",
+      "Bash(git rev-list*)",
+      "Bash(git worktree list*)",
+      "Bash(git stash list*)",
+      "Bash(git fetch*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(git switch*)",
+      "Bash(git checkout -b*)",
+      "Bash(git push -u origin*)",
+      "Bash(git push origin*)",
+      "Bash(gh pr create*)",
+      "Bash(gh pr view*)",
+      "Bash(npm run lint*)",
+      "Bash(npm run build*)",
+      "Bash(npm install*)",
+      "Bash(make -C apps/backend lint*)",
+      "Bash(make -C apps/backend test*)",
+      "Bash(make -C apps/backend fmt*)",
+      "Bash(make -C apps/backend generate*)",
+      "Bash(docker compose build*)"
+    ],
+    "ask": [
+      "Bash(git reset --hard*)",
+      "Bash(git clean*)",
+      "Bash(git checkout --*)",
+      "Bash(git restore*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git branch -D*)",
+      "Bash(git stash drop*)",
+      "Bash(git stash clear*)",
+      "Bash(git filter-branch*)",
+      "Bash(git filter-repo*)"
+    ]
+  }
+}

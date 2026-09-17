@@ -5,7 +5,9 @@ status: draft          # draft | review | approved | in-progress | done | reject
 created: YYYY-MM-DD
 author: ""
 batch_size: "small"    # small (≤ meio dia) | medium (≤1 dia)
-depends_on: []         # IDs de specs que precisam estar done
+depends_on: []         # HARD - sem estas specs a mudanca nao compila/nao faz sentido
+prefer_after: []       # ordem preferida - apenas avisa, nunca bloqueia
+touches: []            # globs dos paths que a spec altera - detecta colisao entre worktrees
 ---
 
 # [Título da Spec]
@@ -46,10 +48,10 @@ depends_on: []         # IDs de specs que precisam estar done
 
 - [ ] ...
 - [ ] ...
-- [ ] Lint passando (`make lint`)
-- [ ] Testes unitários passando(`make test`)
-- [ ] Análise de segurança (`make security`)
-- [ ]  Removes __pycache__ and pyc files (`make clean-py`)
+- [ ] Gates do escopo tocado verdes (ver tabela em `.claude/commands/done.md`):
+  - `apps/backend/**` → `make -C apps/backend lint` + `make -C apps/backend test` + `docker compose build api-go`
+  - `apps/web/**`, `packages/**` → `npm run lint` + `npm run build`
+  - só `.claude/**`, `docs/**`, `*.md` → sem gate de build
 
 ## Notas
 
