@@ -1,11 +1,12 @@
 ---
 id: "031"
 title: "Auditar comentários de apps/backend contra boas-praticas.md §6"
-status: draft          # draft | review | approved | in-progress | done | rejected
+status: done           # draft | review | approved | in-progress | done | rejected
 created: 2026-09-08
 author: "tiagods"
 batch_size: "small"    # small (≤ meio dia)
 depends_on: ["029"]    # a árvore já é apps/backend
+touches: ["apps/backend/**"]
 ---
 
 # Auditar comentários de `apps/backend` contra `boas-praticas.md` §6
@@ -21,14 +22,14 @@ depends_on: ["029"]    # a árvore já é apps/backend
 > - Evite explicar demais um processo, mesmo fora do fluxo (ex.: `main.go` já invoca um `Start`; não comente que o `Start` é invocado, e sim **por que** ali).
 
 O código Go de `apps/backend` (specs 022–028) foi escrito antes dessa regra e a viola em vários
-pontos: **42 linhas de comentário** citam `apps/api/*.ts`, `@prolink/shared`,
+pontos: **27 linhas de comentário** citam `apps/api/*.ts`, `@prolink/shared`,
 `packages/shared/src/...`, `apps/web/middleware.ts` ou "spec NNN" — âncoras para arquivos que
 mudam de lugar ou já nem existem (`apps/api-node` foi removido na spec 029). Além dessas,
 há doc-comments que narram o fluxo passo a passo em vez de registrar a decisão.
 
 ## Objetivo
 
-Passar por **todo comentário** de `apps/backend/**/*.go` (89 arquivos, incl. `_test.go`) e, sem
+Passar por **todo comentário** de `apps/backend/**/*.go` (93 arquivos, incl. `_test.go`) e, sem
 mudar uma linha de código executável:
 
 1. **Remover a referência externa**, mantendo a informação quando ela é a regra em si.
@@ -64,8 +65,8 @@ a teste, no lugar de dez a arquivos `.ts`.
 
 ## Design
 
-Arquivo por arquivo, começando pelos 42 hits de referência externa (lista via
-`grep -rn '//.*\(\.ts\|@prolink\|packages/shared\|apps/api\|middleware\.ts\|[Ss]pec [0-9]\)' apps/backend --include='*.go'`),
+Arquivo por arquivo, começando pelos ~27 hits de referência externa (lista via
+`grep -rn '//.*\(\.ts\|@prolink/\|packages/shared\|apps/api\|middleware\.ts\|[Ss]pec [0-9]\)' apps/backend --include='*.go'`),
 depois uma varredura dos doc-comments de cada pacote (`domain/`, `adapter/`, `infrastructure/`,
 `cmd/`) para os itens 2–4.
 
@@ -81,13 +82,14 @@ depois uma varredura dos doc-comments de cada pacote (`domain/`, `adapter/`, `in
 
 ## Critérios de aceite
 
-- [ ] `grep -rn '//.*\(\.ts\|@prolink\|packages/shared\|apps/api\|apps/web/middleware\)' apps/backend --include='*.go'` → **vazio**
-- [ ] `grep -rn '//.*[Ss]pec [0-9]' apps/backend --include='*.go'` → vazio (ou só um TODO justificado)
-- [ ] Nenhum doc-comment narra o passo a passo de uma função (revisão manual pacote a pacote)
-- [ ] `domain/validation` tem **uma** nota de paridade apontando para a suíte de caracterização
-- [ ] `go -C apps/backend build ./... && vet ./... && test ./... -race` verdes (nada além de comentário mudou)
-- [ ] `gofmt -l apps/backend` vazio; `golangci-lint run ./...` limpo
-- [ ] `git diff` mostra **só** linhas de comentário
+- [x] `grep -rn '//.*\(\.ts\|@prolink/\|packages/shared\|apps/api\|apps/web/middleware\)' apps/backend --include='*.go'` → **vazio**
+- [x] `grep -rn '//.*[Ss]pec [0-9]' apps/backend --include='*.go'` → vazio (ou só um TODO justificado)
+- [x] Nenhum doc-comment narra o passo a passo de uma função (revisão manual pacote a pacote)
+- [x] `domain/validation` tem **uma** nota de paridade apontando para a suíte de caracterização
+- [x] `go -C apps/backend build ./... && vet ./... && test ./... -race` verdes (nada além de comentário mudou)
+- [x] `gofmt -l apps/backend` vazio
+- [x] `golangci-lint run ./...` limpo — os 5 issues `revive` de comentário foram corrigidos aqui; os 5 de código foram zerados na spec 032 (mesma branch)
+- [x] `git diff` mostra **só** linhas de comentário
 
 ## Notas
 
