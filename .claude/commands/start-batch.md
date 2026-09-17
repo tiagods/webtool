@@ -30,7 +30,12 @@ Inicie um novo batch de trabalho a partir de uma spec aprovada, numa worktree is
 Vários batches podem estar abertos ao mesmo tempo, um por worktree — `git worktree list` é o
 board. O que **não** é paralelizável: o stack local (`npm run infra:up`, `npm run dev`,
 `make -C apps/backend test-integration`) usa `container_name` e portas fixas, então roda em
-**uma worktree por vez**. Antes de subir o stack, verifique se outra worktree já o tem de pé.
+**uma worktree por vez**.
+
+Antes de qualquer `infra:up`, rode **`npm run infra:owner`** — ele lê o label
+`com.docker.compose.project.working_dir` que o Compose grava e diz de quem é a stack. O próprio
+`infra:up` já é guardado por esse check e recusa subir se a stack for de outra worktree; nesse
+caso **relate ao usuário**, não derrube a stack alheia.
 
 ## Input esperado
 

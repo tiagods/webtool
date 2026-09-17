@@ -12,10 +12,11 @@
     "lint": "npm run lint -w apps/web",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "infra:up": "docker compose up -d",
+    "infra:owner": "bash infra/local/stack-owner.sh",
+    "infra:up": "bash infra/local/stack-owner.sh --guard && docker compose up -d",
     "infra:down": "docker compose down",
     "infra:logs": "docker compose logs -f floci",
-    "infra:reset": "docker compose down -v && docker compose up -d",
+    "infra:reset": "bash infra/local/stack-owner.sh --guard && docker compose down -v && docker compose up -d",
     "infra:validate": "bash infra/local/validate.sh"
   },
   "devDependencies": {

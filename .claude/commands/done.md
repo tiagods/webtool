@@ -10,8 +10,9 @@ Finalize o batch atual: prove a conclusão, submeta e feche a worktree.
    | `apps/backend/**` | `make -C apps/backend lint` + `make -C apps/backend test` + `docker compose build api-go` |
    | `apps/web/**`, `packages/**` | `npm run lint` + `npm run build` |
    | somente `.claude/**`, `docs/**`, `*.md` | sem gate de build |
-   - Testes de integração (`make -C apps/backend test-integration`) só quando nenhuma outra
-     worktree está com o stack de pé
+   - Testes de integração (`make -C apps/backend test-integration`) exigem o Floci de pé:
+     rode `npm run infra:owner` antes. Se a stack for de **outra** worktree, **pule o gate de
+     integração e relate** — nunca derrube a stack alheia para rodar o seu teste
    - Gate vermelho: **pare**, corrija e rode de novo — não prossiga para o push
 3. Marque os critérios de aceite atendidos na spec e atualize-a para `status: done`
 4. **Commits organizados** (nunca `git add .` / `-A` / `commit -am`):

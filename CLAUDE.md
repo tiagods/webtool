@@ -35,6 +35,9 @@ available at `http://localhost` (port 80, via Nginx).
 and publishes fixed host ports (4566, 3000, 3001, 80), so `npm run infra:up`, `npm run dev` and
 `make -C apps/backend test-integration` can only run in one worktree at a time. Editing code and
 running `make -C apps/backend test` / `npm run lint` in parallel worktrees is fine.
+`npm run infra:owner` says which worktree owns the stack (read from the
+`com.docker.compose.project.working_dir` label Compose writes; a *stopped* container still holds
+the name). `infra:up` and `infra:reset` refuse to run when the stack belongs to another worktree.
 
 The Go module has unit + integration tests (`make -C apps/backend test`); `apps/web` has no test command yet.
 The Go validator is verified against the shared Zod schemas by a characterization suite
