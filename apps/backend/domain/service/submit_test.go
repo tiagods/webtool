@@ -15,8 +15,8 @@ import (
 )
 
 // casoValido devolve o payload `input` do caso nomeado da suíte de
-// caracterização da validação (domain/validation/testdata), reusando os mesmos
-// formulários válidos que fixam o veredito do Zod.
+// caracterização da validação (domain/validation/testdata), reusando os
+// formulários válidos dela.
 func casoValido(t *testing.T, nome string) json.RawMessage {
 	t.Helper()
 	caminho := filepath.Join("..", "validation", "testdata", "casos_abertura.json")

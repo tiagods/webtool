@@ -1,9 +1,9 @@
 // Package auth implementa a assinatura/verificação dos JWT de autenticação
 // (port outbound.TokenService) e a construção dos cookies correspondentes.
 //
-// Os tokens são HS256 e interoperáveis com o `jose` (jwtVerify) de apps/web:
-// mesmo segredo (bytes UTF-8 crus de JWT_SECRET), claims iat/exp em segundos,
-// header {"alg":"HS256","typ":"JWT"} — o `typ` extra é ignorado pelo jose.
+// Os tokens são HS256 com claims iat/exp em segundos, assinados com os bytes
+// UTF-8 crus de JWT_SECRET. O front verifica com o mesmo segredo e ignora o
+// `typ` extra do header {"alg":"HS256","typ":"JWT"}.
 package auth
 
 import (
@@ -16,8 +16,7 @@ import (
 	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
 )
 
-// aceiteMaxAge é a validade do token do cookie prolink_aceite (1 ano), espelhando
-// ACEITE_COOKIE_MAX_AGE de apps/api/app/api/aceite-termo/route.ts.
+// aceiteMaxAge é a validade do token do cookie prolink_aceite (1 ano).
 const aceiteMaxAge = 365 * 24 * time.Hour
 
 // claimVersaoTermo é a claim custom que carrega a versão do termo aceita.

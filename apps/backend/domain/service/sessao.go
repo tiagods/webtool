@@ -12,7 +12,7 @@ import (
 
 // SessaoService orquestra a autenticação por cookie: valida o aceite do termo,
 // cria ou reaproveita a sessão (JWT + item inicial de rascunho) e encerra a
-// sessão sob solicitação. Porta apps/api/lib/auth.ts + o DELETE de /api/session.
+// sessão sob solicitação.
 type SessaoService struct {
 	abertura  outbound.RascunhoRepository
 	alteracao outbound.RascunhoRepository
@@ -113,9 +113,8 @@ func (s *SessaoService) EncerrarPorToken(ctx context.Context, sessaoToken string
 
 // Encerrar apaga os dados da sessão (exclusão sob solicitação, LGPD Art. 18):
 // remove os objetos S3 sob a pasta da sessão e o item de rascunho. Opera sobre a
-// tabela de abertura, espelhando o DELETE /api/session do Node. Retorna
-// ErrSessaoInvalida (inexistente) ou ErrSessaoEnviada (protocolada — exige
-// contato direto com a empresa).
+// tabela de abertura. Retorna ErrSessaoInvalida (inexistente) ou ErrSessaoEnviada
+// (protocolada — exige contato direto com a empresa).
 func (s *SessaoService) Encerrar(ctx context.Context, sessionID string) error {
 	item, err := s.abertura.Get(ctx, sessionID)
 	if err != nil {

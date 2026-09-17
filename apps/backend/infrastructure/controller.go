@@ -24,9 +24,9 @@ import (
 	"github.com/tiagods/webtool/apps/backend/infrastructure/ratelimit"
 )
 
-// StartApp sobe o servidor HTTP da API: carrega a configuração (falha rápido se
-// faltar variável obrigatória), registra o handler de log estruturado, monta o
-// router e bloqueia até um sinal de término, encerrando de forma graciosa.
+// StartApp sobe o servidor HTTP da API e cuida do ciclo de vida (shutdown
+// gracioso no SIGTERM). A configuração é carregada primeiro para falhar rápido
+// se faltar variável obrigatória.
 func StartApp() error {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, nil)))
 
@@ -61,8 +61,7 @@ func StartApp() error {
 	}
 }
 
-// montarDeps é o wiring da camada de auth/sessão: clients AWS → adapters →
-// serviço de token/cookies → serviços de domínio → rate limiter.
+// montarDeps faz o wiring dos clients AWS, adapters, auth e serviços de domínio.
 func montarDeps(ctx context.Context, cfg config.Config) (web.Deps, error) {
 	clients, err := infraaws.NewClients(ctx, cfg.AWS)
 	if err != nil {

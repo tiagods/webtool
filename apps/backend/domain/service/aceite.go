@@ -12,7 +12,7 @@ import (
 )
 
 // AceiteService registra o aceite do termo de consentimento LGPD de uma sessão e
-// emite o token do cookie prolink_aceite. Porta POST /api/aceite-termo do Node.
+// emite o token do cookie prolink_aceite.
 type AceiteService struct {
 	repo   outbound.AceiteRepository
 	tokens outbound.TokenService

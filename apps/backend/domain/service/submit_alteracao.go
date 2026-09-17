@@ -11,10 +11,7 @@ import (
 )
 
 // AlteracaoSubmitService finaliza a Ficha de Alteração (rota POST
-// /api/alteracao/submit): valida o formulário completo, gera o protocolo ALT-,
-// grava o backup JSON do payload no S3 (o formulário não tem upload de
-// arquivos), publica a mensagem que o worker consome e marca a sessão como
-// enviada. Espelha apps/api/app/api/alteracao/submit/route.ts.
+// /api/alteracao/submit).
 type AlteracaoSubmitService struct {
 	protocolo outbound.ProtocoloCounter
 	storage   outbound.DocumentoStorage
@@ -34,11 +31,9 @@ func NewAlteracaoSubmitService(
 	return &AlteracaoSubmitService{protocolo: protocolo, storage: storage, publisher: publisher, repo: repo}
 }
 
-// Submeter valida o payload completo e, se válido, executa a finalização na
-// mesma ordem do Node: gera protocolo → grava o JSON no S3 → publica no SQS →
-// marca enviado. Não há cópia nem limpeza de objetos de sessão (o formulário não
-// tem upload). As issues de validação voltam para o handler responder 400; err
-// sinaliza só falha de infraestrutura (→ 500) e aborta a finalização.
+// Submeter valida o payload completo e, se válido, finaliza a ficha. As issues
+// de validação voltam para o handler responder 400; err sinaliza só falha de
+// infraestrutura (→ 500) e aborta a finalização.
 func (s *AlteracaoSubmitService) Submeter(ctx context.Context, sessionID string, raw json.RawMessage) (string, []validation.Issue, error) {
 	if issues := validation.ValidarAlteracaoForm(raw); len(issues) > 0 {
 		return "", issues, nil

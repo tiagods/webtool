@@ -24,9 +24,8 @@ import (
 // Intervalo entre polls do SQS (evita bater na API sem necessidade).
 const workerPollDelay = 10 * time.Second
 
-// StartWorker inicia o loop de consumo da fila SQS: carrega a configuração,
-// monta os adapters e faz long-polling da fila, processando uma mensagem por
-// vez. Aguarda SIGTERM para encerramento gracioso.
+// StartWorker inicia o loop de consumo da fila SQS (uma mensagem por vez) e
+// encerra graciosamente no SIGTERM.
 func StartWorker() error {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, nil)))
 

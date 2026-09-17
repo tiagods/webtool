@@ -6,8 +6,7 @@ import (
 )
 
 // tiposDocumento mapeia os content-types aceitos para upload de documentos à
-// extensão de arquivo correspondente. Espelha CONTENT_TYPE_EXT /
-// ALLOWED_CONTENT_TYPES de apps/api/lib/aws/s3.ts.
+// extensão de arquivo correspondente.
 var tiposDocumento = map[string]string{
 	"application/pdf": "pdf",
 	"image/jpeg":      "jpg",
@@ -15,11 +14,11 @@ var tiposDocumento = map[string]string{
 }
 
 // campoDocumentoRe restringe o nome de campo de um documento a um identificador
-// curto e seguro para compor a key S3. Espelha /^[a-z0-9_]{1,80}$/ do Node.
+// curto e seguro para compor a key S3.
 var campoDocumentoRe = regexp.MustCompile(`^[a-z0-9_]{1,80}$`)
 
 // ExtensaoDocumento devolve a extensão de arquivo para um content-type de
-// documento conhecido, ou "bin" quando não reconhecido (espelha getExtension).
+// documento conhecido, ou "bin" quando não reconhecido.
 func ExtensaoDocumento(contentType string) string {
 	if ext, ok := tiposDocumento[contentType]; ok {
 		return ext

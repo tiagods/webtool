@@ -14,7 +14,7 @@ import (
 )
 
 // RascunhoItem é a projeção de persistência de entity.Rascunho. createdAt e
-// updatedAt são ISO 8601 (mesmo formato do writer TypeScript de apps/api).
+// updatedAt são ISO 8601.
 type RascunhoItem struct {
 	SessionID      string            `dynamodbav:"sessionId"`
 	Tipo           string            `dynamodbav:"tipo,omitempty"`

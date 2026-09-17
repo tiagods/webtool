@@ -1,8 +1,7 @@
 package entity
 
 // Prefixos de protocolo por formulário. O protocolo final tem o formato
-// {prefix}{ano UTC}-{seq 6 dígitos} (ver outbound.ProtocoloCounter). Espelham os
-// literais passados a proximoProtocolo() em apps/api ("PRO-" / "ALT-").
+// {prefix}{ano UTC}-{seq 6 dígitos} (ver outbound.ProtocoloCounter).
 const (
 	ProtocoloPrefixAbertura  = "PRO-"
 	ProtocoloPrefixAlteracao = "ALT-"

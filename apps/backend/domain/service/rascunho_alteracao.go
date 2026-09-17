@@ -48,7 +48,7 @@ func (s *AlteracaoRascunhoService) Salvar(ctx context.Context, sessionID string,
 
 // extrairTipoConstituicaoAlteracao lê identificacao.tipoConstituicao do payload
 // para denormalizar `tipo` no item (usado pelo worker). Ausente/inválido ⇒ "" (o
-// repositório deixa o campo intacto). Espelha a lógica de putRascunho no Node.
+// repositório deixa o campo intacto).
 func extrairTipoConstituicaoAlteracao(raw json.RawMessage) entity.TipoConstituicao {
 	var envelope struct {
 		Identificacao struct {

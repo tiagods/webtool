@@ -1,6 +1,5 @@
-// Command worker é o ponto de entrada do consumidor SQS: faz long-polling na
-// fila de submissões, gera links presigned dos documentos, compõe o e-mail HTML
-// com os dados da ficha e envia via SMTP. Implementado na spec 013.
+// Command worker é o ponto de entrada do consumidor SQS que notifica as fichas
+// submetidas por e-mail. A composição vive em infrastructure.StartWorker.
 package main
 
 import (

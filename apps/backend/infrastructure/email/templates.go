@@ -1,4 +1,3 @@
-// Package email implementa outbound.EmailSender via SMTP com conteúdo HTML.
 package email
 
 import (

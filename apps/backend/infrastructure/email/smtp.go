@@ -54,7 +54,6 @@ func (m *SMTPMailer) Send(ctx context.Context, data outbound.EmailData) error {
 func sendMail(cfg config.SMTP, msg string) error {
 	addr := net.JoinHostPort(cfg.Host, fmt.Sprintf("%d", cfg.Port))
 
-	// Autenticação PLAIN/LOGIN se houver credenciais
 	var auth smtp.Auth
 	if cfg.UsesAuth() {
 		auth = smtp.PlainAuth("", cfg.User, cfg.Password, cfg.Host)
@@ -71,7 +70,6 @@ func sendMail(cfg config.SMTP, msg string) error {
 	}
 	defer client.Close()
 
-	// STARTTLS se disponível
 	if ok, _ := client.Extension("STARTTLS"); ok {
 		tlsCfg := &tls.Config{ServerName: cfg.Host}
 		if err := client.StartTLS(tlsCfg); err != nil {

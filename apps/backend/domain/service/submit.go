@@ -13,10 +13,9 @@ import (
 	"github.com/tiagods/webtool/apps/backend/domain/validation"
 )
 
-// SubmitService finaliza a Ficha de Abertura (rota POST /api/submit): valida o
-// formulário completo, gera o protocolo, move os documentos para a pasta do
-// protocolo, publica a mensagem que o worker consome, marca a sessão como
-// enviada e limpa os objetos da sessão. Espelha apps/api/app/api/submit/route.ts.
+// SubmitService finaliza a Ficha de Abertura (rota POST /api/submit). A ordem
+// (copiar documentos → publicar → marcar enviado → limpar) é deliberada: nada
+// irreversível antes da cópia dos documentos ter sucesso.
 type SubmitService struct {
 	repo      outbound.RascunhoRepository
 	protocolo outbound.ProtocoloCounter
@@ -35,12 +34,11 @@ func NewSubmitService(
 	return &SubmitService{repo: repo, protocolo: protocolo, publisher: publisher, storage: storage}
 }
 
-// Submeter valida o payload completo e, se válido, executa a finalização na
-// mesma ordem do Node: copia os documentos → publica no SQS → marca enviado →
-// apaga os objetos da sessão. As issues de validação são devolvidas para o
-// handler responder 400 com elas no corpo; err sinaliza só falha de
-// infraestrutura (→ 500) e aborta a finalização antes de qualquer efeito
-// irreversível quando ocorre na cópia dos documentos.
+// Submeter valida o payload completo e, se válido, finaliza a ficha na ordem
+// deliberada do serviço. As issues de validação são devolvidas para o handler
+// responder 400 com elas no corpo; err sinaliza só falha de infraestrutura
+// (→ 500) e aborta a finalização antes de qualquer efeito irreversível quando
+// ocorre na cópia dos documentos.
 func (s *SubmitService) Submeter(ctx context.Context, sessionID string, raw json.RawMessage) (string, []validation.Issue, error) {
 	if issues := validation.ValidarAberturaForm(raw); len(issues) > 0 {
 		return "", issues, nil
@@ -111,8 +109,7 @@ func (s *SubmitService) copiarDocumentos(ctx context.Context, sessionID, protoco
 	return g.Wait()
 }
 
-// destinoDocumento troca o prefixo da sessão pelo prefixo do protocolo na key,
-// espelhando `sourceKey.replace(sessionPrefix, destPrefix)` do Node.
+// destinoDocumento troca o prefixo da sessão pelo prefixo do protocolo na key.
 func destinoDocumento(srcKey, sessionID, protocolo string) string {
 	origem := sessionID + "/documentos/"
 	destino := "protocolos/" + protocolo + "/"

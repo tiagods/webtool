@@ -2,19 +2,18 @@ package validation
 
 import "fmt"
 
-// Regras condicionais da Ficha de Alteração (os `superRefine` de alteracao.ts).
-// Cada função abaixo é pura e testável isoladamente; os validadores de bloco em
-// alteracao.go as chamam e mapeiam cada `false` para a issue no caminho correto.
+// Regras condicionais da Ficha de Alteração. Cada função abaixo é pura e
+// testável isoladamente; os validadores de bloco em alteracao.go as chamam e
+// mapeiam cada `false` para a issue no caminho correto.
 //
-// Espelham exatamente a semântica do Zod:
+// Semântica:
 //   Q04 — cnpjAnterior obrigatório quando o membro declarou participação anterior
 //   Q05 — valorIntegralizacao + especificarIntegralizacao obrigatórios no aumento
 //   Q07 — especificar obrigatório quando a transformação é "outras"
 //   master — cada quadro selecionado em `quadros[]` exige o bloco `qNN` preenchido
 
 // cnpjAnteriorInformado: false quando o membro declarou participação societária
-// anterior ("sim") mas não informou o CNPJ (nil ou vazio — mesma falsidade do
-// `!membro.cnpjAnterior` do Zod).
+// anterior ("sim") mas não informou o CNPJ (nil ou vazio).
 func cnpjAnteriorInformado(participacaoAnterior, cnpjAnterior string) bool {
 	return participacaoAnterior != "sim" || cnpjAnterior != ""
 }
@@ -26,15 +25,14 @@ func exigeIntegralizacao(tipoAlteracao string) bool {
 }
 
 // especificarTransformacaoInformado: false quando a transformação é "outras" e o
-// campo de especificação ficou vazio (nil ou "" — falsidade do `!data.especificar`).
+// campo de especificação ficou vazio (nil ou "").
 func especificarTransformacaoInformado(tipoTransformacao, especificar string) bool {
 	return tipoTransformacao != "outras" || especificar != ""
 }
 
-// validarCrossQuadros roda o `superRefine` de alteracaoFormSchema: para cada
-// quadro selecionado, exige o bloco `qNN` correspondente presente no payload.
-// Só é chamado quando não houve erro "aborted" no parse (identificacao/quadros/
-// aceite/qNN válidos), espelhando o merge de objeto do Zod.
+// validarCrossQuadros exige o bloco `qNN` correspondente para cada quadro
+// selecionado. Só é chamado quando não houve erro "aborted" no parse, então os
+// blocos presentes já foram validados.
 func validarCrossQuadros(v *validador, quadros []string, blocoPresente map[string]bool) {
 	for _, codigo := range quadros {
 		chave, ok := quadroParaChave[codigo]
