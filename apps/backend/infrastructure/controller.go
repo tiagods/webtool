@@ -1,6 +1,6 @@
 // Package infrastructure hospeda o ponto de composição da aplicação
 // (StartApp / StartWorker): lê a configuração, monta os adapters, injeta nos
-// serviços, monta o router e cuida do ciclo de vida do processo.
+// serviços, cuida do ciclo de vida do processo.
 package infrastructure
 
 import (

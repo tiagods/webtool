@@ -19,6 +19,10 @@ func fullValidEnv() map[string]string {
 		"AWS_DYNAMODB_ACEITES_TABLE":   "prolink-aceites-lgpd",
 		"AWS_S3_BUCKET":                "prolink-fichas",
 		"AWS_SQS_QUEUE_URL":            "http://sqs.local/queue",
+		"SMTP_HOST":                    "smtp.example.com",
+		"SMTP_USER":                    "user",
+		"SMTP_FROM":                    "noreply@test.com",
+		"SMTP_TO":                      "test@test.com",
 	}
 }
 

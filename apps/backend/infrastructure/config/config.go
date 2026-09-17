@@ -47,6 +47,21 @@ func (a AWS) UsesCustomEndpoint() bool {
 	return a.EndpointURL != ""
 }
 
+// SMTP agrupa as configurações de envio de e-mail via servidor SMTP.
+type SMTP struct {
+	Host     string
+	Port     int
+	User     string
+	Password string
+	From     string // remetente (ex: "noreply@prolinkcontabil.com.br")
+	To       string // destinatário interno (ex: "tiagoice@hotmail.com")
+}
+
+// UsesAuth informa se o servidor SMTP exige autenticação.
+func (s SMTP) UsesAuth() bool {
+	return s.User != "" || s.Password != ""
+}
+
 // Config é a configuração completa e validada do processo.
 type Config struct {
 	Port            int
@@ -55,6 +70,7 @@ type Config struct {
 	SessionExpiry   time.Duration
 	ShutdownTimeout time.Duration
 	AWS             AWS
+	SMTP            SMTP
 }
 
 // IsProd informa se o processo roda em ambiente de produção.
@@ -84,6 +100,7 @@ func Load(lookup Lookup) (Config, error) {
 		SessionExpiry:   r.secondsOr("SESSION_EXPIRY_SECONDS", defaultSessionExpiry),
 		ShutdownTimeout: r.secondsOr("SHUTDOWN_TIMEOUT_SECONDS", defaultShutdownTimeout),
 		AWS:             loadAWS(r),
+		SMTP:            loadSMTP(r),
 	}
 
 	if err := r.err(); err != nil {
@@ -113,6 +130,19 @@ func loadAWS(r *reader) AWS {
 		DynamoAceitesTable:   r.required("AWS_DYNAMODB_ACEITES_TABLE"),
 		S3Bucket:             r.required("AWS_S3_BUCKET"),
 		SQSQueueURL:          r.required("AWS_SQS_QUEUE_URL"),
+	}
+}
+
+// loadSMTP lê o subconjunto SMTP da configuração. SMTP_PASSWORD é opcional
+// (servidores sem autenticação), os demais são obrigatórios.
+func loadSMTP(r *reader) SMTP {
+	return SMTP{
+		Host:     r.required("SMTP_HOST"),
+		Port:     r.intOr("SMTP_PORT", 587),
+		User:     r.required("SMTP_USER"),
+		Password: r.optional("SMTP_PASSWORD", ""),
+		From:     r.required("SMTP_FROM"),
+		To:       r.required("SMTP_TO"),
 	}
 }
 

@@ -53,7 +53,19 @@ func (s *S3ObjectStorage) PresignedUploadURL(ctx context.Context, key, contentTy
 	return req.URL, nil
 }
 
-// PutJSON grava data serializado como application/json na key indicada.
+// PresignedDownloadURL assina uma URL GET válida por expiresIn para download
+// de um único objeto S3. Cada documento recebe sua própria URL — não é possível
+// reutilizar a assinatura para acessar outros objetos (segurança nativa do S3).
+func (s *S3ObjectStorage) PresignedDownloadURL(ctx context.Context, key string, expiresIn time.Duration) (string, error) {
+	req, err := s.presign.PresignGetObject(ctx, &s3.GetObjectInput{
+		Bucket: awssdk.String(s.bucket),
+		Key:    awssdk.String(key),
+	}, s3.WithPresignExpires(expiresIn))
+	if err != nil {
+		return "", fmt.Errorf("assinar URL de download: %w", err)
+	}
+	return req.URL, nil
+}
 func (s *S3ObjectStorage) PutJSON(ctx context.Context, key string, data any) error {
 	body, err := json.Marshal(data)
 	if err != nil {

@@ -85,11 +85,33 @@ echo "✅ S3: prolink-fichas pronto."
 echo "📬 Criando fila SQS: prolink-abertura..."
 QUEUE_URL=$($AWS sqs create-queue \
   --queue-name prolink-abertura \
-  --attributes '{"VisibilityTimeout":"60","MessageRetentionPeriod":"86400"}' \
+  --attributes '{"VisibilityTimeout":"120","MessageRetentionPeriod":"86400"}' \
   --query 'QueueUrl' \
   --output text 2>/dev/null) || echo "  (fila já existe)"
 
-echo "✅ SQS: prolink-abertura pronta."
+echo "📬 Criando DLQ: prolink-abertura-dlq..."
+DLQ_URL=$($AWS sqs create-queue \
+  --queue-name prolink-abertura-dlq \
+  --attributes '{"MessageRetentionPeriod":"1209600"}' \
+  --query 'QueueUrl' \
+  --output text 2>/dev/null) || echo "  (DLQ já existe)"
+
+# Obter ARN da DLQ
+DLQ_ARN=$($AWS sqs get-queue-attributes \
+  --queue-url "$DLQ_URL" \
+  --attribute-names QueueArn \
+  --query 'Attributes.QueueArn' \
+  --output text 2>/dev/null || echo "")
+
+# Configurar RedrivePolicy na fila principal (após 5 falhas → DLQ)
+if [ -n "$DLQ_ARN" ]; then
+  $AWS sqs set-queue-attributes \
+    --queue-url "$QUEUE_URL" \
+    --attributes "{\"RedrivePolicy\":\"{\\\"deadLetterTargetArn\\\":\\\"$DLQ_ARN\\\",\\\"maxReceiveCount\\\":\\\"5\\\"}\"}" \
+    >/dev/null 2>&1 || echo "  (RedrivePolicy já configurada)"
+fi
+
+echo "✅ SQS: prolink-abertura + DLQ prontas."
 
 # ─── SNS ─────────────────────────────────────────────────────────────────────
 echo "📣 Criando tópico SNS: prolink-abertura-emails..."

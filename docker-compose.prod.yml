@@ -38,6 +38,32 @@ services:
       SESSION_EXPIRY_SECONDS: "7200"
     restart: unless-stopped
 
+  # ─── worker — consumidor SQS (long-poll), geração de e-mail ────────────────
+  # Sem AWS_ENDPOINT_URL: usa cadeia de credenciais padrão (IAM role).
+  worker:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+      args:
+        APP: worker
+    container_name: prolink-worker
+    environment:
+      APP_ENV: prod
+      JWT_SECRET: ${JWT_SECRET}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_DYNAMODB_TABLE: ${AWS_DYNAMODB_TABLE:-fichas-abertura}
+      AWS_DYNAMODB_ALTERACAO_TABLE: ${AWS_DYNAMODB_ALTERACAO_TABLE:-fichas-alteracao}
+      AWS_DYNAMODB_ACEITES_TABLE: ${AWS_DYNAMODB_ACEITES_TABLE:-prolink-aceites-lgpd}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-prolink-fichas}
+      AWS_SQS_QUEUE_URL: ${AWS_SQS_QUEUE_URL}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM:-noreply@prolinkcontabil.com.br}
+      SMTP_TO: ${SMTP_TO:-tiagoice@hotmail.com}
+    restart: unless-stopped
+
   # ─── nginx — roteamento interno (web/api), sem exposição direta ─────────────
   # Porta 80 não é mais publicada no host: o Caddy é o único ponto de entrada
   # público (TLS termina no Caddy, que repassa para nginx:80 na rede interna).

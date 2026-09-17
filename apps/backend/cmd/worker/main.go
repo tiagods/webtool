@@ -1,9 +1,6 @@
-// Command worker consumirá a fila SQS de submissões para gerar o PDF e
-// disparar o e-mail de notificação. A lógica fica em infrastructure.StartWorker.
-//
-// Batch 022: StartWorker é apenas um stub compilável que reserva o ponto de
-// entrada do monorepo. A implementação real (loop SQS long-poll, geração de
-// PDF, publicação no SNS, defesa em profundidade LGPD) pertence à spec 013.
+// Command worker é o ponto de entrada do consumidor SQS: faz long-polling na
+// fila de submissões, gera links presigned dos documentos, compõe o e-mail HTML
+// com os dados da ficha e envia via SMTP. Implementado na spec 013.
 package main
 
 import (

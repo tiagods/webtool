@@ -1,0 +1,67 @@
+{{define "alteracao"}}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1C1C1C; margin: 0; padding: 0; }
+  .container { max-width: 600px; margin: 20px auto; border: 1px solid #E5E5E8; border-radius: 8px; }
+  .header { background: #05354C; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; }
+  .header h1 { margin: 0; font-size: 18px; font-weight: 600; }
+  .header p { margin: 4px 0 0; font-size: 13px; opacity: 0.85; }
+  .body { padding: 20px; }
+  .section { margin-bottom: 16px; }
+  .section h2 { font-size: 14px; font-weight: 600; color: #05354C; margin: 0 0 8px; padding-bottom: 4px; border-bottom: 1px solid #E5E5E8; }
+  .field { display: flex; margin: 3px 0; font-size: 13px; }
+  .field-label { width: 120px; color: #999; flex-shrink: 0; }
+  .field-value { flex: 1; }
+  .tag { display: inline-block; padding: 2px 8px; background: #E5E5E8; border-radius: 4px; font-size: 11px; margin: 2px; }
+  .footer { padding: 16px 20px; font-size: 12px; color: #999; border-top: 1px solid #E5E5E8; text-align: center; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>✏️ Nova Ficha de Alteração</h1>
+    <p>Protocolo: {{.Protocolo}}</p>
+  </div>
+  <div class="body">
+    <div class="section">
+      <h2>Identificação</h2>
+      <div class="field"><span class="field-label">CNPJ:</span><span class="field-value">{{.CNPJ}}</span></div>
+      <div class="field"><span class="field-label">Razão Social:</span><span class="field-value">{{.RazaoSocial}}</span></div>
+      <div class="field"><span class="field-label">Situação:</span><span class="field-value">{{.Situacao}}</span></div>
+    </div>
+
+    <div class="section">
+      <h2>Quadros Selecionados</h2>
+      {{range .Quadros}}<span class="tag">{{.}}</span>{{end}}
+    </div>
+
+    {{if .ResumoAlteracoes}}
+    <div class="section">
+      <h2>Resumo das Alterações</h2>
+      <div style="font-size: 13px;">{{.ResumoAlteracoes}}</div>
+    </div>
+    {{end}}
+
+    {{if .Documentos}}
+    <div class="section">
+      <h2>📎 Documentos</h2>
+      <p style="font-size: 13px; color: #666;">Links válidos por 7 dias. Cada link acessa apenas o documento específico.</p>
+      <div class="docs">
+        {{range .Documentos}}
+        <a href="{{.URL}}" target="_blank">{{.Label}}</a>
+        {{end}}
+      </div>
+    </div>
+    {{end}}
+  </div>
+  <div class="footer">
+    Prolink Contábil — Sistema de Alteração Contratual<br>
+    Enviado automaticamente em {{.DataHora}}
+  </div>
+</div>
+</body>
+</html>
+{{end}}

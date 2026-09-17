@@ -6,12 +6,17 @@ import (
 )
 
 // DocumentoStorage cobre as operações sobre o bucket de documentos: presign de
-// upload, gravação direta de JSON, cópia para a pasta do protocolo e limpeza da
-// pasta da sessão após o submit.
+// upload e download, gravação direta de JSON, cópia para a pasta do protocolo e
+// limpeza da pasta da sessão após o submit.
 type DocumentoStorage interface {
 	// PresignedUploadURL devolve uma URL PUT assinada, válida por expiresIn, já
 	// com a tag de retenção de rascunho aplicada ao objeto.
 	PresignedUploadURL(ctx context.Context, key, contentType string, expiresIn time.Duration) (string, error)
+
+	// PresignedDownloadURL devolve uma URL GET assinada, válida por expiresIn,
+	// com escopo restrito a um único objeto (segurança por design — não existe
+	// presigned URL para prefixos no S3).
+	PresignedDownloadURL(ctx context.Context, key string, expiresIn time.Duration) (string, error)
 
 	// PutJSON grava data serializado como application/json na key indicada.
 	PutJSON(ctx context.Context, key string, data any) error

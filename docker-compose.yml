@@ -83,6 +83,37 @@ services:
       start_period: 3s
     restart: unless-stopped
 
+# ─── worker — consumidor SQS (long-poll), geração de e-mail ────────────────
+  # Usa o mesmo binário Go do módulo apps/backend, selecionado por build arg.
+  worker:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+      args:
+        APP: worker
+    container_name: prolink-worker
+    depends_on:
+      floci:
+        condition: service_healthy
+    environment:
+      APP_ENV: dev
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+      AWS_ENDPOINT_URL: http://floci:4566
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DYNAMODB_TABLE: fichas-abertura
+      AWS_DYNAMODB_ALTERACAO_TABLE: fichas-alteracao
+      AWS_DYNAMODB_ACEITES_TABLE: prolink-aceites-lgpd
+      AWS_S3_BUCKET: prolink-fichas
+      AWS_SQS_QUEUE_URL: http://floci:4566/000000000000/prolink-abertura
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM:-noreply@prolinkcontabil.com.br}
+      SMTP_TO: ${SMTP_TO:-tiagoice@hotmail.com}
+    restart: unless-stopped
   # ─── nginx — ponto de entrada público (porta 80) ────────────────────────────
   nginx:
     build:

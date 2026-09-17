@@ -117,6 +117,45 @@ func (c *MockDocumentoStorageDeletePrefixCall) DoAndReturn(f func(context.Contex
 	return c
 }
 
+// PresignedDownloadURL mocks base method.
+func (m *MockDocumentoStorage) PresignedDownloadURL(ctx context.Context, key string, expiresIn time.Duration) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PresignedDownloadURL", ctx, key, expiresIn)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PresignedDownloadURL indicates an expected call of PresignedDownloadURL.
+func (mr *MockDocumentoStorageMockRecorder) PresignedDownloadURL(ctx, key, expiresIn any) *MockDocumentoStoragePresignedDownloadURLCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PresignedDownloadURL", reflect.TypeOf((*MockDocumentoStorage)(nil).PresignedDownloadURL), ctx, key, expiresIn)
+	return &MockDocumentoStoragePresignedDownloadURLCall{Call: call}
+}
+
+// MockDocumentoStoragePresignedDownloadURLCall wrap *gomock.Call
+type MockDocumentoStoragePresignedDownloadURLCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockDocumentoStoragePresignedDownloadURLCall) Return(arg0 string, arg1 error) *MockDocumentoStoragePresignedDownloadURLCall {
+	c.Call = c.Call.Return(arg0, arg1)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockDocumentoStoragePresignedDownloadURLCall) Do(f func(context.Context, string, time.Duration) (string, error)) *MockDocumentoStoragePresignedDownloadURLCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockDocumentoStoragePresignedDownloadURLCall) DoAndReturn(f func(context.Context, string, time.Duration) (string, error)) *MockDocumentoStoragePresignedDownloadURLCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // PresignedUploadURL mocks base method.
 func (m *MockDocumentoStorage) PresignedUploadURL(ctx context.Context, key, contentType string, expiresIn time.Duration) (string, error) {
 	m.ctrl.T.Helper()
