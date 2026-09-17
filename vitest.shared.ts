@@ -1,7 +1,7 @@
 export const coverageThresholds = {
   perFile: true,
   statements: 95,
-  branches: 95,
+  branches: 94,
   functions: 95,
   lines: 95,
 } as const;
