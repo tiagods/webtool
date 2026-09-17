@@ -148,6 +148,11 @@ exigem **confirmacao explicita do usuario** antes de rodar:
 - Uma branch por spec, **numa worktree isolada**: o `/start-batch` chama `EnterWorktree` com
   `name: "spec/NNN-slug-da-spec"`, que cria a branch a partir de `origin/main`
   (`worktree.baseRef: fresh` em `.claude/settings.json`) em `.claude/worktrees/`
+- `EnterWorktree`/`ExitWorktree` sao **atalho, nao dependencia**: o que eles criam e uma worktree
+  git comum. O equivalente manual e
+  `git worktree add -b spec/NNN-slug .claude/worktrees/spec/NNN-slug origin/main` para abrir e
+  `git worktree remove <caminho>` + `git branch -d <branch>` para fechar — o `ExitWorktree` so
+  remove worktree que ele mesmo criou na sessao. Ver `start-batch.md` e `done.md`
 - Fora de spec: `fix/descricao-curta`, `chore/descricao-curta`
 - Nao implementar direto na `main` — batches paralelos em `main` disputam a mesma arvore
 - A worktree nasce de `origin/main`: trabalho **nao commitado nao e herdado**. Commite ou

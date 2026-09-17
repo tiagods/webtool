@@ -14,7 +14,17 @@ Inicie um novo batch de trabalho a partir de uma spec aprovada, numa worktree is
    Só pare de fato quando a mudança **não compila ou não faz sentido** sem a dependência — e então escreva o motivo concreto, não "depends_on não está done"
 4. **Abra a worktree do batch** (isolamento obrigatório — batches rodam em paralelo):
    - `git fetch origin` (a worktree nasce de `origin/main`, conforme `worktree.baseRef` em `.claude/settings.json`)
-   - `EnterWorktree` com `name: "spec/NNN-slug-da-spec"`
+   - **Caminho padrão:** `EnterWorktree` com `name: "spec/NNN-slug-da-spec"`
+   - **A worktree já existe** (o usuário criou na mão, ou sobrou de um batch anterior):
+     `EnterWorktree` com `path: "<caminho>"` — o caminho precisa aparecer em `git worktree list`.
+     Anote que, entrando assim, o `/done` **não** poderá removê-la pelo tool (ver `done.md`)
+   - **Sem o tool** (sessão sem `EnterWorktree`, ou o usuário prefere na mão):
+     ```bash
+     git worktree add -b spec/NNN-slug .claude/worktrees/spec/NNN-slug origin/main
+     cd .claude/worktrees/spec/NNN-slug
+     ```
+     O `symlinkDirectories` do settings não se aplica nesse caminho — rode `npm install` se a
+     spec tocar `apps/web` ou `packages/*`
    - confirme com `git worktree list` e `git branch --show-current`
    - se a spec toca `apps/web` ou `packages/*` e o symlink de `node_modules` não resolveu, rode `npm install`
 5. Atualize o status da spec para `in-progress`

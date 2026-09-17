@@ -43,9 +43,21 @@ Finalize o batch atual: prove a conclusão, submeta e feche a worktree.
    - Decisões tomadas
    - Testes adicionados
 8. Remova `.claude/tasks/todo.md` (o batch está encerrado)
-9. **Feche a worktree**: `ExitWorktree` com `action: "remove"`
-   - Se sobrou trabalho não commitado ou fora do PR, use `action: "keep"` e informe o caminho
-     da worktree ao usuário
+9. **Feche a worktree** — o caminho depende de como ela foi aberta:
+   | Como foi aberta | Como fechar |
+   |-----------------|-------------|
+   | `EnterWorktree` com `name`, **nesta sessão** | `ExitWorktree` com `action: "remove"` |
+   | `EnterWorktree` com `path`, ou criada em outra sessão | `ExitWorktree` com `action: "keep"` (o tool só remove o que ele mesmo criou na sessão), depois a limpeza manual abaixo |
+   | `git worktree add` na mão, ou sessão sem o tool | só a limpeza manual abaixo |
+
+   Limpeza manual — **de fora da worktree**, nunca de dentro (no Windows os arquivos ficam travados):
+   ```bash
+   cd <raiz do repo>
+   git worktree remove .claude/worktrees/spec/NNN-slug
+   git branch -d spec/NNN-slug     # já mergeada via PR; -D só se o PR foi fechado sem merge
+   ```
+   - Se sobrou trabalho não commitado ou fora do PR: **não remova** — mantenha a worktree e
+     informe o caminho ao usuário
 10. Informe: "Batch finalizado, PR aberto. Pronto para a próxima spec."
 
 ## Input esperado
