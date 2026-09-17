@@ -14,7 +14,7 @@
     "test:coverage": "vitest run --coverage",
     "infra:owner": "bash infra/local/stack-owner.sh",
     "infra:up": "bash infra/local/stack-owner.sh --guard && docker compose up -d",
-    "infra:down": "docker compose down",
+    "infra:down": "bash infra/local/stack-down.sh",
     "infra:logs": "docker compose logs -f floci",
     "infra:reset": "bash infra/local/stack-owner.sh --guard && docker compose down -v && docker compose up -d",
     "infra:validate": "bash infra/local/validate.sh"

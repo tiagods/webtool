@@ -33,9 +33,20 @@ board. O que **não** é paralelizável: o stack local (`npm run infra:up`, `npm
 **uma worktree por vez**.
 
 Antes de qualquer `infra:up`, rode **`npm run infra:owner`** — ele lê o label
-`com.docker.compose.project.working_dir` que o Compose grava e diz de quem é a stack. O próprio
-`infra:up` já é guardado por esse check e recusa subir se a stack for de outra worktree; nesse
-caso **relate ao usuário**, não derrube a stack alheia.
+`com.docker.compose.project.working_dir` que o Compose grava e diz de quem é a stack.
+
+**Encontrar a stack ocupada não interrompe o batch.** Editar código, `npm run lint`,
+`make -C apps/backend test` e commitar não tocam o Docker; só `infra:up`, `npm run dev` e
+`test-integration` ficam adiados.
+
+| Estado da stack | `infra:up` | `infra:down` |
+|-----------------|-----------|--------------|
+| livre / dona é esta worktree | segue | segue |
+| dona é outra, containers **parados** | recusa; `infra:down` libera os nomes | limpa (lixo, não interrompe ninguém) |
+| dona é outra, **no ar** | recusa e nomeia a dona | recusa — a decisão é do usuário |
+
+Se o batch precisar do gate de integração e a stack estiver de pé por outra worktree, o `/done`
+tem um desfecho próprio (**bloqueado**, sem push) — ver `.claude/commands/done.md`.
 
 ## Input esperado
 

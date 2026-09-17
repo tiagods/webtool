@@ -38,6 +38,10 @@ running `make -C apps/backend test` / `npm run lint` in parallel worktrees is fi
 `npm run infra:owner` says which worktree owns the stack (read from the
 `com.docker.compose.project.working_dir` label Compose writes; a *stopped* container still holds
 the name). `infra:up` and `infra:reset` refuse to run when the stack belongs to another worktree.
+`npm run infra:down` tears down the stack of its **owner**: a stopped one can be cleaned from any
+worktree, a running one only by the owner. It passes `-p <owner project>` because the Compose
+project name comes from the directory name (`webtool` here, the worktree's own name elsewhere), so
+a bare `docker compose down` run from a worktree would target the wrong project and remove nothing.
 
 The Go module has unit + integration tests (`make -C apps/backend test`); `apps/web` has no test command yet.
 The Go validator is verified against the shared Zod schemas by a characterization suite

@@ -181,6 +181,10 @@ somente quando as quatro condicoes estao satisfeitas:
 
 - Push na branch da spec, nunca direto na `main`
 - Faltando qualquer condicao: **nao dar push** — reportar o que falta e parar
+- **"Bloqueado aguardando a stack" e um desfecho legitimo do `/done`**: quando o gate de
+  integracao e exigido (o diff toca `apps/backend/infrastructure/aws/**`) e a stack Docker esta
+  de pe por outra worktree, o batch para antes do push, a spec **nao** vira `done` e a worktree
+  fica aberta. Os commits ja estao na branch; o `/done` roda de novo quando a stack liberar
 - `--force-with-lease` apenas na propria branch da spec, e so com confirmacao (perda de dados)
 
 ### Pull Request
