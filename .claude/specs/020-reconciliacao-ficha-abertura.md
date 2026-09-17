@@ -3,10 +3,20 @@ id: "020"
 title: "Reconciliação da Ficha de Abertura (ficha ↔ doc ↔ implementação)"
 status: draft
 created: 2026-07-13
+updated: 2026-09-16
 author: "Claude"
 batch_size: "medium"
 depends_on: ["003"]
 ---
+
+> **ATUALIZAÇÃO 2026-09-16 — paridade com o validador Go (specs 022–028).** O backend foi
+> migrado para Go e o validador em `apps/backend/domain/validation/` espelha os schemas Zod
+> de `packages/shared/src/schemas/`. Qualquer alteração nos schemas Zod (como as previstas
+> nesta spec: campos novos no Passo 2, pró-labore, schema de sócio) **deve ser refletida no
+> validador Go correspondente** e nos casos de caracterização em `testdata/`. A suíte de
+> caracterização (`scripts/gen-abertura-characterization.mjs`) precisa ser regenerada e
+> validada (`make -C apps/backend test`) após as mudanças de schema — sem isso o validador Go
+> e o frontend divergem, quebrando a verificação de contrato E2E.
 
 # Reconciliação da Ficha de Abertura (ficha ↔ doc ↔ implementação)
 
@@ -41,6 +51,8 @@ Alinhar a implementação da Abertura à ficha original nos pontos inequívocos:
 | Forms | `apps/web/components/forms/StepSocios.tsx` | MODIFY (pró-labore; sócio — conforme decisão) |
 | Forms | `apps/web/components/forms/StepRevisao.tsx` | MODIFY (refletir campos novos/removidos) |
 | Motor | `apps/web/app/abertura/StepperEngine.tsx` | MODIFY (campos do `.trigger()` do Passo 2) |
+| Go | `apps/backend/domain/validation/abertura.go` | MODIFY — espelhar mudanças no schema Zod |
+| Go | `apps/backend/domain/validation/testdata/` | MODIFY — regenerar casos de caracterização |
 
 ### 1. Passo 2 — campos faltantes (INEQUÍVOCO)
 
@@ -78,10 +90,13 @@ Esses campos pertencem ao **perfil da Ficha de Alteração** (sócio robusto ced
 - [ ] **CA3** — Pró-labore mínimo corrigido (env var se Spec 018 pronta; senão `1518` com comentário datado).
 - [ ] **CA4** — Decisão A/B do sócio registrada na spec e aplicada (doc atualizado na Opção A; schema+UI+revisão enxugados na Opção B).
 - [ ] **CA5** — `docs/ficha-abertura.md` consistente com o schema final (Passo 2 e Passo 3).
-- [ ] **CA6** — `npm run build` e `npm run lint` passam; fluxo E2E de Abertura (Ltda e SLU) validado manualmente ponta a ponta, incluindo as condicionais do Passo 2.
+- [ ] **CA6** — `apps/backend/domain/validation/abertura.go` espelha as mudanças de schema (alinhado com `packages/shared/src/schemas/abertura.ts`)
+- [ ] **CA7** — `scripts/gen-abertura-characterization.mjs` regenerado e `make -C apps/backend test` verde (caracterização validando a paridade Go ↔ Zod)
+- [ ] **CA8** — `npm run build` e `npm run lint` passam; fluxo E2E de Abertura (Ltda e SLU) validado manualmente ponta a ponta, incluindo as condicionais do Passo 2.
 
 ## Notas
 
 - Ficha de Alteração vs ficha de Abertura: os formulários de sócio **não compartilham schema** (perfis distintos) — reforçado em `docs/ficha-abertura.md` (nota de escopo no Passo 3) e assumido na Spec 012.
 - Desvios menores observados e **conscientemente deixados de fora** desta spec (avaliar depois): SLU não trava exatamente 1 sócio no schema (só a UI oculta "+adicionar"); documentos condicionais (certidão de casamento/contrato de locação/registro conselho) são `optional` no Zod sem enforcement de condicionalidade.
 - Extração das fichas: `fitz` (PyMuPDF) para PDF, `olefile` + decode cp1252 para `.doc` binário.
+- **Paridade Go (pós-cutover):** toda mudança em `packages/shared/src/schemas/abertura.ts` exige espelho em `apps/backend/domain/validation/abertura.go`. Os casos de caracterização em `testdata/` são gerados a partir dos schemas Zod via `scripts/gen-abertura-characterization.mjs` — este script deve ser reexecutado sempre que o schema mudar, e a validação Go deve passar (`make -C apps/backend test`). Sem esse passo, a divergência entre validador front e back quebra a verificação de contrato E2E.
