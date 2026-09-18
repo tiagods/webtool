@@ -28,12 +28,24 @@ Inicie um novo batch de trabalho a partir de uma spec aprovada, numa worktree is
    - confirme com `git worktree list` e `git branch --show-current`
    - se a spec toca `apps/web` ou `packages/*` e o symlink de `node_modules` não resolveu, rode `npm install`
 5. Atualize o status da spec para `in-progress`
-6. Crie `.claude/tasks/todo.md` **dentro da worktree** (é gitignorado — estado efêmero do batch):
-   - Título do batch referenciando a spec
-   - Checklist detalhado derivado dos critérios de aceite e do design da spec
-   - Itens granulares (um por arquivo/componente a criar/modificar)
-7. Leia `.claude/tasks/lessons.md` e revise lições relevantes
-8. Apresente o todo.md ao usuário e peça confirmação antes de começar a implementar
+6. **Decida o modo de execução — sempre, mesmo sem flag.** Aplique o teste de quatro perguntas de
+   [`.claude/rules/execucao-paralela.md`](../rules/execucao-paralela.md) §1 e diga o veredito ao
+   usuário com o motivo:
+   | Resultado | Ação |
+   |-----------|------|
+   | 4 sins, e a spec já tem `## Blocos` | proponha **paralelo** com o mapa de blocos da spec |
+   | 4 sins, sem `## Blocos` | proponha a partição em blocos; com o aval do usuário, escreva a seção `## Blocos` na spec e siga paralelo |
+   | qualquer não | **sequencial**, nomeando o critério que falhou (ex.: "B2 e B3 escreveriam o mesmo pacote") |
+   | `--parallel` / `--seq` no input | o usuário mandou; obedeça e não re-discuta |
+7. Crie `.claude/tasks/todo.md` **dentro da worktree** (é gitignorado — estado efêmero do batch):
+   - **Sequencial**: título referenciando a spec + checklist granular (um item por
+     arquivo/componente) derivado dos critérios de aceite e do design
+   - **Paralelo**: o `todo.md` vira o **mapa de blocos** (só o orquestrador escreve nele) e cada
+     bloco ganha seu checklist em `.claude/tasks/blocks/<ID>.md`; crie também
+     `.claude/tasks/signals/` vazio
+8. Leia `.claude/tasks/lessons.md` e revise lições relevantes
+9. Apresente o todo.md (e o mapa de blocos, se paralelo) ao usuário e peça confirmação antes de
+   começar a implementar
 
 ## Paralelismo
 
@@ -58,8 +70,26 @@ Antes de qualquer `infra:up`, rode **`npm run infra:owner`** — ele lê o label
 Se o batch precisar do gate de integração e a stack estiver de pé por outra worktree, o `/done`
 tem um desfecho próprio (**bloqueado**, sem push) — ver `.claude/commands/done.md`.
 
+## Modo paralelo — um subagente por bloco
+
+Dentro da **mesma worktree**, blocos de `owns` disjuntos rodam ao mesmo tempo, e um bloco
+consumidor arranca assim que o **artefato** de que precisa existe — não espera o bloco produtor
+terminar. O protocolo completo (sinais, invariantes, prompt de despacho, falhas) está em
+[`.claude/rules/execucao-paralela.md`](../rules/execucao-paralela.md).
+
+O essencial para não quebrar nada:
+
+- **`owns` disjuntos** — dois blocos nunca escrevem o mesmo arquivo
+- **Git é só do orquestrador** — subagente não commita; a árvore e o `.git/index.lock` são um só
+- **Recurso exclusivo é só do orquestrador** — `npm run build`, `make generate`, docker, stack local
+- **Sinal só depois de compilar** — `.claude/tasks/signals/<nome>` é a liberação por artefato
+- **Teto de 4 blocos em voo**
+
 ## Input esperado
 
-O usuário deve fornecer: `/start-batch [nome-ou-número-da-spec]`
+O usuário deve fornecer: `/start-batch [nome-ou-número-da-spec] [--parallel|--seq]`
 
-Exemplo: `/start-batch 031-comentarios-concisos`
+Exemplos:
+- `/start-batch 031-comentarios-concisos` — o comando decide o modo pelo teste §1
+- `/start-batch 032-nova-rota --parallel` — força multiagente
+- `/start-batch 032-nova-rota --seq` — força um agente só

@@ -23,6 +23,10 @@
 - Delegar pesquisa, exploracao e analise paralela para subagentes
 - Para problemas complexos, investir mais computacao via subagentes
 - Uma tarefa por subagente para execucao focada
+- **Implementacao tambem se delega**: uma spec pode rodar com **um subagente por bloco** dentro
+  da mesma worktree — protocolo em [`rules/execucao-paralela.md`](rules/execucao-paralela.md).
+  O `/start-batch` **sempre** aplica o teste de §1 e diz se o batch e paralelo ou sequencial;
+  nao esperar o usuario pedir
 
 ### 3. Ciclo de Auto-Melhoria
 - Apos qualquer correcao do usuario: atualizar `tasks/lessons.md` com o padrao
@@ -42,9 +46,12 @@
 - Pular isso para fixes simples e obvios — nao over-engineer
 - Desafiar seu proprio trabalho antes de apresentar
 
-### 7. Execucao de Tasks — Uma por Uma Dentro do Batch
-- Trabalhar em **uma task do `todo.md` por vez dentro de cada batch** — nao iniciar a proxima
-  antes de concluir a atual. Batches diferentes rodam em paralelo, um por worktree
+### 7. Execucao de Tasks — Uma por Uma Dentro da Linha de Execucao
+- Trabalhar em **uma task por vez dentro de cada linha de execucao** — nao iniciar a proxima
+  antes de concluir a atual. Batches diferentes rodam em paralelo, um por worktree; **dentro de
+  um batch**, blocos de `owns` disjuntos rodam em paralelo, um subagente cada
+- Um bloco consumidor **nao espera o bloco produtor terminar**: arranca assim que o **artefato**
+  de que depende existe (sinal em `.claude/tasks/signals/`)
 - Ao concluir cada task: **atualizar imediatamente o `todo.md`** marcando o item como `[x]`
 - Nunca acumular tasks concluidas para marcar depois — marcar no momento exato da conclusao
 - Ao iniciar uma task: marcar com `[/]` (em andamento) para sinalizar progresso
@@ -99,10 +106,16 @@ Spec (definicao) → Aprovacao → Batch (implementacao) → Verificacao → Don
 │   ├── README.md
 │   ├── _template.md
 │   └── NNN-nome.md
+├── rules/                 # Regras de codigo e de execucao
+│   ├── boas-praticas.md
+│   ├── boas-praticas-go.md
+│   └── execucao-paralela.md  # Blocos, sinais e despacho de subagentes
 ├── tasks/                 # Gestao de trabalho
 │   ├── README.md
 │   ├── lessons.md         # Acumulativo — nunca resetar
-│   └── todo.md            # Batch atual — um por worktree, gitignorado
+│   ├── todo.md            # Batch atual (ou mapa de blocos) — gitignorado
+│   ├── blocks/            # Checklist por bloco, modo paralelo — gitignorado
+│   └── signals/           # Artefatos prontos, modo paralelo — gitignorado
 ├── worktrees/             # Uma worktree por batch (gitignorado)
 │   └── spec/NNN-slug/
 ├── commands/              # Slash commands reutilizaveis
@@ -162,7 +175,10 @@ exigem **confirmacao explicita do usuario** antes de rodar:
 
 - **Proibido commit global**: sem `git add .`, sem `git add -A`, sem `git commit -am`
 - Sempre `git add` com **caminhos explicitos** dos arquivos daquela unidade de trabalho
-- **Um commit = uma unidade logica** — uma task do `todo.md` ou um criterio de aceite
+- **Um commit = uma unidade logica** — uma task do `todo.md`, um bloco ou um criterio de aceite
+- **No modo paralelo, so o orquestrador commita.** Subagente de bloco nao roda nenhum comando
+  git: a worktree e compartilhada, o `.git/index.lock` e um so e um commit concorrente
+  misturaria blocos. O orquestrador commita cada bloco quando ele conclui
 - Se a arvore tem mudancas de mais de uma spec, **separar por caminho**; nunca misturar
   duas specs no mesmo commit
 - Antes de cada commit: `git status` + `git diff --stat` dos paths que vao entrar, para

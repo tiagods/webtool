@@ -4,6 +4,8 @@ Finalize o batch atual: prove a conclusão, submeta e feche a worktree.
 
 1. Leia `.claude/tasks/todo.md` e verifique que todos os itens estão `[x]`
    - Se houver itens pendentes, liste-os e pergunte se devem ser descartados ou completados
+   - Modo paralelo: o `todo.md` é o mapa de blocos — todo bloco precisa estar `[x]` **e** com
+     commit registrado; os detalhes de cada um estão em `.claude/tasks/blocks/<ID>.md`
 2. **Execute os gates do escopo tocado** (`git diff --stat origin/main...HEAD` diz quais são):
    | Escopo tocado | Gate |
    |---------------|------|
@@ -42,7 +44,10 @@ Finalize o batch atual: prove a conclusão, submeta e feche a worktree.
    - Arquivos criados/modificados
    - Decisões tomadas
    - Testes adicionados
-8. Remova `.claude/tasks/todo.md` (o batch está encerrado)
+8. Remova `.claude/tasks/todo.md` (o batch está encerrado). No modo paralelo, remova também
+   `.claude/tasks/blocks/` e `.claude/tasks/signals/` — e antes disso confira que **nenhum bloco
+   ficou `[/]` ou `[!]`** no mapa e que todo sinal declarado em `emite` foi publicado; bloco em
+   voo ou sinal faltando = batch não concluído, não pushe
 9. **Feche a worktree** — o caminho depende de como ela foi aberta:
    | Como foi aberta | Como fechar |
    |-----------------|-------------|

@@ -57,6 +57,8 @@ Thumbs.db
 .claude/scheduled_tasks.lock
 .claude/worktrees/
 .claude/tasks/todo*.md
+.claude/tasks/blocks/
+.claude/tasks/signals/
 
 # Links locais para .claude (symlinks/junctions) - ver AGENTS.md
 .clinerules/

@@ -44,6 +44,18 @@ touches: []            # globs dos paths que a spec altera - detecta colisao ent
 # Cole aqui as interfaces/contratos principais
 ```
 
+## Blocos
+
+> Opcional — só quando a spec vai rodar em paralelo (`/start-batch NNN --parallel`).
+> Regras em `.claude/rules/execucao-paralela.md`: `owns` disjuntos entre blocos, `needs` aponta
+> para sinais (`@nome`) que algum bloco `emite`, sem ciclo. Apague a seção se for sequencial.
+
+| # | Bloco | owns | needs | emite | agente |
+|---|-------|------|-------|-------|--------|
+| B1 | Contratos: entity + ports | `apps/backend/domain/entity/...`, `apps/backend/domain/ports/**` | — | `@ports` | claude |
+| B2 | Service | `apps/backend/domain/service/...` | `@ports` | `@service` | claude |
+| B3 | Infra / repositório | `apps/backend/infrastructure/aws/...` | `@ports` | — | claude |
+
 ## Critérios de aceite
 
 - [ ] ...
