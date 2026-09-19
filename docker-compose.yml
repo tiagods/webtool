@@ -107,12 +107,12 @@ services:
       AWS_DYNAMODB_ACEITES_TABLE: prolink-aceites-lgpd
       AWS_S3_BUCKET: prolink-fichas
       AWS_SQS_QUEUE_URL: http://floci:4566/000000000000/prolink-abertura
-      SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASSWORD: ${SMTP_PASSWORD}
-      SMTP_FROM: ${SMTP_FROM:-noreply@prolinkcontabil.com.br}
-      SMTP_TO: ${SMTP_TO:-tiagoice@hotmail.com}
+      SMTP_HOST: ${SMTP_HOST:?SMTP_HOST é obrigatória}
+      SMTP_PORT: ${SMTP_PORT:?SMTP_PORT é obrigatória}
+      SMTP_USER: ${SMTP_USER:?SMTP_USER é obrigatória}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:?SMTP_PASSWORD é obrigatória}
+      SMTP_FROM: ${SMTP_FROM:?SMTP_FROM é obrigatória}
+      SMTP_TO: ${SMTP_TO:?SMTP_TO é obrigatória}
     restart: unless-stopped
   # ─── nginx — ponto de entrada público (porta 80) ────────────────────────────
   nginx:
