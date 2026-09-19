@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 import { TERMO_VERSAO_ATUAL } from '@prolink/shared';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? 'dev-secret-change-in-production'
-);
+const rawSecret = process.env.JWT_SECRET;
+if (!rawSecret) {
+  throw new Error('JWT_SECRET não definida — obrigatória para validar o cookie de aceite');
+}
+const JWT_SECRET = new TextEncoder().encode(rawSecret);
 const ACEITE_COOKIE = 'prolink_aceite';
 
 async function temAceiteValido(token: string | undefined): Promise<boolean> {
