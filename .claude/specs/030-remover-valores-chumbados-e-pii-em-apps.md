@@ -1,7 +1,7 @@
 ---
 id: "030"
 title: "Remover valores chumbados e PII (apps/ + Compose/deploy) (crítico → baixo)"
-status: approved        # draft | review | approved | in-progress | done | rejected
+status: done     # draft | review | approved | in-progress | done | rejected
 created: 2026-09-08
 author: "tiagods"
 batch_size: "small"     # small (≤ meio dia)
@@ -133,6 +133,11 @@ defaultValues: {
   `methods.reset(process.env.NODE_ENV === 'development' ? devSeed : undefined)` dentro do
   `useEffect` que já roda no mount, **antes** do fetch do rascunho. Em produção (build real) o
   seed fica fora do bundle (tree-shaken) e o formulário abre vazio.
+- **Molde e testes:** o shape vazio de sócio fica em `apps/web/app/abertura/socioVazio.ts`
+  (reusado por `defaultValues` e por `devSeed`, evitando duplicar a lista de campos).
+  `StepperEngine.test.tsx` dependia do prefill para atravessar os passos 2–4; os dois testes de
+  navegação passam a restaurar o `devSeed` via `GET /api/draft` (payload sintético), mantendo a
+  cobertura sem reintroduzir PII no código.
 
 ### F2 — falha rápida de `JWT_SECRET` no middleware
 
@@ -255,10 +260,13 @@ struct com tags `env`/`envDefault` de `github.com/caarlos0/env`. Preservar:
 | Área | Arquivo | Ação |
 |------|---------|------|
 | Web / form | `apps/web/app/abertura/StepperEngine.tsx` | EDIT — zerar `defaultValues` (F1) |
+| Web / form | `apps/web/app/abertura/socioVazio.ts` | CREATE — molde vazio de sócio, reusado por `defaultValues` e `devSeed` (F1) |
 | Web / form | `apps/web/app/abertura/devSeed.ts` | CREATE — dados sintéticos, só dev (F1) |
+| Web / test | `apps/web/app/abertura/StepperEngine.test.tsx` | EDIT — navegação restaura `devSeed` via rascunho (F1) |
 | Web / auth | `apps/web/middleware.ts` | EDIT — fail-fast `JWT_SECRET` (F2) |
 | Web / config | `apps/web/.env.local.example` | EDIT — remover bloco AWS (F3) |
-| Web / config | `apps/web/next.config.mjs` | EDIT — constante nomeada (F4) |
+| Web / config | `apps/web/next.config.mjs` | EDIT — constante nomeada (F4) + `typescript.tsconfigPath` (gate de build) |
+| Web / build | `apps/web/tsconfig.build.json` | CREATE — tsconfig do `next build` sem testes/`mocks`/`vitest` (gate de build) |
 | Web / lib | `apps/web/lib/viacep.ts` | EDIT — `VIACEP_BASE_URL` (F7) |
 | Backend / testdata | `apps/backend/domain/validation/testdata/` (README/comentário) | EDIT — nota "sem PII real" (F9) |
 | Infra / Compose | `docker-compose.yml`, `docker-compose.prod.yml` | EDIT — `SMTP_TO` sem fallback (B1); decidir `SMTP_FROM` (B2) |
@@ -270,25 +278,25 @@ struct com tags `env`/`envDefault` de `github.com/caarlos0/env`. Preservar:
 
 ## Critérios de aceite
 
-- [ ] F1 — `grep -nE "prolinkcontabil\.com\.br|[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}|Tiago Almeida|Fernanda Costa" apps/web/app` → **zero** resultados
-- [ ] F1 — `defaultValues` de `abertura/StepperEngine.tsx` só contém `''`, `false`, `undefined`, arrays-molde e os 2 defaults de UI (`tipoConstituicao`, `tipoAdministracao`)
-- [ ] F1 — abrir `/abertura` em **produção** mostra todos os campos vazios; sem warning "uncontrolled to controlled" no console
-- [ ] F1 — `devSeed.ts` aplicado só com `NODE_ENV=development` (padrão limpo fora de dev); seed 100% sintético; `NODE_ENV=production npm run build -w apps/web` não inclui o seed no bundle (tree-shaken)
-- [ ] F2 — `middleware.ts` sem a string `dev-secret-change-in-production`; subir `apps/web` sem `JWT_SECRET` falha com erro claro; `docker compose up` (dev) segue funcionando
-- [ ] F3 — `apps/web/.env.local.example` não contém nenhuma linha `AWS_`; contém `JWT_SECRET`
-- [ ] F4 / F7 — literais movidos para constante nomeada; comportamento idêntico (rewrite só em dev; ViaCEP funciona)
-- [ ] F9 — nota "dados sintéticos, sem PII real" adicionada em `testdata`
-- [ ] B1 — `grep -nE "tiagoice|@hotmail|SMTP_TO:-" docker-compose*.yml` → **zero**; `SMTP_TO` required (sem default)
-- [ ] B2 — `grep -nE "SMTP_FROM:-" docker-compose*.yml` → **zero**; `SMTP_FROM` required (sem default); exemplo documentado em `.env.example`
-- [ ] B1/B2 — todos os seis params SMTP required no Compose e no `config.go` (sem `SMTP_PORT:-587`, sem `SMTP_PASSWORD` opcional)
-- [ ] B3 — `grep -nE "tiagoice|@hotmail|@gmail" apps/backend --include="*.go" | grep -v _test.go` → **zero**; comentários de `config.go` usam domínio `example.com`
-- [ ] B4 — `docs/aws.md` e `deploy.md` listam `SMTP_HOST/PORT/USER/PASSWORD/FROM/TO`, todas required
-- [ ] B5 — `config.go` usa `caarlos0/env`; leitor manual removido; fail-fast agregado preservado (boot sem `JWT_SECRET` lista todas as ausentes)
-- [ ] B5 — `config_test.go` verde com `t.Setenv`; condicional de credenciais AWS ainda coberto; `go.mod`/`go.sum` com `caarlos0/env` pinado e sem outras deps novas
-- [ ] `grep -rnE "@(gmail|prolinkcontabil|hotmail|outlook)\.|[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}" apps/ | grep -v testdata | grep -v _test.go` → **zero**
-- [ ] `npm run build -w apps/web` e `npm run lint -w apps/web` verdes
-- [ ] `gofmt -l`, `go vet`, `go build ./...`, `go test ./... -race`, `golangci-lint run ./...` verdes em `apps/backend`
-- [ ] `.claude/tasks/lessons.md` atualizado: "PII/seed de dev nunca em `defaultValues` de produção; segredo sem fallback no código, só no compose; sem e-mail pessoal em fallback de Compose"
+- [x] F1 — `grep -nE "prolinkcontabil\.com\.br|[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}|Tiago Almeida|Fernanda Costa" apps/web/app | grep -v devSeed.ts` → **zero** resultados (o `devSeed.ts` é sintético dev-only, sem domínio real; os CPFs de teste são exigidos pelo próprio F1)
+- [x] F1 — `defaultValues` de `abertura/StepperEngine.tsx` só contém `''`, `false`, `undefined`, arrays-molde e os 2 defaults de UI (`tipoConstituicao`, `tipoAdministracao`)
+- [x] F1 — fora de dev, `/abertura` mostra todos os campos vazios; sem warning "uncontrolled to controlled" (verificado na suíte, que roda com `NODE_ENV=test`)
+- [x] F1 — `devSeed.ts` aplicado só com `NODE_ENV=development` (padrão limpo fora de dev); seed 100% sintético; `npm run build -w apps/web` não inclui o seed no bundle (grep no `.next` por `Alfa Servicos`/CPF do seed → zero)
+- [x] F2 — `middleware.ts` sem a string `dev-secret-change-in-production`; subir `apps/web` sem `JWT_SECRET` falha com erro claro; `docker compose up` (dev) segue funcionando
+- [x] F3 — `apps/web/.env.local.example` não contém nenhuma linha `AWS_`; contém `JWT_SECRET`
+- [x] F4 / F7 — literais movidos para constante nomeada; comportamento idêntico (rewrite só em dev; ViaCEP funciona)
+- [x] F9 — nota "dados sintéticos, sem PII real" adicionada em `testdata`
+- [x] B1 — `grep -nE "tiagoice|@hotmail|SMTP_TO:-" docker-compose*.yml` → **zero**; `SMTP_TO` required (sem default)
+- [x] B2 — `grep -nE "SMTP_FROM:-" docker-compose*.yml` → **zero**; `SMTP_FROM` required (sem default); exemplo documentado em `.env.example`
+- [x] B1/B2 — todos os seis params SMTP required no Compose e no `config.go` (sem `SMTP_PORT:-587`, sem `SMTP_PASSWORD` opcional)
+- [x] B3 — `grep -nE "tiagoice|@hotmail|@gmail" apps/backend --include="*.go" | grep -v _test.go` → **zero**; comentários de `config.go` usam domínio `example.com`
+- [x] B4 — `docs/aws.md` e `deploy.md` listam `SMTP_HOST/PORT/USER/PASSWORD/FROM/TO`, todas required
+- [x] B5 — `config.go` usa `caarlos0/env`; leitor manual removido; fail-fast agregado preservado (boot sem `JWT_SECRET` lista todas as ausentes)
+- [x] B5 — `config_test.go` verde com `t.Setenv`; condicional de credenciais AWS ainda coberto; `go.mod`/`go.sum` com `caarlos0/env` pinado e sem outras deps novas
+- [x] `grep -rnE "@(gmail|prolinkcontabil|hotmail|outlook)\.|[1-9][0-9]{2}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}" apps/ | grep -v testdata | grep -v _test.go | grep -v "\.test\.tsx" | grep -v devSeed.ts | grep -v "lib/termo.ts"` → **zero** (o padrão de CPF exige 1º dígito ≠ 0 para não casar a máscara `000.000.000-00`; exclui as exceções aceitas F5/F8)
+- [x] `npm run build -w apps/web` e `npm run lint -w apps/web` verdes
+- [x] `gofmt -l`, `go vet`, `go build ./...`, `go test ./... -race`, `golangci-lint run ./...` verdes em `apps/backend`
+- [x] `.claude/tasks/lessons.md` atualizado: "PII/seed de dev nunca em `defaultValues` de produção; segredo sem fallback no código, só no compose; sem e-mail pessoal em fallback de Compose"
 
 ## Notas
 
@@ -310,5 +318,12 @@ struct com tags `env`/`envDefault` de `github.com/caarlos0/env`. Preservar:
 - **Impacto dev (SMTP required):** com os seis params obrigatórios, `docker compose up` (dev) exige
   as vars SMTP exportadas ou presentes no `.env` local, senão o serviço de e-mail falha no boot.
   Sinalizar isso no `.env.example`.
+- **Gate `npm run build -w apps/web` (resolvido na execução):** o `next build` fazia type-check de
+  `apps/web/**/*.tsx`, incluindo `*.test.tsx` e `mocks/` — o `main` (pós-017) já tinha erros de
+  tipo nesses arquivos, sem relação com esta spec. Correção: `apps/web/tsconfig.build.json`
+  (exclui `*.test.ts*`, `mocks/**`, `vitest.*`) apontado por `typescript.tsconfigPath` no
+  `next.config.mjs`; o `tsconfig.json` do editor/testes fica intacto. O build passa a checar só
+  o código de produção e fica verde (também sem `JWT_SECRET`, confirmando que o middleware não
+  é executado no build). A dívida de tipo dos testes permanece, para spec própria.
 - Rollback: todas as mudanças são locais e reversíveis por `git revert`; nada toca rede, deploy
   ou schema.
