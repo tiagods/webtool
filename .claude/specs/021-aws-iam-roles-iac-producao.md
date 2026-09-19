@@ -1,9 +1,9 @@
 ---
 id: "021"
 title: "Autenticação AWS em produção — IAM Roles + IaC (Fargate)"
-status: in-progress   # draft | review | approved | in-progress | done | rejected
+status: done   # draft | review | approved | in-progress | done | rejected
 created: 2026-09-02
-updated: 2026-09-18
+updated: 2026-09-19
 author: "tiagods"
 batch_size: "medium"   # grande — ver Notas (organizado em 4 fases, batch pode pausar entre elas)
 depends_on: []         # 018/019 foram rejeitadas; o equivalente Go já existe (ver banner)
@@ -37,6 +37,11 @@ depends_on: []         # 018/019 foram rejeitadas; o equivalente Go já existe (
 >    access keys de IAM user de longa duração. `common.sh` valida a identidade do caller via
 >    `aws sts get-caller-identity` e **recusa** `:user/` por padrão (override consciente via
 >    `PROLINK_ALLOW_IAM_USER=1`, só para break-glass documentado).
+> 7. **Fix pré-existente que destravou o CA8**: `npm run build` estava quebrado no `origin/main`
+>    por um erro de tipo em `apps/web/mocks/handlers.ts` (`unknown` → `HttpResponse.json`, que
+>    exige `JsonBodyType`); a spec 017 não tinha `build` como gate. Corrigido com uma linha
+>    (`body: JsonBodyType`), sem mudança de comportamento. O gate de build/lint desta spec é
+>    infra+docs, mas o build precisava voltar a passar.
 
 # Autenticação AWS em produção — IAM Roles + IaC (Fargate)
 
@@ -303,41 +308,41 @@ que `apps/backend/infrastructure/config/config.go` lê.
 
 ## Critérios de aceite
 
-- [ ] **CA1 — IAM roles**: `infra/aws/provision-iam.sh` cria/atualiza (idempotente)
+- [x] **CA1 — IAM roles**: `infra/aws/provision-iam.sh` cria/atualiza (idempotente)
   `prolink-ecs-execution-role`, `prolink-api-task-role`, `prolink-worker-task-role` com trust
   policies para `ecs-tasks.amazonaws.com`.
-- [ ] **CA2 — Menor privilégio**: nenhuma policy tem `Resource: "*"`; toda ação é escopada aos
+- [x] **CA2 — Menor privilégio**: nenhuma policy tem `Resource: "*"`; toda ação é escopada aos
   ARNs exatos de `params.sh` (verificável por `grep`/`jq` nos `iam/*.json`). O conjunto de
   ações bate 1:1 com o que `apps/backend/infrastructure/aws/*` e
   `apps/backend/infrastructure/worker_controller.go` realmente chamam — sem `Query`/`Scan`,
   sem `s3:*`, sem SNS.
-- [ ] **CA3 — Recursos base IaC**: `provision-{dynamodb,s3,sqs}.sh` provisionam os recursos com
+- [x] **CA3 — Recursos base IaC**: `provision-{dynamodb,s3,sqs}.sh` provisionam os recursos com
   a mesma config estrutural hoje aplicada pelo `init.sh` ao Floci (3 tabelas + TTL, bucket +
   block public + lifecycle + CORS, fila + DLQ + redrive). Rodar cada script 2× não altera o
   resultado nem erra.
-- [ ] **CA4 — Anti-drift**: `infra/aws/lib/params.sh` é a fonte única dos nomes/parâmetros
+- [x] **CA4 — Anti-drift**: `infra/aws/lib/params.sh` é a fonte única dos nomes/parâmetros
   estruturais e é consumida tanto pelos scripts de produção quanto pelo `infra/local/init.sh`.
-- [ ] **CA5 — Task definitions**: `register-task-defs.sh` registra `prolink-api` e
+- [x] **CA5 — Task definitions**: `register-task-defs.sh` registra `prolink-api` e
   `prolink-worker` via `aws ecs register-task-definition`, com `taskRoleArn`/`executionRoleArn`
   corretos, **sem** `AWS_ENDPOINT_URL` e **sem** `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`
   no bloco `environment`, e `JWT_SECRET`/`SMTP_PASSWORD` só via `secrets[].valueFrom`.
-- [ ] **CA6 — Secrets Manager**: `provision-secrets.sh` cria/atualiza `prolink/jwt-secret` e
+- [x] **CA6 — Secrets Manager**: `provision-secrets.sh` cria/atualiza `prolink/jwt-secret` e
   `prolink/smtp-password` sem gravar os valores no repositório; a execution role tem
   `secretsmanager:GetSecretValue` restrito a esses dois ARNs.
-- [ ] **CA7 — Compose limpo**: `docker-compose.prod.yml` não tem `JWT_SECRET`/`SMTP_PASSWORD`
+- [x] **CA7 — Compose limpo**: `docker-compose.prod.yml` não tem `JWT_SECRET`/`SMTP_PASSWORD`
   em texto plano nem qualquer variável de credencial AWS; comentário explica de onde vêm em
   cada runtime.
-- [ ] **CA8 — Sem regressão de código**: `npm run build` e `npm run lint` passam; nenhum
+- [x] **CA8 — Sem regressão de código**: `npm run build` e `npm run lint` passam; nenhum
   arquivo de `apps/*` muda o comportamento (a 021 é infra + docs).
-- [ ] **CA9 — Docs**: `docs/aws.md` (seções "IAM Task Role") deixam de dizer "a detalhar" e
+- [x] **CA9 — Docs**: `docs/aws.md` (seções "IAM Task Role") deixam de dizer "a detalhar" e
   listam ações/ARNs reais apontando para `infra/aws/`; `deploy.md` descreve o fluxo Fargate
   (ECR + task def + role) e remove a orientação de credenciais via env do host; `README.md`
   marca as env vars AWS estáticas como dev-only.
-- [ ] **CA10 — Verificação**: todos os `infra/aws/*.sh` passam `sh -n` (Git Bash) e `shellcheck`
+- [x] **CA10 — Verificação**: todos os `infra/aws/*.sh` passam `sh -n` (Git Bash) e `shellcheck`
   (0.11.0, instalado) sem erros; todos os `iam/*.json` e `ecs/*.taskdef.json` são JSON válido
   (`jq`) e validam contra o formato esperado. O `apply` real na conta AWS é passo manual
   documentado em `deploy.md`, executado pelo usuário.
-- [ ] **CA11 — Sem IAM user**: nenhum script cria `aws iam user`, access key ou `iam:CreateUser`;
+- [x] **CA11 — Sem IAM user**: nenhum script cria `aws iam user`, access key ou `iam:CreateUser`;
   `common.sh` recusa identidade `:user/` (override consciente `PROLINK_ALLOW_IAM_USER=1`), de
   modo que tanto o runtime (Task Role) quanto o `apply` (SSO/`assume-role`) usem **sempre role**.
 
