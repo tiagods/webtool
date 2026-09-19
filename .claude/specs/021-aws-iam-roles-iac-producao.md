@@ -32,6 +32,11 @@ depends_on: []         # 018/019 foram rejeitadas; o equivalente Go já existe (
 >    futura de código (fora do escopo desta, que não toca `apps/*`).
 > 5. **Verificação com shellcheck**: instalado nesta máquina (winget, 0.11.0); `sh -n` roda pelo
 >    Git Bash. O `apply` real na conta AWS segue manual (sem credenciais de produção aqui).
+> 6. **Somente IAM Roles — nunca IAM user.** Nenhum script cria `aws iam user` nem access key.
+>    O runtime usa **Task Role**; o `apply` usa **role assumida** (SSO / `assume-role`), nunca
+>    access keys de IAM user de longa duração. `common.sh` valida a identidade do caller via
+>    `aws sts get-caller-identity` e **recusa** `:user/` por padrão (override consciente via
+>    `PROLINK_ALLOW_IAM_USER=1`, só para break-glass documentado).
 
 # Autenticação AWS em produção — IAM Roles + IaC (Fargate)
 
@@ -63,7 +68,9 @@ entrega a **camada de infraestrutura** que falta para essa transição funcionar
 
 Entregar, como **IaC (scripts shell + AWS CLI, seguindo a convenção `infra/aws/`)**, tudo que
 é necessário para `api` e `worker` rodarem em Fargate **sem nenhuma credencial AWS estática**,
-com acesso de menor privilégio aos recursos da arquitetura atual:
+com acesso de menor privilégio aos recursos da arquitetura atual. **Autenticação é sempre por
+role — nenhum IAM user é criado ou usado**: Task Role no runtime e role assumida (SSO /
+`assume-role`) no `apply`.
 
 1. **IAM Roles + Policies** de menor privilégio (sem wildcards de recurso), por task:
    - `prolink-ecs-execution-role` — compartilhada (pull de imagem no ECR, logs no CloudWatch,
@@ -104,7 +111,8 @@ com acesso de menor privilégio aos recursos da arquitetura atual:
 ```
 infra/aws/
   lib/
-    common.sh                 # helpers: resolve account-id, região, "create-or-update", require-cmd
+    common.sh                 # helpers: resolve account-id, região, "create-or-update",
+                              # require-cmd, valida que o caller é role (recusa IAM user)
     params.sh                 # nomes/ARNs canônicos dos recursos (fonte única — ver "Anti-drift")
   provision-dynamodb.sh       # 3 tabelas + TTL + PITR
   provision-s3.sh             # bucket + block public + SSE + lifecycle + CORS (absorve set-cors-producao.sh)
@@ -131,7 +139,9 @@ infra/aws/
 - **Idempotência**: cada script tenta `describe`/`get` e decide entre `create-*` e
   `update-*`/`put-*`. Rodar duas vezes não quebra nem duplica.
 - **Sem `AWS_ENDPOINT_URL`** nesses scripts — são produção real. O operador roda a partir de
-  uma máquina com credenciais de admin (SSO/perfil), **uma vez** (ou quando algo muda).
+  uma máquina autenticada por **role assumida** (SSO / `assume-role`), **nunca** com access keys
+  de IAM user; `common.sh` valida `aws sts get-caller-identity` e recusa identidades `:user/`
+  (override consciente `PROLINK_ALLOW_IAM_USER=1`). Roda-se **uma vez** (ou quando algo muda).
 
 ### Anti-drift local × produção
 
@@ -323,6 +333,9 @@ que `apps/backend/infrastructure/config/config.go` lê.
   (0.11.0, instalado) sem erros; todos os `iam/*.json` e `ecs/*.taskdef.json` são JSON válido
   (`jq`) e validam contra o formato esperado. O `apply` real na conta AWS é passo manual
   documentado em `deploy.md`, executado pelo usuário.
+- [ ] **CA11 — Sem IAM user**: nenhum script cria `aws iam user`, access key ou `iam:CreateUser`;
+  `common.sh` recusa identidade `:user/` (override consciente `PROLINK_ALLOW_IAM_USER=1`), de
+  modo que tanto o runtime (Task Role) quanto o `apply` (SSO/`assume-role`) usem **sempre role**.
 
 ## Notas
 
