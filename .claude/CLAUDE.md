@@ -6,7 +6,7 @@
 - **Sem Preguica**: encontrar causas raiz, sem fixes temporarios — padrao de desenvolvedor senior
 - **Orientado por Spec**: sem implementacao sem spec aprovada (exceto hotfixes triviais)
 - **Small Batches**: quebrar trabalho em pecas digestiveis, entregar frequentemente
-- **Git Organizado**: o agente opera o git normalmente (commit, branch, push, PR) seguindo a Convencao de Git — commits pequenos, por escopo, nunca globais
+- **Git Organizado**: o agente opera o git normalmente (commit, branch, push, PR[sempre perguntar se deseja abrir ou fazer o merge da branch atual para a main]) seguindo a Convencao de Git — commits pequenos, por escopo, nunca globais
 
 ---
 
