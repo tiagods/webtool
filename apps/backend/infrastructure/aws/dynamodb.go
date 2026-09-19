@@ -17,8 +17,8 @@ import (
 	"github.com/tiagods/webtool/apps/backend/infrastructure/aws/model"
 )
 
-// Janelas de retenção gravadas no atributo `ttl` (epoch-seconds). Espelham as
-// constantes de apps/api/lib/aws/dynamodb.ts (anos sem ajuste de bissexto).
+// Janelas de retenção gravadas no atributo `ttl` (epoch-seconds), em anos sem
+// ajuste de bissexto.
 const (
 	ttlRascunho = 2 * time.Hour
 	ttlEnviado  = 30 * 24 * time.Hour

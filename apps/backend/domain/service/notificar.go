@@ -11,6 +11,8 @@ import (
 	"github.com/tiagods/webtool/apps/backend/infrastructure/email"
 )
 
+// PresignedDownloadExpiraEm é a validade das URLs de download dos documentos no
+// e-mail de notificação.
 const PresignedDownloadExpiraEm = 7 * 24 * time.Hour
 
 var labelMap = map[string]string{
@@ -39,6 +41,8 @@ func labelDoc(campo string) string {
 	return lbl
 }
 
+// NotificarSubmissao consome a mensagem de submissão e envia o e-mail com os
+// links de download dos documentos.
 type NotificarSubmissao struct {
 	rascunhos outbound.RascunhoRepository
 	storage   outbound.DocumentoStorage
@@ -46,10 +50,13 @@ type NotificarSubmissao struct {
 	to        string
 }
 
+// NewNotificarSubmissao injeta o repositório, o storage, o sender de e-mail e o
+// destinatário interno.
 func NewNotificarSubmissao(r outbound.RascunhoRepository, s outbound.DocumentoStorage, m outbound.EmailSender, to string) *NotificarSubmissao {
 	return &NotificarSubmissao{rascunhos: r, storage: s, email: m, to: to}
 }
 
+// Processar monta e envia a notificação da submissão conforme o formType.
 func (ns *NotificarSubmissao) Processar(ctx context.Context, msg entity.SubmissaoMessage) error {
 	r, err := ns.rascunhos.Get(ctx, msg.SessionID)
 	if err != nil {

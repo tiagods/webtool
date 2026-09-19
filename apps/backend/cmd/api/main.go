@@ -1,6 +1,5 @@
-// Command api é o servidor HTTP que substitui o apps/api Node (spec 022+).
-// A composição (config, adapters, router, ciclo de vida) fica em
-// infrastructure.StartApp — este main só a invoca e traduz o erro em exit code.
+// Command api é o servidor HTTP. Toda a composição vive em
+// infrastructure.StartApp, mantendo este main sem lógica além do exit code.
 package main
 
 import (

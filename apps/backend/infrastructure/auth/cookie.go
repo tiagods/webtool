@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Nomes dos cookies de autenticação, idênticos aos do Node (apps/api/lib/auth.ts).
+// Nomes dos cookies de autenticação.
 const (
 	CookieAceite = "prolink_aceite"
 	CookieSessao = "prolink_session"
@@ -14,8 +14,8 @@ const (
 // aceiteMaxAgeSegundos é a validade em segundos do cookie prolink_aceite (1 ano).
 const aceiteMaxAgeSegundos = int(aceiteMaxAge / time.Second)
 
-// CookieBuilder monta os cookies de autenticação com atributos idênticos aos do
-// Node: HttpOnly, SameSite=Lax, Path=/, e Secure apenas em produção.
+// CookieBuilder monta os cookies de autenticação: HttpOnly, SameSite=Lax,
+// Path=/, e Secure apenas em produção.
 type CookieBuilder struct {
 	secure        bool
 	sessionExpiry time.Duration
@@ -38,7 +38,7 @@ func (b *CookieBuilder) Sessao(token string) *http.Cookie {
 }
 
 // ExpirarSessao monta o cookie que remove o prolink_session do navegador
-// (MaxAge negativo → Max-Age: 0), espelhando o `maxAge: 0` do DELETE no Node.
+// (MaxAge negativo → Max-Age: 0).
 func (b *CookieBuilder) ExpirarSessao() *http.Cookie {
 	return &http.Cookie{
 		Name:   CookieSessao,

@@ -81,7 +81,7 @@ func TestJWTTokenService_RejeitaTokenInvalido(t *testing.T) {
 }
 
 // TestJWTTokenService_FormatoCompativelJose confere as invariantes que o
-// jose.jwtVerify de apps/web depende: header HS256 e claims iat/exp numéricas.
+// verificador do front depende: header HS256 e claims iat/exp numéricas.
 func TestJWTTokenService_FormatoCompativelJose(t *testing.T) {
 	t.Parallel()
 	svc := NewJWTTokenService(segredoTeste, 2*time.Hour)

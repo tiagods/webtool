@@ -1,6 +1,6 @@
 // Package ratelimit fornece um limitador de requisições por chave (tipicamente
-// IP) com janela fixa, em memória. Porta apps/api/lib/rateLimit.ts — suficiente
-// para uma instância única; multi-instância exigiria um contador compartilhado.
+// IP) com janela fixa, em memória. Suficiente para uma instância única;
+// multi-instância exigiria um contador compartilhado.
 package ratelimit
 
 import (
@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Padrões espelhando rateLimit.ts: 20 requisições por janela de 60s.
+// Padrões: 20 requisições por janela de 60s.
 const (
 	PadraoLimite = 20
 	PadraoJanela = 60 * time.Second

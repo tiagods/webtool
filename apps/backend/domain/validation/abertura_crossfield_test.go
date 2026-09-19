@@ -34,7 +34,7 @@ func TestCnpjInformadoSeTeveParticipacao(t *testing.T) {
 		{false, "irrelevante", true},
 		{true, "12.345.678/0001-90", true},
 		{true, "", false},
-		{true, " ", true}, // sem trim, igual ao Zod (!" " é false)
+		{true, " ", true}, // sem trim (!" " é false)
 	}
 	for _, tc := range tests {
 		if got := cnpjInformadoSeTeveParticipacao(tc.teve, tc.cnpj); got != tc.ok {

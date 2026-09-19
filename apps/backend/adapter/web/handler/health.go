@@ -8,8 +8,7 @@ import (
 	"github.com/tiagods/webtool/apps/backend/adapter/web/presenter"
 )
 
-// Health é a sonda de liveness/readiness. No batch 022 devolve sempre 200; nas
-// specs seguintes pode passar a checar dependências (DynamoDB, SQS).
+// Health é a sonda de liveness/readiness; hoje sempre 200.
 func Health(c echo.Context) error {
 	return c.JSON(http.StatusOK, presenter.NewHealth())
 }

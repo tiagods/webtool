@@ -10,7 +10,7 @@ import (
 )
 
 // PresignUploadExpiraEm é a validade da URL PUT assinada devolvida por
-// POST /api/upload-url. Espelha o `expiresIn = 300` de apps/api/lib/aws/s3.ts.
+// POST /api/upload-url.
 const PresignUploadExpiraEm = 5 * time.Minute
 
 // UploadService gera as URLs pré-assinadas de upload de documentos direto para o

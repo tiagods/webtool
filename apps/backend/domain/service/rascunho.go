@@ -49,7 +49,6 @@ func (s *RascunhoService) Salvar(ctx context.Context, sessionID string, raw json
 }
 
 // ConfirmarUpload registra a key S3 de um documento confirmado como enviado.
-// Espelha a variante {uploadedCampo, contentType} do POST /api/draft do Node.
 func (s *RascunhoService) ConfirmarUpload(ctx context.Context, sessionID, campo, contentType string) error {
 	if !entity.CampoDocumentoValido(campo) {
 		return ErrCampoDocumentoInvalido
@@ -67,7 +66,7 @@ func (s *RascunhoService) ConfirmarUpload(ctx context.Context, sessionID, campo,
 
 // extrairTipoConstituicao lê dadosEmpresa.tipoConstituicao do payload para
 // denormalizar `tipo` no item (usado pelo worker). Ausente/inválido ⇒ "" (o
-// repositório deixa o campo intacto). Espelha a lógica de putRascunho no Node.
+// repositório deixa o campo intacto).
 func extrairTipoConstituicao(raw json.RawMessage) entity.TipoConstituicao {
 	var envelope struct {
 		DadosEmpresa struct {

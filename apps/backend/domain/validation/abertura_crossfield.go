@@ -2,11 +2,11 @@ package validation
 
 import "math"
 
-// Regras cross-field da Ficha de Abertura (o `superRefine` de abertura.ts).
-// Cada função abaixo é pura e testável isoladamente; validarCrossField as
-// orquestra e mapeia cada `false` para a issue no caminho correto.
+// Regras cross-field da Ficha de Abertura. Cada função abaixo é pura e testável
+// isoladamente; validarCrossField as orquestra e mapeia cada `false` para a issue
+// no caminho correto.
 //
-// Espelham exatamente a ordem do Zod:
+// Ordem de avaliação:
 //  1. Ltda exige ≥ 2 sócios
 //  2. cnpjParticipacao obrigatório quando o sócio teve participação societária
 //  3. (só Ltda) sociedade obrigatória; soma das quotas = 100 (±0,01);
@@ -18,15 +18,14 @@ func ltdaExigeDoisSocios(tipoConstituicao string, qtdSocios int) bool {
 }
 
 // cnpjInformadoSeTeveParticipacao: false quando o sócio declarou participação
-// societária anterior mas não informou o CNPJ (string vazia — sem trim, igual
-// ao `!socio.cnpjParticipacao` do Zod).
+// societária anterior mas não informou o CNPJ (string vazia — sem trim).
 func cnpjInformadoSeTeveParticipacao(teveParticipacao bool, cnpj string) bool {
 	return !teveParticipacao || cnpj != ""
 }
 
 // somaQuotasFecha100: soma dos percentuais das quotas dentro de ±0,01 de 100.
-// O fold à esquerda a partir de 0 reproduz o `reduce` do JS (mesmo resultado
-// IEEE-754, ex.: 49.99 + 50.0 = 99.99000000000001).
+// O fold à esquerda a partir de 0 fixa a ordem de soma do IEEE-754 (ex.:
+// 49.99 + 50.0 = 99.99000000000001).
 func somaQuotasFecha100(percentuais []float64) bool {
 	var total float64
 	for _, x := range percentuais {

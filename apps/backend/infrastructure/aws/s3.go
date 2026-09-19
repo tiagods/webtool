@@ -66,6 +66,8 @@ func (s *S3ObjectStorage) PresignedDownloadURL(ctx context.Context, key string, 
 	}
 	return req.URL, nil
 }
+
+// PutJSON grava data serializado como JSON na key indicada.
 func (s *S3ObjectStorage) PutJSON(ctx context.Context, key string, data any) error {
 	body, err := json.Marshal(data)
 	if err != nil {

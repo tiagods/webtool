@@ -34,7 +34,7 @@ type UploadURLRequest struct {
 
 // --- Responses --------------------------------------------------------------
 
-// OK é o corpo `{"ok": true}` das rotas de auth/sessão, espelhando o Node.
+// OK é o corpo `{"ok": true}` das rotas de auth/sessão.
 type OK struct {
 	OK bool `json:"ok"`
 }
@@ -51,7 +51,7 @@ type Health struct {
 func NewHealth() Health { return Health{Status: "ok"} }
 
 // Draft é o corpo de GET /api/draft. Payload e DocumentosKeys serializam como
-// `null` quando ausentes — mesmo contrato do Node.
+// `null` quando ausentes.
 type Draft struct {
 	Payload        json.RawMessage   `json:"payload"`
 	DocumentosKeys map[string]string `json:"documentosKeys"`
@@ -66,9 +66,9 @@ func DraftFromRascunho(r *entity.Rascunho) Draft {
 	return Draft{Payload: r.Payload, DocumentosKeys: r.DocumentosKeys}
 }
 
-// AlteracaoDraft é o corpo de GET /api/alteracao/draft. Diferente da Abertura, o
-// Node devolve só `{payload}` (o formulário de Alteração não tem upload de
-// documentos). Payload nulo serializa como `null` — mesmo contrato do Node.
+// AlteracaoDraft é o corpo de GET /api/alteracao/draft. O formulário de Alteração
+// não tem upload, então só `{payload}` é devolvido; payload nulo serializa como
+// `null`.
 type AlteracaoDraft struct {
 	Payload json.RawMessage `json:"payload"`
 }
@@ -99,7 +99,7 @@ type UploadURL struct {
 // NewUploadURL devolve o corpo com a URL PUT pré-assinada.
 func NewUploadURL(url string) UploadURL { return UploadURL{URL: url} }
 
-// PayloadInvalido espelha o corpo 400 do Node:
+// PayloadInvalido é o corpo 400:
 // {"error":"Payload inválido","issues":[{"path":[...],"message":"..."}]}.
 type PayloadInvalido struct {
 	Error  string  `json:"error"`
@@ -113,7 +113,7 @@ type Issue struct {
 }
 
 // NewPayloadInvalido converte as issues do validador de domínio no corpo de erro
-// 400. Path nil vira `[]` para casar com o formato do Zod.
+// 400. Path nil vira `[]`, nunca `null`.
 func NewPayloadInvalido(issues []validation.Issue) PayloadInvalido {
 	dtos := make([]Issue, len(issues))
 	for i, is := range issues {

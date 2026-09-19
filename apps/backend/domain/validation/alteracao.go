@@ -1,10 +1,7 @@
 package validation
 
-// Reimplementação em Go das regras de packages/shared/src/schemas/alteracao.ts
-// (Zod): união discriminada cedente/cessionário, 9 blocos por quadro (Q01–Q09) e
-// os refines condicionais. A suíte de caracterização em testdata/casos_alteracao.json
-// (gerada por scripts/gen-alteracao-characterization.mjs) fixa o veredito do Zod —
-// ver alteracao_test.go.
+// Regras da Ficha de Alteração: união discriminada cedente/cessionário, 9 blocos
+// por quadro (Q01–Q09) e os refines condicionais.
 
 import (
 	"encoding/json"
@@ -27,7 +24,7 @@ var situacoesCadastrais = []string{"ativa", "inapta", "baixada"}
 var tiposConstituicao = []string{"ltda", "slu"}
 
 // quadroParaChave mapeia cada código de quadro para a chave do bloco de dados
-// correspondente (quadroParaChave de alteracao.ts).
+// correspondente.
 var quadroParaChave = map[string]string{
 	"nome_empresarial":       "q01",
 	"objeto_social":          "q02",
@@ -41,7 +38,7 @@ var quadroParaChave = map[string]string{
 }
 
 // chavesAlteracaoConhecidas é o conjunto de chaves de topo aceitas — o modo draft
-// (.strict() no Zod) rejeita qualquer outra.
+// rejeita qualquer outra.
 var chavesAlteracaoConhecidas = map[string]bool{
 	"identificacao": true, "quadros": true, "aceite": true,
 	"q01": true, "q02": true, "q03": true, "q04": true, "q05": true,
@@ -163,7 +160,7 @@ func (v *validador) obrigNum(path []any, val *float64) (float64, bool) {
 	return *val, true
 }
 
-// positivo: issue quando n <= 0 (espelha .positive() do Zod — erro "dirty").
+// positivo: issue quando n <= 0.
 func (v *validador) positivo(path []any, n float64, msg string) {
 	if n <= 0 {
 		v.add(path, msg)
@@ -179,9 +176,8 @@ func (v *validador) maxLen(path []any, s string, n int, msg string) {
 // --- Entrypoints ------------------------------------------------------
 
 // ValidarAlteracaoForm valida o payload completo da Ficha de Alteração
-// (alteracaoFormSchema): field-level + união discriminada + refines de bloco +
-// cross-quadro. Chaves de topo desconhecidas são ignoradas (schema completo não
-// é `.strict()`).
+// (field-level + união discriminada + refines de bloco + cross-quadro). Chaves
+// de topo desconhecidas são ignoradas.
 func ValidarAlteracaoForm(raw json.RawMessage) []Issue {
 	topo, ok := decodificarTopo(raw)
 	if !ok {
@@ -204,11 +200,11 @@ func ValidarAlteracaoForm(raw json.RawMessage) []Issue {
 	return v.issues
 }
 
-// ValidarAlteracaoDraft valida um rascunho parcial (alteracaoFormDraftSchema):
-// `.strict()` (chave de topo desconhecida ⇒ issue), `.partial()` (qualquer
-// subconjunto das chaves de topo), sem cross-quadro, e `aceite` apenas como
-// booleano opcional. Um bloco presente continua validado por inteiro (o
-// `.partial()` do Zod é raso) — inclusive o refine interno de Q05/Q07.
+// ValidarAlteracaoDraft valida um rascunho parcial: chave de topo desconhecida e
+// `aceite` não-booleano são rejeitados, qualquer subconjunto das chaves de topo é
+// aceito e o cross-quadro não roda. Um bloco presente continua validado por
+// inteiro (o parser parcial não desce aos campos) — inclusive o refine interno
+// de Q05/Q07.
 func ValidarAlteracaoDraft(raw json.RawMessage) []Issue {
 	topo, ok := decodificarTopo(raw)
 	if !ok {
@@ -320,8 +316,8 @@ func parseQuadros(v *validador, topo map[string]json.RawMessage, required bool) 
 	return lista
 }
 
-// validarAceite: no modo full exige o booleano `true` (o `.refine` — erro "dirty");
-// no modo draft basta ser booleano (`aceite` reescrito como opcional).
+// validarAceite: no modo full exige o booleano `true` (erro "dirty"); no modo
+// draft basta ser booleano.
 func validarAceite(v *validador, topo map[string]json.RawMessage, required bool) {
 	raw, presente := topo["aceite"]
 	if !presente || string(raw) == "null" {
@@ -438,7 +434,7 @@ func validarQ03(v *validador, q *q03Form) {
 
 // validarQ04 valida a união discriminada `membros` e, se nenhum membro abortou o
 // parse, roda o refine da q04 (cnpjAnterior obrigatório quando houve participação
-// anterior) — espelha o superRefine no nível do objeto q04QuadroSocietarioSchema.
+// anterior).
 func validarQ04(v *validador, q *q04Form) {
 	if q.Membros == nil {
 		v.addFatal(p("q04", "membros"), "Required")
@@ -474,8 +470,8 @@ func validarQ04(v *validador, q *q04Form) {
 }
 
 // validarMembro valida um item da união discriminada. Devolve abortou=true quando
-// o discriminador `tipo` é inválido ou um campo obrigatório está ausente/errado
-// de tipo (o Zod "aborta" o parse do membro nesses casos).
+// o discriminador `tipo` é inválido ou um campo obrigatório está ausente/errado de
+// tipo.
 func validarMembro(v *validador, idx int, m *membroForm) (abortou bool) {
 	base := func(campo string) []any { return p("q04", "membros", idx, campo) }
 
@@ -486,8 +482,8 @@ func validarMembro(v *validador, idx int, m *membroForm) (abortou bool) {
 	}
 
 	// abortou quando surge um erro fatal (invalid_type / enum) durante a
-	// validação deste membro — nesse caso o Zod aborta o parse do objeto q04 e
-	// pula o superRefine da q04.
+	// validação deste membro — nesse caso o parse da q04 aborta e o refine da
+	// q04 não roda.
 	jaAbortado := v.aborted
 
 	strMin := func(campo string, val *string, n int, msg string) {

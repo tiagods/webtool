@@ -9,9 +9,9 @@ import (
 	"time"
 )
 
-// TestJWT_CompatibilidadeComJose assina tokens em Go e os valida com `jose`
-// (o verificador de apps/web/middleware.ts), garantindo que o cookie
-// prolink_aceite emitido pela API Go é aceito pelo frontend Node.
+// TestJWT_CompatibilidadeComJose assina tokens em Go e os valida com o
+// verificador do front, garantindo que o cookie prolink_aceite emitido pela API
+// Go é aceito pelo frontend.
 //
 // Pula se `node` não estiver disponível (ex.: CI sem toolchain JS).
 func TestJWT_CompatibilidadeComJose(t *testing.T) {

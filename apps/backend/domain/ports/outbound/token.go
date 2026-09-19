@@ -4,8 +4,8 @@ package outbound
 // (prolink_aceite e prolink_session). É implementado pela infraestrutura sobre
 // uma biblioteca de JWT — o domínio não conhece o formato do token.
 //
-// Os tokens são interoperáveis com o `jose` (jwtVerify) de apps/web: mesmo
-// segredo, mesmo algoritmo (HS256), claims iat/exp em segundos.
+// Os tokens usam HS256 e claims iat/exp em segundos; o segredo e o formato são
+// compartilhados com o verificador do front.
 type TokenService interface {
 	// AssinarAceite emite o token do cookie prolink_aceite: claims
 	// {sub: sessionID, versaoTermo, iat, exp}, validade de 1 ano.

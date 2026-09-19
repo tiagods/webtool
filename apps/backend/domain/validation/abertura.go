@@ -1,9 +1,9 @@
-// Package validation reimplementa em Go as regras de validação da Ficha de
-// Abertura definidas em packages/shared/src/schemas/abertura.ts (Zod). É código
-// de domínio puro: depende apenas da stdlib. A suíte de caracterização em
-// testdata/ (gerada por scripts/gen-abertura-characterization.mjs) fixa o
-// veredito esperado do Zod para cada payload — o validador aqui tem que produzir
-// o mesmo veredito (aceito/rejeitado + caminhos das issues).
+// Package validation implementa as regras de validação das Fichas de Abertura e
+// de Alteração. É código de domínio puro: depende apenas da stdlib.
+//
+// A paridade com o schema do front é garantida pela suíte de caracterização:
+// divergências em relação a ele são pegas pelos *_test.go, com casos gerados em
+// testdata/.
 package validation
 
 import (
@@ -15,7 +15,7 @@ import (
 	"unicode/utf8"
 )
 
-// Issue descreve uma violação de regra. Path espelha o `path` das issues do Zod
+// Issue descreve uma violação de regra. Path identifica a posição da violação
 // (ex.: ["dadosSocios","socios",0,"cpf"]); Message é a mensagem exibível.
 type Issue struct {
 	Path    []any
@@ -23,7 +23,7 @@ type Issue struct {
 }
 
 // PathString serializa o Path como "a/b/0/c". Path vazio (issue de raiz) vira
-// "(root)" — mesmo formato usado por scripts/gen-abertura-characterization.mjs.
+// "(root)".
 func (i Issue) PathString() string {
 	if len(i.Path) == 0 {
 		return "(root)"
@@ -42,7 +42,7 @@ func (i Issue) PathString() string {
 	return strings.Join(partes, "/")
 }
 
-// --- Regex de campo (espelham abertura.ts) --------------------------------
+// --- Regex de campo --------------------------------------------------------
 
 var (
 	reCEP   = regexp.MustCompile(`^\d{5}-\d{3}$`)
@@ -58,7 +58,7 @@ var estadosCivis = []string{
 }
 
 // chavesAberturaConhecidas é o conjunto de chaves de topo aceitas — o modo draft
-// (.strict() no Zod) rejeita qualquer outra.
+// rejeita qualquer outra.
 var chavesAberturaConhecidas = map[string]bool{
 	"dadosEmpresa": true, "endereco": true, "dadosSocios": true,
 	"sociedade": true, "senhaGovBr": true, "documentosAceitos": true,
@@ -130,7 +130,7 @@ type sociedadeForm struct {
 // --- Acumulador ---------------------------------------------------------
 
 // validador acumula as issues e sinaliza se algum erro "aborted" (invalid_type /
-// invalid_enum_value no Zod) já apareceu — nesse caso o cross-field não roda.
+// invalid_enum_value) já apareceu — nesse caso o cross-field não roda.
 type validador struct {
 	issues  []Issue
 	aborted bool
@@ -194,8 +194,8 @@ func (v *validador) enumOk(path []any, s string, permitidos []string, msg string
 // --- Entrypoints ------------------------------------------------------
 
 // ValidarAberturaForm valida o payload completo da Ficha de Abertura
-// (aberturaFormSchema do Zod): field-level + cross-field. Chaves de topo
-// desconhecidas são ignoradas (o schema completo não é `.strict()`).
+// (field-level + cross-field). Chaves de topo desconhecidas são ignoradas (o
+// schema completo não é estrito).
 func ValidarAberturaForm(raw json.RawMessage) []Issue {
 	topo, ok := decodificarTopo(raw)
 	if !ok {
@@ -211,10 +211,9 @@ func ValidarAberturaForm(raw json.RawMessage) []Issue {
 	return v.issues
 }
 
-// ValidarAberturaDraft valida um rascunho parcial (aberturaFormDraftSchema):
-// `.strict()` (chave de topo desconhecida ⇒ issue), `.partial()` (qualquer
-// subconjunto das chaves), sem cross-field, e `documentosAceitos` apenas como
-// booleano opcional (sem exigir `true`).
+// ValidarAberturaDraft valida um rascunho parcial: chave de topo desconhecida é
+// rejeitada, qualquer subconjunto das chaves é aceito, o cross-field não roda e
+// `documentosAceitos` é apenas um booleano opcional (sem exigir `true`).
 func ValidarAberturaDraft(raw json.RawMessage) []Issue {
 	topo, ok := decodificarTopo(raw)
 	if !ok {
@@ -464,8 +463,8 @@ func validarQuota(v *validador, idx int, q *quotaForm) {
 	}
 }
 
-// validarDocumentosAceitos: no modo full exige o booleano `true` (o `.refine`
-// do Zod — erro "dirty", não aborta); no modo draft basta ser booleano.
+// validarDocumentosAceitos: no modo full exige o booleano `true` (erro "dirty",
+// não aborta); no modo draft basta ser booleano.
 func validarDocumentosAceitos(v *validador, raw json.RawMessage, required bool) {
 	var b bool
 	if err := json.Unmarshal(raw, &b); err != nil {

@@ -166,3 +166,9 @@ testes unitários/caracterização. Guardar cookies pré-submit para exercitar c
 **Erro**: `StepIdentificacao.tsx` usava `<FormLabel>` como cabeçalho de uma seção ("Endereço Atual da Sede"), fora de qualquer `<FormField>`/`<FormItem>`. `npm run build` e `npm run lint` passaram (é só erro de runtime), mas a página quebrava (`Error: useFormField should be used within <FormField>`) assim que renderizada — só apareceu num smoke test manual do dev server.
 **Causa raiz**: `components/ui/form.tsx` (`FormLabel`/`FormControl`/`FormMessage`/`FormDescription`) chamam `useFormField()`, que lança se não houver `FormFieldContext`/`FormItemContext` no pai — ou seja, só podem ser usados **dentro do `render` de um `<FormField>`**. Build e lint não capturam (erro puramente de runtime).
 **Regra**: para cabeçalhos de seção/grupo que não são o rótulo de um campo específico, usar `<Label>` de `@/components/ui/label` (sem dependência de contexto) ou uma tag semântica (`<h3>`/`<h4>`), nunca `<FormLabel>`/`<FormControl>`/`<FormMessage>` fora de um `<FormField>`. Como isso não aparece no build/lint, **sempre validar páginas novas com formulário num dev server real** antes de declarar a fase concluída.
+
+## 2026-09-17 — Spec 031 — critério de lint já vermelho no `origin/main`
+
+**Erro**: a spec 031 exigia `golangci-lint run ./...` limpo, mas o baseline (`origin/main`) já tinha 10 issues (errcheck 4, revive 5, staticcheck 1). Os 5 de comentário foram corrigidos na 031 e os 5 de código viraram a spec 032 — a 031 só fecharia o gate depois da 032.
+**Causa raiz**: o critério foi escrito sem rodar o gate no estado atual; o trabalho anterior (migração Go 022–028) deixou o lint vermelho e ninguém percebeu.
+**Regra**: antes de aprovar uma spec, rodar os gates do escopo no baseline (`origin/main`) e colar a evidência na própria spec; se o gate já falha, tratar como dívida separada (spec própria), não como critério da spec nova.

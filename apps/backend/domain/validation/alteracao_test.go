@@ -6,9 +6,9 @@ import (
 	"testing"
 )
 
-// TestCaracterizacaoAlteracao roda o validador Go contra a suíte gerada do Zod
-// (scripts/gen-alteracao-characterization.mjs) e exige o mesmo veredito:
-// aceito/rejeitado + conjunto de caminhos de issue.
+// TestCaracterizacaoAlteracao roda o validador Go contra a suíte de
+// caracterização e exige o mesmo veredito: aceito/rejeitado + conjunto de
+// caminhos de issue.
 func TestCaracterizacaoAlteracao(t *testing.T) {
 	t.Parallel()
 

@@ -42,7 +42,7 @@ func (m *SMTPMailer) Send(ctx context.Context, data outbound.EmailData) error {
 
 	var buf strings.Builder
 	for k, v := range header {
-		buf.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
+		fmt.Fprintf(&buf, "%s: %s\r\n", k, v)
 	}
 	buf.WriteString("\r\n")
 	buf.WriteString(data.BodyHTML)
@@ -54,7 +54,6 @@ func (m *SMTPMailer) Send(ctx context.Context, data outbound.EmailData) error {
 func sendMail(cfg config.SMTP, msg string) error {
 	addr := net.JoinHostPort(cfg.Host, fmt.Sprintf("%d", cfg.Port))
 
-	// Autenticação PLAIN/LOGIN se houver credenciais
 	var auth smtp.Auth
 	if cfg.UsesAuth() {
 		auth = smtp.PlainAuth("", cfg.User, cfg.Password, cfg.Host)
@@ -69,9 +68,8 @@ func sendMail(cfg config.SMTP, msg string) error {
 	if err != nil {
 		return fmt.Errorf("conectar ao servidor SMTP: %w", err)
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
-	// STARTTLS se disponível
 	if ok, _ := client.Extension("STARTTLS"); ok {
 		tlsCfg := &tls.Config{ServerName: cfg.Host}
 		if err := client.StartTLS(tlsCfg); err != nil {
@@ -118,13 +116,13 @@ func sendMailTLS(addr string, auth smtp.Auth, from string, to []string, msg stri
 	if err != nil {
 		return fmt.Errorf("conexão TLS: %w", err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	client, err := smtp.NewClient(conn, addr)
 	if err != nil {
 		return fmt.Errorf("cliente SMTP: %w", err)
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	if auth != nil {
 		if err := client.Auth(auth); err != nil {
