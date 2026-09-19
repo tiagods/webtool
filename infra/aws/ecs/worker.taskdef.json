@@ -1,0 +1,42 @@
+{
+  "family": "${ECS_WORKER_FAMILY}",
+  "requiresCompatibilities": ["FARGATE"],
+  "networkMode": "awsvpc",
+  "cpu": "${ECS_CPU}",
+  "memory": "${ECS_MEMORY}",
+  "executionRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/${ECS_EXECUTION_ROLE_NAME}",
+  "taskRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/${WORKER_TASK_ROLE_NAME}",
+  "containerDefinitions": [
+    {
+      "name": "worker",
+      "image": "${WORKER_IMAGE_URI}",
+      "essential": true,
+      "environment": [
+        { "name": "APP_ENV", "value": "prod" },
+        { "name": "AWS_REGION", "value": "${AWS_REGION}" },
+        { "name": "AWS_DYNAMODB_TABLE", "value": "${DYNAMO_ABERTURA_TABLE}" },
+        { "name": "AWS_DYNAMODB_ALTERACAO_TABLE", "value": "${DYNAMO_ALTERACAO_TABLE}" },
+        { "name": "AWS_DYNAMODB_ACEITES_TABLE", "value": "${DYNAMO_ACEITES_TABLE}" },
+        { "name": "AWS_S3_BUCKET", "value": "${S3_BUCKET}" },
+        { "name": "AWS_SQS_QUEUE_URL", "value": "${SQS_QUEUE_URL}" },
+        { "name": "SMTP_HOST", "value": "${SMTP_HOST}" },
+        { "name": "SMTP_PORT", "value": "587" },
+        { "name": "SMTP_USER", "value": "${SMTP_USER}" },
+        { "name": "SMTP_FROM", "value": "${SMTP_FROM}" },
+        { "name": "SMTP_TO", "value": "${SMTP_TO}" }
+      ],
+      "secrets": [
+        { "name": "JWT_SECRET", "valueFrom": "${JWT_SECRET_ARN}" },
+        { "name": "SMTP_PASSWORD", "valueFrom": "${SMTP_PASSWORD_ARN}" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "${ECS_WORKER_LOG_GROUP}",
+          "awslogs-region": "${AWS_REGION}",
+          "awslogs-stream-prefix": "worker"
+        }
+      }
+    }
+  ]
+}
