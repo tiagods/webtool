@@ -1,7 +1,7 @@
 ---
 id: "017"
 title: "Testes Unitários — apps/web (Meta 100% / Piso 95%)"
-status: in-progress
+status: done          # draft | review | approved | in-progress | done | rejected
 created: 2026-07-07
 author: "Claude"
 batch_size: "medium"
@@ -72,13 +72,13 @@ Next.js Middleware roda em Edge Runtime como uma função exportada que recebe `
 
 ## Critérios de aceite
 
-- [ ] MSW configurado como interceptador de rede nos testes (`setupFiles` do Vitest) — nenhum teste depende de `fetch` real ou de `apps/api`/Docker rodando
-- [ ] Todos os arquivos listados em "Camadas afetadas" com testes atingindo 100% de cobertura individual (piso 95% — qualquer arquivo abaixo de 100% tem a lacuna justificada em uma frase, mesma régua da Spec 015/016)
-- [ ] `StepperEngine`: navegação Ltda (6 steps) e SLU (5 steps) testadas separadamente; persistência e restauração de rascunho cobertas com MSW mockando `/api/draft`
-- [ ] Componentes de step: cada campo obrigatório, cada máscara (`react-imask`) e cada campo condicional testados
-- [ ] `middleware.ts`: ambos os ramos (com/sem `prolink_aceite` válido) cobertos
-- [ ] `npm run test:coverage -w apps/web` passa o gate de 95%
-- [ ] `npm run lint` passando
+- [x] MSW configurado como interceptador de rede nos testes (`setupFiles` do Vitest) — nenhum teste depende de `fetch` real ou de `apps/api`/Docker rodando
+- [x] Todos os arquivos listados em "Camadas afetadas" com testes atingindo 100% de cobertura individual (piso 95% — qualquer arquivo abaixo de 100% tem a lacuna justificada em uma frase, mesma régua da Spec 015/016). Lacunas justificadas (todas ≥95% no item afetado, acima do piso): `StepDocumentos.tsx` branch 97,77% — o `total > 0` da `ProgressBar` nunca é falso (listas de docs têm sempre ≥1 item); `StepSocios.tsx` branch 98,61% — o fallback `activeTab : 0` do `currentFieldIndex` é inatingível pela UI (add/remove mantêm `activeTab < fields.length`); `StepRevisao.tsx` (alteração) 99,4% — o `default` do switch do `ResumoQuadro` é inatingível (`codigo` é sempre um dos 9 códigos válidos). Demais arquivos em 100%.
+- [x] `StepperEngine`: navegação Ltda (6 steps) e SLU (5 steps) testadas separadamente; persistência e restauração de rascunho cobertas com MSW mockando `/api/draft`
+- [x] Componentes de step: cada campo obrigatório, cada máscara (`react-imask`) e cada campo condicional testados
+- [x] `middleware.ts`: ambos os ramos (com/sem `prolink_aceite` válido) cobertos
+- [x] `npm run test:coverage -w apps/web` passa o gate de 95%
+- [x] `npm run lint` passando
 
 ## Notas
 
