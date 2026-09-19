@@ -9,6 +9,8 @@ import type { Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { aberturaFormSchema, AberturaFormValues } from '@prolink/shared';
 
+import { socioVazio } from './socioVazio';
+import { devSeed } from './devSeed';
 import Stepper from '@/components/Stepper';
 import StepDadosEmpresa from '@/components/forms/StepDadosEmpresa';
 import StepEndereco from '@/components/forms/StepEndereco';
@@ -36,74 +38,24 @@ export default function StepperEngine() {
         atividade: '',
       },
       endereco: {
-        cep: '01310-100',
-        logradouro: 'Avenida Paulista',
-        numero: '1374',
-        complemento: 'Conjunto 101',
-        bairro: 'Bela Vista',
-        municipio: 'São Paulo',
-        estado: 'SP',
-        iptu: '3-123-456-7',
-        imovelAlugado: true,
+        cep: '',
+        logradouro: '',
+        numero: '',
+        complemento: '',
+        bairro: '',
+        municipio: '',
+        estado: '',
+        iptu: '',
+        imovelAlugado: false,
       },
       dadosSocios: {
-        socios: [
-          {
-            nome: 'Tiago Almeida Santos',
-            pis: '123.45678.90-1',
-            cpf: '123.456.789-09',
-            rg: '12.345.678-0 SSP/SP',
-            nacionalidade: 'Brasileiro',
-            profissao: 'Contador',
-            proLabore: 4500,
-            telefoneCelular: '(11) 99999-1234',
-            telefoneFixo: '(11) 3333-5678',
-            email: 'tiago@prolinkcontabil.com.br',
-            estadoCivil: 'casado_comunhao_parcial',
-            nomeMae: 'Maria Almeida Santos',
-            nomePai: 'João Almeida Santos',
-            cepRegistro: '04567-010',
-            logradouroRegistro: 'Rua das Flores',
-            numeroRegistro: '200',
-            complementoRegistro: 'Apto 12',
-            bairroRegistro: 'Vila Mariana',
-            registroConselho: 'CRC 1SP123456/O-0',
-            teveParticipacaoSocietaria: false,
-            cnpjParticipacao: '',
-          },
-          {
-            nome: 'Fernanda Costa Ribeiro',
-            pis: '987.65432.10-2',
-            cpf: '987.654.321-00',
-            rg: '98.765.432-1 SSP/SP',
-            nacionalidade: 'Brasileira',
-            profissao: 'Administradora',
-            proLabore: 4500,
-            telefoneCelular: '(11) 98888-5678',
-            telefoneFixo: '',
-            email: 'fernanda@prolinkcontabil.com.br',
-            estadoCivil: 'solteiro',
-            nomeMae: 'Ana Costa Ribeiro',
-            nomePai: 'Carlos Costa Ribeiro',
-            cepRegistro: '05402-000',
-            logradouroRegistro: 'Rua Cardeal Arcoverde',
-            numeroRegistro: '55',
-            complementoRegistro: '',
-            bairroRegistro: 'Pinheiros',
-            registroConselho: '',
-            teveParticipacaoSocietaria: false,
-            cnpjParticipacao: '',
-          },
-        ],
+        socios: [socioVazio()],
       },
       sociedade: {
-        capitalSocial: 50000,
-        quotas: [
-          { percentual: 60, isAdministrador: true },
-          { percentual: 40, isAdministrador: false },
-        ],
+        capitalSocial: undefined,
+        quotas: [{ percentual: '' as unknown as number, isAdministrador: false }],
         tipoAdministracao: 'isoladamente',
-        banco: 'Itaú',
+        banco: '',
       },
       senhaGovBr: '',
       documentosAceitos: false,
@@ -131,6 +83,9 @@ export default function StepperEngine() {
   useEffect(() => {
     (async () => {
       try {
+        if (process.env.NODE_ENV === 'development') {
+          methods.reset({ ...methods.getValues(), ...devSeed });
+        }
         await fetch('/api/session', { method: 'POST' });
         const res = await fetch('/api/draft');
         if (!res.ok) return;

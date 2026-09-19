@@ -16,6 +16,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 import StepperEngine from '@/app/abertura/StepperEngine';
+import { devSeed } from '@/app/abertura/devSeed';
 
 function renderEngine(step: string) {
   nav.params = new URLSearchParams(step ? `step=${step}` : '');
@@ -218,12 +219,16 @@ describe('StepperEngine (abertura)', () => {
   });
 
   it('percorre os passos 2 a 5 do fluxo Ltda', async () => {
+    server.use(http.get('/api/draft', () => HttpResponse.json({ payload: devSeed })));
     const { rerender } = renderEngine('2');
     const irPara = (step: string) => {
       nav.params = new URLSearchParams(`step=${step}`);
       rerender(<StepperEngine />);
     };
 
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText('Ex: Rua Direita')).toHaveValue('Avenida Paulista')
+    );
     expect(screen.getByText('Endereço da Sede')).toBeInTheDocument();
     nav.push.mockClear();
     await userEvent.click(screen.getByRole('button', { name: /Avançar/ }));
@@ -249,7 +254,13 @@ describe('StepperEngine (abertura)', () => {
   });
 
   it('percorre o fluxo SLU até o envio e usa a view padrão fora do range', async () => {
+    server.use(http.get('/api/draft', () => HttpResponse.json({ payload: devSeed })));
     const { rerender } = renderEngine('1');
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText('Ex: João da Silva Serviços Ltda')).toHaveValue(
+        'Alfa Servicos Ltda'
+      )
+    );
     await userEvent.click(screen.getByText('Sociedade Unipessoal'));
 
     const irPara = (step: string) => {
