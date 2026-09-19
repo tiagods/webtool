@@ -8,7 +8,7 @@ Este projeto utiliza **npm workspaces** para gerenciar múltiplos pacotes e apli
 
 - `apps/web`: Frontend Next.js 14+ (App Router) — páginas e formulário, sem acesso direto à AWS
 - `apps/backend`: Backend **Go** (Echo + Clean Architecture, módulo com `cmd/api` + `cmd/worker`) — sessão, rascunho, upload, submit. Reescrita do backend Next.js original (specs 022–028). Não é exposto publicamente em produção (firewall do servidor bloqueia acesso externo à porta 3001); acessível via Nginx (`/api/*`)
-- `apps/worker`: *[Planejado para Fase 7]* Container Docker long-running (não Lambda) — consome a fila SQS para processamento assíncrono (geração de PDF, envio de e-mail via SNS→SES). É o binário `cmd/worker` do módulo Go de `apps/backend`
+- `apps/worker`: consumidor SQS long-running (não Lambda) que gera a notificação por e-mail. É o binário `cmd/worker` do módulo Go de `apps/backend` (build arg `APP=worker`), selecionado pelo mesmo `Dockerfile`
 - `packages/shared`: Tipos, constantes e schemas de validação (Zod) consumidos por `apps/web`; o validador Go de `apps/backend` os espelha, verificado por suíte de caracterização.
 - `infra/nginx`: Config de proxy reverso — ponto de entrada recomendado (porta 80), roteia `/` para `web` e `/api/*` para `api`.
 
@@ -44,6 +44,8 @@ Em dev, `apps/web/next.config.mjs` tem um `rewrites()` que proxia `/api/:path*` 
 > **Lint do módulo Go:** `make lint` (em `apps/backend/`) roda `go vet` + `gofmt` + `golangci-lint`. Instale o linter uma vez com `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest` (exige `~/go/bin` no PATH) — precisa ser ≥ v2.13 para suportar Go 1.27. Testes de integração contra o Floci: `make test-integration` com a stack `docker compose up -d floci aws-init` de pé.
 >
 > **Verificação cruzada de JWT (spec 024):** o token `prolink_aceite` assinado pela API Go tem que ser aceito pelo `jose` de `apps/web/middleware.ts`. `TestJWT_CompatibilidadeComJose` (`infrastructure/auth`) cobre isso automaticamente quando `node` está no PATH (pula caso contrário). Para checar um token na mão: `JWT_SECRET=<segredo> node scripts/verify-jwt-cross.mjs <token>`.
+>
+> **Variáveis AWS — dev vs. produção:** `AWS_ENDPOINT_URL`, `AWS_ACCESS_KEY_ID` e `AWS_SECRET_ACCESS_KEY` são **exclusivas do ambiente local** (Floci). Em produção (Fargate) **não existem credenciais estáticas**: cada task usa a **IAM Task Role**. Os segredos `JWT_SECRET` e `SMTP_PASSWORD` também **não** vão em env de produção — vêm do **AWS Secrets Manager** (`secrets[].valueFrom` nas task definitions). O provisionamento é feito por [`infra/aws/`](infra/aws/README.md); o fluxo está em [`deploy.md`](deploy.md).
 
 ### Testes unitários (npm)
 

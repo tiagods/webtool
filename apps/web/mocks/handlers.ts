@@ -1,6 +1,6 @@
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse, type JsonBodyType } from 'msw';
 
-const json = (body: unknown, status = 200) => HttpResponse.json(body, { status });
+const json = (body: JsonBodyType, status = 200) => HttpResponse.json(body, { status });
 
 export const handlers = [
   http.post('/api/session', () => json({ sessionId: 'sess-test' })),

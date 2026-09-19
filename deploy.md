@@ -1,10 +1,74 @@
 # Guia de Deploy - Prolink Webtool
 
-Desde a [Spec 009](.claude/specs/009-separacao-frontend-backend.md), o projeto é composto por um frontend (`apps/web`, Next.js) e um backend (`apps/backend`) separados atrás de um Nginx, orquestrados via Docker Compose. Desde as specs 022–029 o backend é um **binário Go** (`cmd/api`, Echo + Clean Architecture) — a reescrita substituiu a implementação Next.js original. O caminho de deploy recomendado é **Docker Compose em um servidor com Docker instalado** (VPS, Lightsail, EC2, etc.), usando o arquivo `docker-compose.prod.yml` da raiz do repositório.
+Desde a [Spec 009](.claude/specs/009-separacao-frontend-backend.md), o projeto é composto por um frontend (`apps/web`, Next.js) e um backend (`apps/backend`) separados atrás de um Nginx. Desde as specs 022–029 o backend é um **binário Go** (`cmd/api`, Echo + Clean Architecture) — a reescrita substituiu a implementação Next.js original.
+
+Há dois caminhos de deploy:
+
+1. **AWS Fargate (alvo)** — `api` e `worker` como tasks ECS com **IAM Task Role** (sem credenciais estáticas) e segredos no **Secrets Manager**. Ver "Deploy em AWS Fargate".
+2. **Docker Compose em um host único (alternativa/legado)** — VPS, Lightsail, EC2, etc. Ver "Deploy via Docker Compose".
 
 ---
 
-## Deploy via Docker Compose (recomendado)
+## Deploy em AWS Fargate (recomendado)
+
+O provisionamento dos recursos, roles, segredos e task definitions é feito pelos scripts de [`infra/aws/`](infra/aws/README.md). **Não há credenciais AWS estáticas** em produção: as tasks usam a **Task Role** resolvida pelo SDK Go via metadata do container, e os segredos vêm do Secrets Manager.
+
+### Passo 1: Publicar as imagens no ECR
+
+As imagens são produzidas pelo `apps/backend/Dockerfile` (um binário por build arg) e devem ser publicadas no Amazon ECR:
+
+```bash
+# uma vez: criar os repositórios
+aws ecr create-repository --repository-name prolink-api
+aws ecr create-repository --repository-name prolink-worker
+
+# login
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <acct>.dkr.ecr.us-east-1.amazonaws.com
+
+# build + push (api e worker)
+docker build -f apps/backend/Dockerfile --build-arg APP=api    -t prolink-api:latest    apps/backend
+docker build -f apps/backend/Dockerfile --build-arg APP=worker -t prolink-worker:latest apps/backend
+docker tag prolink-api:latest    <acct>.dkr.ecr.us-east-1.amazonaws.com/prolink-api:latest
+docker tag prolink-worker:latest <acct>.dkr.ecr.us-east-1.amazonaws.com/prolink-worker:latest
+docker push <acct>.dkr.ecr.us-east-1.amazonaws.com/prolink-api:latest
+docker push <acct>.dkr.ecr.us-east-1.amazonaws.com/prolink-worker:latest
+```
+
+> O pipeline de build/push automatizado é escopo de uma spec futura; por ora o push é manual.
+
+### Passo 2: Provisionar recursos, roles, segredos e task definitions
+
+A partir de uma máquina autenticada por **role assumida** (SSO/`assume-role`):
+
+```bash
+export AWS_REGION=us-east-1
+export PROD_ORIGIN=https://prolinkcontabil.com.br
+
+./infra/aws/provision-all.sh
+```
+
+`provision-all.sh` encadeia DynamoDB, S3, SQS, IAM (+ log groups) e Secrets Manager. Ele **pula** os task definitions se as imagens não forem informadas; para registrá-los:
+
+```bash
+API_IMAGE_URI=<acct>.dkr.ecr.us-east-1.amazonaws.com/prolink-api:latest \
+WORKER_IMAGE_URI=<acct>.dkr.ecr.us-east-1.amazonaws.com/prolink-worker:latest \
+SMTP_HOST=smtp.exemplo.com SMTP_USER=usuario \
+  ./infra/aws/register-task-defs.sh
+```
+
+Os valores de `JWT_SECRET` e `SMTP_PASSWORD` **não** entram no repositório: `provision-secrets.sh` lê-os do ambiente do operador (ou gera o `JWT_SECRET` na primeira vez e imprime uma única vez) e os grava no Secrets Manager. Detalhes em [`infra/aws/README.md`](infra/aws/README.md).
+
+### Passo 3: Subir os services Fargate
+
+Criar cluster, services (`api`, `worker`, futuramente `web`), ALB/TLS e rede (VPC/subnets) **não** é feito por estes scripts — é escopo da spec de rede (021b). As task definitions `prolink-api` e `prolink-worker` já ficam registradas e prontas para um service.
+
+> **Autenticação:** a task assume a Task Role automaticamente. Nenhuma variável `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` é configurada — o `api.taskdef.json`/`worker.taskdef.json` explicitamente não as inclui.
+
+---
+
+## Deploy via Docker Compose (alternativa)
+
+Caminho para um servidor com Docker instalado (VPS, Lightsail, EC2), usando `docker-compose.prod.yml`. Neste caminho, `api`/`worker` usam a **IAM role da instância** (recomendado em EC2/Lightsail) ou um perfil local — **nunca** chaves estáticas versionadas.
 
 ### Passo 1: Preparar o servidor
 
@@ -19,13 +83,14 @@ Desde a [Spec 009](.claude/specs/009-separacao-frontend-backend.md), o projeto �
      sudo ufw deny 3001/tcp
      sudo ufw enable
      ```
-4. Configure as credenciais AWS reais para o serviço `api` — via variáveis de ambiente do host, IAM role da instância (recomendado em EC2/Lightsail), ou um `.env` na raiz do projeto lido pelo Compose. O `docker-compose.prod.yml` já injeta `APP_ENV=prod` e passa `AWS_REGION`, `AWS_DYNAMODB_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL`, `JWT_SECRET` — todos **obrigatórios** (o boot do binário Go falha rápido listando o que faltar). Sem `AWS_ENDPOINT_URL`, o SDK Go usa a cadeia de credenciais padrão (IAM role/env do host) — nenhuma mudança de código entre dev (Floci) e produção.
-5. Aponte o DNS do domínio de produção (`prolinkcontabil.com.br` e `www.prolinkcontabil.com.br`) para o IP público do servidor — pré-requisito para a emissão automática do certificado TLS no Passo 4.
-6. Configure o CORS do bucket S3 real, restrito ao domínio de produção:
+4. Garanta que a instância tenha uma **IAM role** com acesso a DynamoDB/S3/SQS (em EC2/Lightsail, anexe uma role à instância). Sem `AWS_ENDPOINT_URL`, o SDK Go usa a cadeia de credenciais padrão (metadata da instância) — nenhuma mudança de código entre dev (Floci) e produção.
+5. Os segredos `JWT_SECRET` e `SMTP_PASSWORD` vêm de um **`.env` não versionado** na raiz (lido pelo Compose). Nunca os versione.
+6. Aponte o DNS do domínio de produção (`prolinkcontabil.com.br` e `www.prolinkcontabil.com.br`) para o IP público do servidor — pré-requisito para a emissão automática do certificado TLS no Passo 4.
+7. Configure o CORS do bucket S3 real, restrito ao domínio de produção:
    ```bash
    PROD_ORIGIN=https://prolinkcontabil.com.br ./infra/aws/set-cors-producao.sh
    ```
-   Rode esse comando uma vez (ou sempre que o domínio de produção mudar) a partir de uma máquina com credenciais AWS configuradas (CLI local ou o próprio servidor, se tiver IAM role/credenciais). Ver detalhes em [`docs/aws.md`](docs/aws.md#cors).
+   Esse wrapper delega para `provision-s3.sh` (que também garante block public access, SSE, versioning e lifecycle). Rode a partir de uma máquina com a role de operação. Ver detalhes em [`docs/aws.md`](docs/aws.md#cors).
 
 ### Passo 2: Clonar o projeto
 
@@ -40,7 +105,7 @@ cd prolink-webtool
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-Isso builda e sobe quatro containers: `web` (:3000, Next.js), `api` (:3001, binário Go), `nginx` (interno, sem porta publicada) e `caddy` (:80, :443). O Nginx roteia `/` → `web` e `/api/*` → `api` (ver `infra/nginx/default.conf` — **inalterado** no cutover para Go); o Caddy termina TLS e repassa tudo para o Nginx internamente (ver Passo 4). A aplicação fica disponível em `https://prolinkcontabil.com.br`.
+Isso builda e sobe quatro containers: `web` (:3000, Next.js), `api` (:3001, binário Go), `nginx` (interno, sem porta publicada) e `caddy` (:80, :443). O Nginx roteia `/` → `web` e `/api/*` → `api` (ver `infra/nginx/default.conf`); o Caddy termina TLS e repassa tudo para o Nginx internamente (ver Passo 4). A aplicação fica disponível em `https://prolinkcontabil.com.br`.
 
 > **Rollback do cutover Go→Node:** `git revert` do commit da migração Go (specs 022–028) restaura a implementação Next.js (`apps/api`) e os serviços antigos de `docker-compose*.yml`. `infra/nginx` não muda em nenhuma direção.
 
@@ -54,7 +119,7 @@ prolinkcontabil.com.br, www.prolinkcontabil.com.br {
 }
 ```
 
-Nenhuma ação manual é necessária além do DNS e do firewall (ver itens 3 e 5 do Passo 1): ao subir a stack com `docker compose -f docker-compose.prod.yml up -d --build`, o Caddy emite e renova o certificado Let's Encrypt automaticamente (HTTP-01 challenge na porta 80, sem Certbot/cron). Os certificados ficam persistidos no volume `caddy_data` entre restarts/updates.
+Nenhuma ação manual é necessária além do DNS e do firewall (ver itens 3 e 6 do Passo 1): ao subir a stack com `docker compose -f docker-compose.prod.yml up -d --build`, o Caddy emite e renova o certificado Let's Encrypt automaticamente (HTTP-01 challenge na porta 80, sem Certbot/cron). Os certificados ficam persistidos no volume `caddy_data` entre restarts/updates.
 
 Se o domínio de produção mudar, edite o `Caddyfile` antes de subir a stack novamente.
 

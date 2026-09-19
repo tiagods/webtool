@@ -32,6 +32,8 @@ services:
       AWS_SECRET_ACCESS_KEY: test
     volumes:
       - ./infra/local/init.sh:/init.sh:ro
+      # Fonte única dos parâmetros estruturais (spec 021) — init.sh faz source.
+      - ./infra/aws/lib/params.sh:/params.sh:ro
     entrypoint: ["sh", "/init.sh"]
     restart: "no"
 

@@ -75,21 +75,12 @@ else
   fail "Fila prolink-abertura não encontrada"
 fi
 
-# ─── SNS ─────────────────────────────────────────────────────────────────────
-echo ""
-echo "▸ SNS..."
-SNS_ARN=$($AWS sns list-topics --query 'Topics[?contains(TopicArn,`prolink-abertura-emails`)].TopicArn' --output text 2>/dev/null || true)
-if [ -n "$SNS_ARN" ]; then
-  ok "Tópico prolink-abertura-emails existe"
-  echo "     ARN: $SNS_ARN"
-  SUBS=$($AWS sns list-subscriptions-by-topic --topic-arn "$SNS_ARN" --query 'Subscriptions[].Endpoint' --output text 2>/dev/null || true)
-  if echo "$SUBS" | grep -q "prolinkcontabil"; then
-    ok "SES subscription: contato@prolinkcontabil.com.br"
-  else
-    fail "SES subscription não encontrada no tópico"
-  fi
+DLQ_URL=$($AWS sqs get-queue-url --queue-name prolink-abertura-dlq \
+  --query 'QueueUrl' --output text 2>/dev/null || true)
+if [ -n "$DLQ_URL" ]; then
+  ok "DLQ prolink-abertura-dlq existe"
 else
-  fail "Tópico prolink-abertura-emails não encontrado"
+  fail "DLQ prolink-abertura-dlq não encontrada"
 fi
 
 # ─── Resultado ───────────────────────────────────────────────────────────────
