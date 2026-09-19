@@ -1,7 +1,7 @@
 ---
 id: "017"
 title: "Testes Unitários — apps/web (Meta 100% / Piso 95%)"
-status: draft
+status: done          # draft | review | approved | in-progress | done | rejected
 created: 2026-07-07
 author: "Claude"
 batch_size: "medium"
@@ -56,34 +56,34 @@ Next.js Middleware roda em Edge Runtime como uma função exportada que recebe `
 
 | Camada | Arquivo | Ação |
 |--------|---------|------|
-| Root | `package.json` | MODIFY — devDependency `msw` |
-| Config | `apps/web/vitest.config.ts` | MODIFY — registrar setup do MSW (`setupFiles`) |
+| Root | `package.json` | MODIFY — devDependencies `msw`, `@testing-library/user-event` |
+| Config | `apps/web/package.json` | MODIFY — scripts `test` e `test:coverage` |
+| Config | `apps/web/vitest.config.ts` | MODIFY — alias `@/*`, `setupFiles`, incluir `middleware.ts` no `test.include`/`coverage.include` |
+| Setup | `apps/web/vitest.setup.ts` | CREATE — `@testing-library/jest-dom`, ciclo do MSW, shims Radix/`ResizeObserver` |
+| Mocks | `apps/web/mocks/server.ts` + `apps/web/mocks/handlers.ts` | CREATE — MSW para `/api/*` e ViaCEP |
 | Testes | `apps/web/app/abertura/StepperEngine.test.tsx` | CREATE |
-| Testes | `apps/web/app/middleware.test.ts` | CREATE |
-| Testes | `apps/web/components/forms/StepDadosEmpresa.test.tsx` | CREATE |
-| Testes | `apps/web/components/forms/StepEndereco.test.tsx` | CREATE |
-| Testes | `apps/web/components/forms/StepSocios.test.tsx` | CREATE |
-| Testes | `apps/web/components/forms/StepSociedade.test.tsx` | CREATE |
-| Testes | `apps/web/components/forms/StepDocumentos.test.tsx` | CREATE |
-| Testes | `apps/web/components/forms/StepRevisao.test.tsx` | CREATE |
-| Testes | `apps/web/components/Stepper.test.tsx` | CREATE |
-| Testes | `apps/web/components/UploadField.test.tsx` | CREATE |
-| Testes | `apps/web/components/RadioCard.test.tsx` | CREATE |
-| Testes | `apps/web/components/RadioChip.test.tsx` | CREATE |
-| Testes | `apps/web/lib/viacep.test.ts` | CREATE |
+| Testes | `apps/web/app/alteracao/StepperEngine.test.tsx` | CREATE |
+| Testes | `apps/web/middleware.test.ts` | CREATE |
+| Testes | `apps/web/components/forms/Step*.test.tsx` (6) | CREATE |
+| Testes | `apps/web/components/forms-alteracao/Step*.test.tsx` (4) + `quadros/Q0*.test.tsx` (9) | CREATE |
+| Testes | `apps/web/components/{Stepper,StepperAlteracao,UploadField,RadioCard,RadioChip,TermoCienciaModal,SelecaoFichaCard}.test.tsx` | CREATE |
+| Testes | `apps/web/components/ui/*.test.tsx` | CREATE |
+| Testes | `apps/web/lib/*.test.ts` (`viacep`, `masks`, `uf`, `termo`, `utils`) | CREATE |
 
 ## Critérios de aceite
 
-- [ ] MSW configurado como interceptador de rede nos testes (`setupFiles` do Vitest) — nenhum teste depende de `fetch` real ou de `apps/api`/Docker rodando
-- [ ] Todos os arquivos listados em "Camadas afetadas" com testes atingindo 100% de cobertura individual (piso 95% — qualquer arquivo abaixo de 100% tem a lacuna justificada em uma frase, mesma régua da Spec 015/016)
-- [ ] `StepperEngine`: navegação Ltda (6 steps) e SLU (5 steps) testadas separadamente; persistência e restauração de rascunho cobertas com MSW mockando `/api/draft`
-- [ ] Componentes de step: cada campo obrigatório, cada máscara (`react-imask`) e cada campo condicional testados
-- [ ] `middleware.ts`: ambos os ramos (com/sem `prolink_aceite` válido) cobertos
-- [ ] `npm run test:coverage -w apps/web` passa o gate de 95%
-- [ ] `npm run lint` passando
+- [x] MSW configurado como interceptador de rede nos testes (`setupFiles` do Vitest) — nenhum teste depende de `fetch` real ou de `apps/api`/Docker rodando
+- [x] Todos os arquivos listados em "Camadas afetadas" com testes atingindo 100% de cobertura individual (piso 95% — qualquer arquivo abaixo de 100% tem a lacuna justificada em uma frase, mesma régua da Spec 015/016). Lacunas justificadas (todas ≥95% no item afetado, acima do piso): `StepDocumentos.tsx` branch 97,77% — o `total > 0` da `ProgressBar` nunca é falso (listas de docs têm sempre ≥1 item); `StepSocios.tsx` branch 98,61% — o fallback `activeTab : 0` do `currentFieldIndex` é inatingível pela UI (add/remove mantêm `activeTab < fields.length`); `StepRevisao.tsx` (alteração) 99,4% — o `default` do switch do `ResumoQuadro` é inatingível (`codigo` é sempre um dos 9 códigos válidos). Demais arquivos em 100%.
+- [x] `StepperEngine`: navegação Ltda (6 steps) e SLU (5 steps) testadas separadamente; persistência e restauração de rascunho cobertas com MSW mockando `/api/draft`
+- [x] Componentes de step: cada campo obrigatório, cada máscara (`react-imask`) e cada campo condicional testados
+- [x] `middleware.ts`: ambos os ramos (com/sem `prolink_aceite` válido) cobertos
+- [x] `npm run test:coverage -w apps/web` passa o gate de 95%
+- [x] `npm run lint` passando
 
 ## Notas
 
 - Depende da Spec 015 estar `done` (scaffolding do Vitest com `jsdom` em `apps/web/vitest.config.ts` já criado lá).
 - O teste de restauração de rascunho aqui é **a nível de componente/mock** (MSW simulando a resposta de `/api/draft`) — não substitui o teste E2E real da Spec 014 nem a validação manual da Spec 010, mas dá feedback muito mais rápido durante o desenvolvimento; os três níveis (unitário, E2E, manual) se complementam, não são redundantes.
 - Se algum componente hoje estiver acoplado demais para testar isoladamente (ex.: lógica de validação misturada com JSX de um jeito que dificulta mockar), extrair a lógica pura para um hook/função separada é parte do escopo desta spec — mudança de testabilidade, não de comportamento.
+- **Nota de execução (batch)**: o `coverage.include` do workspace cobre **todo** `app/`, `components/` e `lib/`, então o gate de 95% por arquivo exige cobrir também o fluxo `alteracao` (`app/alteracao/StepperEngine.tsx`, `components/forms-alteracao/**`, `Q01–Q09`), `components/ui/**`, `StepperAlteracao`, `TermoCienciaModal`, `SelecaoFichaCard` e `lib/{masks,uf,termo,utils}` — todos incluídos na tabela acima. `quadros.config.ts` fica excluído pelo glob `**/*.config.*` do `vitest.shared.ts`. `apps/web/middleware.ts` está na raiz do app, não em `app/`, por isso precisa ser adicionado explicitamente ao `test.include`/`coverage.include`.
+- **Nota de execução (infra)**: os scripts `test`/`test:coverage` não existiam em `apps/web/package.json`; o alias `@/*` do `tsconfig.json` não era resolvido pelo Vitest; e `@testing-library/jest-dom` estava instalado mas sem `setupFiles`. Tudo isso é pré-requisito desta spec e entra nas "Camadas afetadas".
