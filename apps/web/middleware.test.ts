@@ -62,16 +62,13 @@ describe('middleware de aceite LGPD', () => {
     expect(aceitePendente(res)).toBe('1');
   });
 
-  it('usa o secret de fallback quando JWT_SECRET não está definido', async () => {
+  it('falha ao carregar quando JWT_SECRET não está definido', async () => {
     const original = process.env.JWT_SECRET;
     delete process.env.JWT_SECRET;
     vi.resetModules();
 
-    const mod = await import('./middleware');
-    const token = await assinar({ versaoTermo: TERMO_VERSAO_ATUAL });
-    const res = await mod.middleware(requestComCookie(token));
+    await expect(import('./middleware')).rejects.toThrow(/JWT_SECRET/);
 
-    expect(aceitePendente(res)).toBeNull();
     process.env.JWT_SECRET = original;
   });
 });

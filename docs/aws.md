@@ -8,7 +8,7 @@ Mapeamento de todos os recursos AWS utilizados no projeto, com configuração, s
 >
 > **IaC de produção:** os recursos reais (DynamoDB, S3, SQS, IAM, Secrets Manager e task definitions) são provisionados de forma idempotente pelos scripts em [`infra/aws/`](../infra/aws/) — ver seção "IaC de produção".
 >
-> **Config:** toda variável de ambiente é lida e validada uma única vez em `apps/backend/infrastructure/config` (boot falha rápido com erro agregado listando o que falta). Variáveis: `APP_ENV` (`dev`|`prod`), `JWT_SECRET`, `PORT`, `SESSION_EXPIRY_SECONDS`, `AWS_REGION`, `AWS_DYNAMODB_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_TO` e (só local) `AWS_ENDPOINT_URL` + chaves estáticas.
+> **Config:** toda variável de ambiente é lida e validada uma única vez em `apps/backend/infrastructure/config` (boot falha rápido com erro agregado listando o que falta). Variáveis: `APP_ENV` (`dev`|`prod`), `JWT_SECRET`, `PORT`, `SESSION_EXPIRY_SECONDS`, `AWS_REGION`, `AWS_DYNAMODB_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_TO` e (só local) `AWS_ENDPOINT_URL` + chaves estáticas. Os seis `SMTP_*` são **obrigatórios** (sem default no código nem no Compose).
 
 ---
 

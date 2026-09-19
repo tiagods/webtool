@@ -83,7 +83,7 @@ Caminho para um servidor com Docker instalado (VPS, Lightsail, EC2), usando `doc
      sudo ufw deny 3001/tcp
      sudo ufw enable
      ```
-4. Garanta que a instância tenha uma **IAM role** com acesso a DynamoDB/S3/SQS (em EC2/Lightsail, anexe uma role à instância). Sem `AWS_ENDPOINT_URL`, o SDK Go usa a cadeia de credenciais padrão (metadata da instância) — nenhuma mudança de código entre dev (Floci) e produção.
+4. Garanta que a instância tenha uma **IAM role** com acesso a DynamoDB/S3/SQS (em EC2/Lightsail, anexe uma role à instância). Sem `AWS_ENDPOINT_URL`, o SDK Go usa a cadeia de credenciais padrão (metadata da instância) — nenhuma mudança de código entre dev (Floci) e produção. As demais variáveis (`APP_ENV=prod`, `AWS_REGION`, `AWS_DYNAMODB_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL`, `JWT_SECRET` e os seis `SMTP_*`) são injetadas pelo `docker-compose.prod.yml` e são **obrigatórias** (o boot do binário Go falha rápido listando o que faltar).
 5. Os segredos `JWT_SECRET` e `SMTP_PASSWORD` vêm de um **`.env` não versionado** na raiz (lido pelo Compose). Nunca os versione.
 6. Aponte o DNS do domínio de produção (`prolinkcontabil.com.br` e `www.prolinkcontabil.com.br`) para o IP público do servidor — pré-requisito para a emissão automática do certificado TLS no Passo 4.
 7. Configure o CORS do bucket S3 real, restrito ao domínio de produção:
