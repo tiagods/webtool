@@ -1,14 +1,14 @@
 // Package config carrega e valida toda a configuração do processo a partir de
-// variáveis de ambiente. É o único pacote autorizado a ler o ambiente
-// (os.LookupEnv) — o resto do código recebe uma Config já validada.
+// variáveis de ambiente. É o único pacote autorizado a ler o ambiente — o resto
+// do código recebe uma Config já validada.
 package config
 
 import (
 	"errors"
 	"fmt"
-	"os"
-	"strconv"
 	"time"
+
+	"github.com/caarlos0/env/v11"
 )
 
 // Env identifica o ambiente de execução. Decide, entre outras coisas, se o
@@ -19,12 +19,6 @@ type Env string
 const (
 	EnvDev  Env = "dev"
 	EnvProd Env = "prod"
-)
-
-const (
-	defaultPort            = 3001
-	defaultSessionExpiry   = 7200 * time.Second
-	defaultShutdownTimeout = 10 * time.Second
 )
 
 // AWS agrupa as configurações de acesso aos serviços AWS. Fica numa struct
@@ -53,8 +47,8 @@ type SMTP struct {
 	Port     int
 	User     string
 	Password string
-	From     string // remetente (ex: "noreply@prolinkcontabil.com.br")
-	To       string // destinatário interno (ex: "tiagoice@hotmail.com")
+	From     string // remetente (ex: "noreply@example.com")
+	To       string // destinatário interno (ex: "destinatario@example.com")
 }
 
 // UsesAuth informa se o servidor SMTP exige autenticação.
@@ -78,131 +72,91 @@ func (c Config) IsProd() bool {
 	return c.Env == EnvProd
 }
 
-// Lookup tem a mesma assinatura de os.LookupEnv e é o ponto de injeção que
-// torna Load testável sem depender do ambiente real.
-type Lookup func(key string) (value string, ok bool)
+// raw espelha as variáveis de ambiente com as tags de github.com/caarlos0/env.
+// required+notEmpty reproduzem o comportamento anterior: ausente OU vazio = erro.
+type raw struct {
+	Port                   int    `env:"PORT" envDefault:"3001"`
+	Env                    string `env:"APP_ENV,required,notEmpty"`
+	JWTSecret              string `env:"JWT_SECRET,required,notEmpty"`
+	SessionExpirySeconds   int    `env:"SESSION_EXPIRY_SECONDS" envDefault:"7200"`
+	ShutdownTimeoutSeconds int    `env:"SHUTDOWN_TIMEOUT_SECONDS" envDefault:"10"`
 
-// LoadFromEnv carrega a configuração a partir do ambiente do processo.
-func LoadFromEnv() (Config, error) {
-	return Load(os.LookupEnv)
+	AWSRegion               string `env:"AWS_REGION,required,notEmpty"`
+	AWSEndpointURL          string `env:"AWS_ENDPOINT_URL"`
+	AWSAccessKeyID          string `env:"AWS_ACCESS_KEY_ID"`
+	AWSSecretAccessKey      string `env:"AWS_SECRET_ACCESS_KEY"`
+	AWSDynamoAberturaTable  string `env:"AWS_DYNAMODB_TABLE,required,notEmpty"`
+	AWSDynamoAlteracaoTable string `env:"AWS_DYNAMODB_ALTERACAO_TABLE,required,notEmpty"`
+	AWSDynamoAceitesTable   string `env:"AWS_DYNAMODB_ACEITES_TABLE,required,notEmpty"`
+	AWSS3Bucket             string `env:"AWS_S3_BUCKET,required,notEmpty"`
+	AWSSQSQueueURL          string `env:"AWS_SQS_QUEUE_URL,required,notEmpty"`
+
+	SMTPHost     string `env:"SMTP_HOST,required,notEmpty"`
+	SMTPPort     int    `env:"SMTP_PORT,required"`
+	SMTPUser     string `env:"SMTP_USER,required,notEmpty"`
+	SMTPPassword string `env:"SMTP_PASSWORD,required,notEmpty"`
+	SMTPFrom     string `env:"SMTP_FROM,required,notEmpty"`
+	SMTPTo       string `env:"SMTP_TO,required,notEmpty"`
 }
 
-// Load lê e valida toda a configuração usando lookup como fonte. Em caso de
-// erro, retorna um erro agregado (errors.Join) listando todas as variáveis
-// ausentes ou inválidas — nunca uma Config parcial.
-func Load(lookup Lookup) (Config, error) {
-	r := &reader{lookup: lookup}
-
-	cfg := Config{
-		Port:            r.intOr("PORT", defaultPort),
-		Env:             Env(r.enum("APP_ENV", string(EnvDev), string(EnvProd))),
-		JWTSecret:       r.required("JWT_SECRET"),
-		SessionExpiry:   r.secondsOr("SESSION_EXPIRY_SECONDS", defaultSessionExpiry),
-		ShutdownTimeout: r.secondsOr("SHUTDOWN_TIMEOUT_SECONDS", defaultShutdownTimeout),
-		AWS:             loadAWS(r),
-		SMTP:            loadSMTP(r),
-	}
-
-	if err := r.err(); err != nil {
+// LoadFromEnv carrega a configuração a partir do ambiente do processo. Em caso
+// de erro, retorna um erro agregado (caarlos0/env + validações pós-parse)
+// listando todas as variáveis ausentes ou inválidas — nunca uma Config parcial.
+func LoadFromEnv() (Config, error) {
+	var r raw
+	if err := env.Parse(&r); err != nil {
 		return Config{}, err
 	}
-	return cfg, nil
+	return r.config()
 }
 
-// loadAWS lê o subconjunto AWS da configuração. AWS_ACCESS_KEY_ID e
-// AWS_SECRET_ACCESS_KEY só são obrigatórias quando AWS_ENDPOINT_URL está
-// definida (uso com o emulador local).
-func loadAWS(r *reader) AWS {
-	endpoint := r.optional("AWS_ENDPOINT_URL", "")
+// config valida o que as tags não expressam (enum de APP_ENV e credenciais AWS
+// condicionais ao endpoint) e converte o raw para Config.
+func (r raw) config() (Config, error) {
+	var errs []error
 
-	credential := func(key string) string { return r.optional(key, "") }
-	if endpoint != "" {
-		credential = r.required
+	environment := Env(r.Env)
+	if environment != EnvDev && environment != EnvProd {
+		errs = append(errs, fmt.Errorf("APP_ENV deve ser um de [dev prod], recebido %q", r.Env))
 	}
 
-	return AWS{
-		Region:               r.required("AWS_REGION"),
-		EndpointURL:          endpoint,
-		AccessKeyID:          credential("AWS_ACCESS_KEY_ID"),
-		SecretAccessKey:      credential("AWS_SECRET_ACCESS_KEY"),
-		DynamoAberturaTable:  r.required("AWS_DYNAMODB_TABLE"),
-		DynamoAlteracaoTable: r.required("AWS_DYNAMODB_ALTERACAO_TABLE"),
-		DynamoAceitesTable:   r.required("AWS_DYNAMODB_ACEITES_TABLE"),
-		S3Bucket:             r.required("AWS_S3_BUCKET"),
-		SQSQueueURL:          r.required("AWS_SQS_QUEUE_URL"),
-	}
-}
-
-// loadSMTP lê o subconjunto SMTP da configuração. SMTP_PASSWORD é opcional
-// (servidores sem autenticação), os demais são obrigatórios.
-func loadSMTP(r *reader) SMTP {
-	return SMTP{
-		Host:     r.required("SMTP_HOST"),
-		Port:     r.intOr("SMTP_PORT", 587),
-		User:     r.required("SMTP_USER"),
-		Password: r.optional("SMTP_PASSWORD", ""),
-		From:     r.required("SMTP_FROM"),
-		To:       r.required("SMTP_TO"),
-	}
-}
-
-// reader acumula erros de leitura para que Load possa reportar todos de uma vez.
-type reader struct {
-	lookup Lookup
-	errs   []error
-}
-
-func (r *reader) required(key string) string {
-	value, ok := r.lookup(key)
-	if !ok || value == "" {
-		r.errs = append(r.errs, fmt.Errorf("%s é obrigatória", key))
-		return ""
-	}
-	return value
-}
-
-// optional tem a mesma assinatura de required para poder ser usada de forma
-// intercambiável (ver loadAWS). O parâmetro def é o valor quando a variável
-// está ausente ou vazia.
-func (r *reader) optional(key, def string) string {
-	if value, ok := r.lookup(key); ok && value != "" {
-		return value
-	}
-	return def
-}
-
-func (r *reader) intOr(key string, def int) int {
-	raw, ok := r.lookup(key)
-	if !ok || raw == "" {
-		return def
-	}
-	n, err := strconv.Atoi(raw)
-	if err != nil {
-		r.errs = append(r.errs, fmt.Errorf("%s deve ser um inteiro: %q", key, raw))
-		return def
-	}
-	return n
-}
-
-func (r *reader) secondsOr(key string, def time.Duration) time.Duration {
-	seconds := r.intOr(key, int(def.Seconds()))
-	return time.Duration(seconds) * time.Second
-}
-
-func (r *reader) enum(key string, allowed ...string) string {
-	value := r.required(key)
-	if value == "" {
-		return ""
-	}
-	for _, a := range allowed {
-		if value == a {
-			return value
+	if r.AWSEndpointURL != "" {
+		if r.AWSAccessKeyID == "" {
+			errs = append(errs, errors.New("AWS_ACCESS_KEY_ID é obrigatória quando AWS_ENDPOINT_URL está definida"))
+		}
+		if r.AWSSecretAccessKey == "" {
+			errs = append(errs, errors.New("AWS_SECRET_ACCESS_KEY é obrigatória quando AWS_ENDPOINT_URL está definida"))
 		}
 	}
-	r.errs = append(r.errs, fmt.Errorf("%s deve ser um de %v, recebido %q", key, allowed, value))
-	return ""
-}
 
-func (r *reader) err() error {
-	return errors.Join(r.errs...)
+	if err := errors.Join(errs...); err != nil {
+		return Config{}, err
+	}
+
+	return Config{
+		Port:            r.Port,
+		Env:             environment,
+		JWTSecret:       r.JWTSecret,
+		SessionExpiry:   time.Duration(r.SessionExpirySeconds) * time.Second,
+		ShutdownTimeout: time.Duration(r.ShutdownTimeoutSeconds) * time.Second,
+		AWS: AWS{
+			Region:               r.AWSRegion,
+			EndpointURL:          r.AWSEndpointURL,
+			AccessKeyID:          r.AWSAccessKeyID,
+			SecretAccessKey:      r.AWSSecretAccessKey,
+			DynamoAberturaTable:  r.AWSDynamoAberturaTable,
+			DynamoAlteracaoTable: r.AWSDynamoAlteracaoTable,
+			DynamoAceitesTable:   r.AWSDynamoAceitesTable,
+			S3Bucket:             r.AWSS3Bucket,
+			SQSQueueURL:          r.AWSSQSQueueURL,
+		},
+		SMTP: SMTP{
+			Host:     r.SMTPHost,
+			Port:     r.SMTPPort,
+			User:     r.SMTPUser,
+			Password: r.SMTPPassword,
+			From:     r.SMTPFrom,
+			To:       r.SMTPTo,
+		},
+	}, nil
 }
