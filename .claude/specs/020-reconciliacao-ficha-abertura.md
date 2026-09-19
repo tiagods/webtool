@@ -3,11 +3,16 @@ id: "020"
 title: "Reconciliação da Ficha de Abertura (ficha ↔ doc ↔ implementação)"
 status: draft
 created: 2026-07-13
-updated: 2026-09-16
+updated: 2026-09-18
 author: "Claude"
 batch_size: "medium"
 depends_on: ["003"]
 ---
+
+> **DECISÃO REGISTRADA 2026-09-18 (usuário): Opção B — enxugar.** Os campos "extras" do sócio
+> que não existem na ficha de Abertura são removidos da implementação (schema, UI, Revisão e
+> validador Go) para casar com a ficha original. A spec deixa de estar bloqueada e pode ser
+> aprovada/implementada (ainda **não** iniciada — este registro antecede o batch).
 
 > **ATUALIZAÇÃO 2026-09-16 — paridade com o validador Go (specs 022–028).** O backend foi
 > migrado para Go e o validador em `apps/backend/domain/validation/` espelha os schemas Zod
@@ -32,7 +37,8 @@ Alinhar a implementação da Abertura à ficha original nos pontos inequívocos:
 
 1. **Passo 2 (Endereço)** — adicionar os 4 campos que a ficha exige e a implementação não tem.
 2. **Passo 3 (Sócios)** — corrigir o valor de pró-labore mínimo desatualizado.
-3. **Passo 3 (Sócios)** — resolver a divergência de campos "extras" (ver **Decisão pendente** abaixo).
+3. **Passo 3 (Sócios)** — **enxugar** os campos "extras" que não existem na ficha de Abertura
+   (decisão B, registrada em 2026-09-18 — ver seção 3).
 
 ## Fora de escopo
 
@@ -72,23 +78,36 @@ A ficha (Ltda e SLU) pede, além do que já existe:
 
 `abertura.ts:34` usa `min(1412)` ("Simulando 2024"). Corrigir para o salário mínimo vigente (doc referencia `1518`). **Ideal:** tornar o valor configurável via env var (ver Spec 018 — config-via-env-vars) em vez de hardcode; se a 018 não estiver pronta, aplicar `1518` com comentário datado.
 
-### 3. Passo 3 — campos "extras" do sócio (⚠️ DECISÃO PENDENTE)
+### 3. Passo 3 — campos "extras" do sócio (DECISÃO: Opção B — enxugar)
 
-A implementação coleta, **totalmente construídos na UI** (`StepSocios.tsx`), campos que **não existem na ficha de Abertura**: `cpf`, `rg`, `nacionalidade`, `nomeMae`, `nomePai`, endereço residencial de registro (`cepRegistro`, `logradouroRegistro`, `numeroRegistro`, `complementoRegistro`, `bairroRegistro` — com auto-preenchimento ViaCEP próprio) e `registroConselho`. Na ficha de Abertura, CPF/RG entram apenas como **upload de documento** (Passo 5), não como campos.
+A implementação coleta, **totalmente construídos na UI** (`StepSocios.tsx`), campos que **não
+existem na ficha de Abertura**: `cpf`, `rg`, `nacionalidade`, `nomeMae`, `nomePai`, endereço
+residencial de registro (`cepRegistro`, `logradouroRegistro`, `numeroRegistro`,
+`complementoRegistro`, `bairroRegistro` — com auto-preenchimento ViaCEP próprio) e
+`registroConselho`. Na ficha de Abertura, CPF/RG entram apenas como **upload de documento**
+(Passo 5), não como campos. Esses campos pertencem ao **perfil da Ficha de Alteração** (sócio
+robusto cedente/cessionário), não ao da Abertura.
 
-Esses campos pertencem ao **perfil da Ficha de Alteração** (sócio robusto cedente/cessionário), não ao da Abertura. Duas direções possíveis:
+**Decisão do usuário (2026-09-18): Opção B — enxugar.** Remover os campos acima do
+`stepSociosSchema`/`socioSchema` e a seção correspondente da UI (`StepSocios.tsx`), da Revisão
+(`StepRevisao.tsx`) e do validador Go (`abertura.go` + `testdata/`). O que **permanece** no
+sócio da Abertura (está na ficha ou é usado pelo fluxo): `nome`, `pis`, `profissao`,
+`proLabore`, `telefoneCelular`, `telefoneFixo`, `email`, `estadoCivil`, `teveParticipacaoSocietaria`,
+`cnpjParticipacao`.
 
-- **Opção A — Legitimar (recomendada):** manter os campos (são úteis e já funcionam) e registrar em `docs/ficha-abertura.md` que a Abertura evoluiu para coletar esses dados como campos. *Nada é removido; o doc passa a refletir a implementação.* Contras: a ficha original deixa de ser espelho exato do formulário (mas a ficha `.doc` é histórica).
-- **Opção B — Enxugar:** remover os campos do `socioSchema` e a seção correspondente da UI/Revisão, para casar exatamente com a ficha. Contras: descarta UI funcional e reduz dados coletados; exige varrer usos em `StepDocumentos`, `StepRevisao`, submit e (futuro) PDF.
-
-> **Esta spec não deve sair de `draft` sem o usuário escolher A ou B.** As tasks 3.x abaixo assumem placeholders até a decisão.
+> Varredura obrigatória de usos antes de remover: `StepDocumentos.tsx` (condicionais por
+> `estadoCivil`/`profissao` — dependem de campos que **ficam**), `StepRevisao.tsx`, o payload de
+> submit e a (futura) geração de PDF. `docs/ficha-abertura.md` volta a espelhar a ficha.
 
 ## Critérios de aceite
 
 - [ ] **CA1** — `stepEnderecoSchema` inclui `correspondencia`, `enderecoCorrespondencia` (cond.), `locadorTipo` (cond.) e `tipoFuncionamento`, com `imovelAlugado` como `enum('sim','nao')`; condicionais via `.superRefine()` sem quebrar `aberturaFormDraftSchema`.
 - [ ] **CA2** — `StepEndereco.tsx` renderiza os 4 campos, exibindo `locadorTipo` só quando alugado e `enderecoCorrespondencia` só quando `correspondencia === 'nao'`; `StepperEngine` inclui os novos campos no `.trigger()` do passo.
 - [ ] **CA3** — Pró-labore mínimo corrigido (env var se Spec 018 pronta; senão `1518` com comentário datado).
-- [ ] **CA4** — Decisão A/B do sócio registrada na spec e aplicada (doc atualizado na Opção A; schema+UI+revisão enxugados na Opção B).
+- [ ] **CA4** — Decisão B aplicada: campos extras do sócio removidos do `socioSchema`, da UI
+  (`StepSocios.tsx`), da Revisão (`StepRevisao.tsx`) e do validador Go; usos remanescentes
+  varridos (`StepDocumentos`, payload de submit); `docs/ficha-abertura.md` consistente com o
+  schema final.
 - [ ] **CA5** — `docs/ficha-abertura.md` consistente com o schema final (Passo 2 e Passo 3).
 - [ ] **CA6** — `apps/backend/domain/validation/abertura.go` espelha as mudanças de schema (alinhado com `packages/shared/src/schemas/abertura.ts`)
 - [ ] **CA7** — `scripts/gen-abertura-characterization.mjs` regenerado e `make -C apps/backend test` verde (caracterização validando a paridade Go ↔ Zod)
