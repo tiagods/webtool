@@ -9,6 +9,8 @@ export interface ViaCEPResult {
 
 type Status = 'idle' | 'loading' | 'success' | 'error'
 
+const VIACEP_BASE_URL = 'https://viacep.com.br/ws'
+
 interface UseViaCEPReturn {
   data: ViaCEPResult | null
   status: Status
@@ -35,7 +37,7 @@ export function useViaCEP(cep: string): UseViaCEPReturn {
       setError(null)
 
       try {
-        const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`)
+        const res = await fetch(`${VIACEP_BASE_URL}/${digits}/json/`)
         const json = await res.json()
 
         if (json.erro) {
