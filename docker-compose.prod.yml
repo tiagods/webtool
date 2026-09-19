@@ -1,3 +1,12 @@
+# Stack de produção via Docker Compose (alternativa ao Fargate — ver deploy.md).
+#
+# Segredos: JWT_SECRET e SMTP_PASSWORD vêm de um .env NÃO versionado (interpolação
+# abaixo), nunca em texto plano neste arquivo. No caminho Fargate eles vêm do AWS
+# Secrets Manager (infra/aws/ecs/*.taskdef.json).
+#
+# Credenciais AWS: NÃO há AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY aqui. O binário
+# Go usa a cadeia padrão do SDK — IAM role do host/instância em produção, ou o
+# Floci local (via AWS_ENDPOINT_URL) em dev.
 services:
 
   # ─── web — frontend Next.js (páginas, sem acesso a AWS) ────────────────────
@@ -10,7 +19,7 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: production
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET}   # .env não versionado (Fargate: Secrets Manager)
     restart: unless-stopped
 
   # ─── api — backend Go (Echo + Clean Architecture, spec 022–028) ────────────
@@ -34,7 +43,7 @@ services:
       AWS_DYNAMODB_ACEITES_TABLE: ${AWS_DYNAMODB_ACEITES_TABLE:-prolink-aceites-lgpd}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET:-prolink-fichas}
       AWS_SQS_QUEUE_URL: ${AWS_SQS_QUEUE_URL}
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET}   # .env não versionado (Fargate: Secrets Manager)
       SESSION_EXPIRY_SECONDS: "7200"
     restart: unless-stopped
 
@@ -49,7 +58,7 @@ services:
     container_name: prolink-worker
     environment:
       APP_ENV: prod
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET}   # .env não versionado (Fargate: Secrets Manager)
       AWS_REGION: ${AWS_REGION:-us-east-1}
       AWS_DYNAMODB_TABLE: ${AWS_DYNAMODB_TABLE:-fichas-abertura}
       AWS_DYNAMODB_ALTERACAO_TABLE: ${AWS_DYNAMODB_ALTERACAO_TABLE:-fichas-alteracao}
@@ -59,7 +68,7 @@ services:
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER}
-      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}   # .env não versionado (Fargate: Secrets Manager)
       SMTP_FROM: ${SMTP_FROM:-noreply@prolinkcontabil.com.br}
       SMTP_TO: ${SMTP_TO:-tiagoice@hotmail.com}
     restart: unless-stopped
