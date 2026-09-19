@@ -187,13 +187,17 @@ identificado aqui). O conjunto de ações abaixo foi levantado do código Go
 **`prolink-worker-task-role`** (assumida pela task do worker)
 | Serviço | Ações | Recurso |
 |---|---|---|
-| DynamoDB | `GetItem`, `UpdateItem` | `table/fichas-abertura` (+ `table/fichas-alteracao` quando o worker tratar alteração — conferir na Fase 2) |
-| S3 | `GetObject`, `PutObject`, `DeleteObject`, `PutObjectTagging` | `arn:aws:s3:::prolink-fichas/*` |
-| S3 | `ListBucket` | `arn:aws:s3:::prolink-fichas` |
+| DynamoDB | `GetItem`, `UpdateItem` | `table/fichas-abertura`, `table/fichas-alteracao` |
+| S3 | `GetObject` | `arn:aws:s3:::prolink-fichas/*` |
 | SQS | `ReceiveMessage`, `DeleteMessage` | `queue/prolink-abertura` |
 
-> O worker **não** precisa de acesso à DLQ (o redrive é feito pelo próprio SQS). Reprocessar a
-> DLQ manualmente é feito pelo operador, não pela task role. Sem SNS (email via SMTP).
+> Conferido 1:1 na Fase 2: o worker só **assina** URLs de download
+> (`NotificarSubmissao.gerarLinks` → `PresignedDownloadURL`), por isso leva apenas
+> `s3:GetObject` — sem `PutObject`/`DeleteObject`/`PutObjectTagging`/`ListBucket`. No DynamoDB
+> lê o rascunho (`GetItem`) e zera os dados sensíveis (`MarcarEnviado` → `UpdateItem`); cobre as
+> duas tabelas porque o worker trata `abertura` e `alteracao` (hoje `StartWorker` monta só o repo
+> da tabela de abertura — corrigir o wiring de alteração é dívida de código fora desta spec).
+> Não precisa de acesso à DLQ (o redrive é feito pelo próprio SQS). Sem SNS (email via SMTP).
 
 ### Recursos base — paridade com o que já existe
 

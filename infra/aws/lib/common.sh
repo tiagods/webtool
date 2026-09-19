@@ -47,12 +47,14 @@ assert_role_identity() {
 # Valida dependências, aplica o guard de identidade e resolve REGION/ACCOUNT_ID.
 # Depois disso, os scripts usam `aws_r` (AWS CLI já com --region).
 init_aws() {
-  require_cmd aws jq
+  require_cmd aws jq awk
   assert_role_identity
 
   REGION="$(resolve_region)"
   ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
-  export REGION ACCOUNT_ID
+  AWS_REGION="$REGION"
+  AWS_ACCOUNT_ID="$ACCOUNT_ID"
+  export REGION ACCOUNT_ID AWS_REGION AWS_ACCOUNT_ID
 }
 
 # Wrapper do AWS CLI com a região resolvida (evita repetir --region).
@@ -66,6 +68,25 @@ s3_objects_arn() { printf 'arn:aws:s3:::%s/*' "$1"; }
 role_arn() { printf 'arn:aws:iam::%s:role/%s' "$ACCOUNT_ID" "$1"; }
 # O sufixo aleatório do Secrets Manager é coberto por `-*` (não é Resource: "*").
 secret_arn() { printf 'arn:aws:secretsmanager:%s:%s:secret:%s-*' "$REGION" "$ACCOUNT_ID" "$1"; }
+
+# ─── Templates ───────────────────────────────────────────────────────────────
+# Substitui placeholders ${VAR} de um template pelos valores exportados no
+# ambiente (params.sh + REGION/ACCOUNT_ID). Falha se algum placeholder não
+# estiver definido — evita gerar policy/taskdef com valor vazio.
+# shellcheck disable=SC2016
+render_template() {
+  awk '{
+    while (match($0, /\$\{[A-Za-z_][A-Za-z0-9_]*\}/)) {
+      key = substr($0, RSTART + 2, RLENGTH - 3)
+      if (!(key in ENVIRON)) {
+        printf "placeholder nao resolvido: %s\n", key > "/dev/stderr"
+        exit 1
+      }
+      $0 = substr($0, 1, RSTART - 1) ENVIRON[key] substr($0, RSTART + RLENGTH)
+    }
+    print
+  }' "$1"
+}
 
 # ─── Idempotência — recursos existentes ──────────────────────────────────────
 dynamo_table_exists() { aws_r dynamodb describe-table --table-name "$1" >/dev/null 2>&1; }
