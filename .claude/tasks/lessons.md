@@ -172,3 +172,21 @@ testes unitários/caracterização. Guardar cookies pré-submit para exercitar c
 **Erro**: a spec 031 exigia `golangci-lint run ./...` limpo, mas o baseline (`origin/main`) já tinha 10 issues (errcheck 4, revive 5, staticcheck 1). Os 5 de comentário foram corrigidos na 031 e os 5 de código viraram a spec 032 — a 031 só fecharia o gate depois da 032.
 **Causa raiz**: o critério foi escrito sem rodar o gate no estado atual; o trabalho anterior (migração Go 022–028) deixou o lint vermelho e ninguém percebeu.
 **Regra**: antes de aprovar uma spec, rodar os gates do escopo no baseline (`origin/main`) e colar a evidência na própria spec; se o gate já falha, tratar como dívida separada (spec própria), não como critério da spec nova.
+
+## 2026-09-19 — Spec 030 — `next build` type-checa `*.test.tsx` (gate de build já vermelho)
+
+**Erro**: o critério `npm run build -w apps/web` da 030 falhou com erro de tipo em `apps/web/mocks/handlers.ts` (`body: unknown` não atribuível a `JsonBodyType`) e em vários `*.test.tsx` de `forms-alteracao`. `npx tsc --noEmit -p apps/web/tsconfig.json` no `main` limpo reproduziu dezenas de erros — nenhum introduzido pela 030.
+**Causa raiz**: o `tsconfig` de `apps/web` inclui `**/*.ts(x)`, então o `next build` faz type-check de testes e mocks; a spec 017 (testes unitários web, recém-mergeada) adicionou arquivos de teste com erros de tipo e derrubou o build de produção sem que ninguém rodasse o gate.
+**Regra**: (1) `next build` de produção deve excluir `*.test.tsx`/`mocks/` do type-check (ou usar um `tsconfig.build.json` sem os testes) — dívida a tratar em spec/hotfix próprio; (2) antes de escrever critério de build, rodar `npx tsc --noEmit` no baseline, não só `npm test`/`npm run lint` (que não pegam erros de tipo nos testes).
+
+## 2026-09-19 — Spec 030 — critérios de grep de PII largos demais
+
+**Erro**: o critério final de PII casava `000.000.000-00` (máscara/placeholder aceito em F8) e `email@email.com` em `lib/termo.ts` (aceito em F5) — itens que a própria spec marcou como "aceitar". Um critério de grep sem as exceções aceitas nunca fecha.
+**Causa raiz**: o regex `[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}` casa a máscara de CPF (zeros) e o domínio institucional aparece na cópia legal versionada.
+**Regra**: ao escrever critério de grep de PII, (1) exigir 1º dígito `[1-9]` no CPF para não casar máscaras `000...`; (2) listar explicitamente as exceções aceitas (`devSeed.ts`, `lib/termo.ts`, `*.test.tsx`, `_test.go`, `testdata`); (3) rodar o grep e conferir que só sobram as exceções antes de fechar o critério.
+
+## 2026-09-19 — Spec 030 — `caarlos0/env` v11: `required` ≠ não-vazio e erro com nome do campo
+
+**Contexto**: migração do leitor manual de config para `github.com/caarlos0/env/v11`.
+**Detalhes**: (1) `env:"KEY,required"` só erra se a var **não existe** — vazio passa; para reproduzir o "ausente OU vazio" antigo, usar `env:"KEY,required,notEmpty"`; (2) `envDefault` é usado quando a var está ausente **ou vazia**; (3) erro de conversão usa o **nome do campo** (`Port`), não a tag (`PORT`) — asserções de teste devem usar `Port`/`SessionExpirySeconds`; (4) o erro agregado é `env.AggregateError` (valor, não ponteiro) e junta todas as ausentes.
+**Regra**: ao migrar para `caarlos0/env`, lembrar do par `required,notEmpty` e ajustar as mensagens esperadas nos testes para os nomes dos campos.
