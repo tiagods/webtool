@@ -197,3 +197,33 @@ testes unitários/caracterização. Guardar cookies pré-submit para exercitar c
 **Causa raiz**: o agente focou em alterar a linha de `status` e não revisou o bloco de critérios de aceite logo abaixo. O diff do commit confirma: 1 inserção, 1 deleção — só o status mudou.
 
 **Regra**: ao marcar uma spec como `done`, SEMPRE percorrer todos os critérios de aceite e marcar `[x]` nos que foram atendidos. Se houver critério não atendido, a spec NÃO pode ir para `done`. A checagem é: `status: done` ⟺ todos os CAs `[x]` + gates verdes.
+
+## 2026-09-20 — Spec 034 — arquivos temporarios no repositorio
+
+**Contexto**: arquivos temporarios fix*.md sendo salvos na raiz do repositorio e entrando como tracking para o git.
+
+**Regra**: prefira sempre salvar arquivos temporarios em uma pasta temporaria do usuario, seja c:\Temp ou c:\TMP no caso de windows ou /tmp para linux, apague o arquivo quando nao for mais necessario
+
+## 2026-09-20 — Spec 034 — Testes integrados: sessão retorna 200, não 201
+
+**Contexto**: o spec plano dizia que `POST /api/session` retorna 201, mas o handler Go retorna `http.StatusOK` (200). Todos os helpers `criarSessao` e testes diretos precisaram ser corrigidos.
+
+**Causa raiz**: o spec 008 original previa 201, mas a implementação Go usou 200 (presenter.NewOK). A spec 034 copiou a expectativa 201 sem verificar o handler real.
+
+**Regra**: ao planejar testes integrados, verificar o status code real dos handlers no código (não copiar de specs antigas). Rotas podem ter sido alteradas durante a implementação sem atualizar o spec original.
+
+## 2026-09-20 — Spec 034 — Template string concatenation com backtick vs aspas
+
+**Contexto**: no helper `criarAceite`, o JSON body usa backtick (`) para string com `+entity.TermoVersaoAtual+`. Inicialmente estava escrito como `""+"entity.TermoVersaoAtual"+""` (aspas + concat dentro de backtick), que em Go resulta na string literal `""+"entity.TermoVersaoAtual"+""` em vez de concatenar a variável.
+
+**Causa raiz**: confusão entre template literals JS e Go — em Go, backtick é raw string literal, não template string. Concatenação deve ser feita fora do backtick com `+`.
+
+**Regra**: em Go, backtick (`) cria raw string literals — não suporta interpolação. Para concatenar variáveis com strings contendo aspas, use `+"var"+` entre raw strings.
+
+## 2026-09-20 — Spec 034 — SQS fila compartilhada entre testes
+
+**Contexto**: `TestIntegrationAlteracao_FluxoFeliz` lê da mesma fila SQS que `TestIntegrationAbertura_*`, recebendo mensagens de testes anteriores. A validação falha porque a mensagem LIDA não é a esperada.
+
+**Causa raiz**: a fila SQS é criada uma vez no `TestMain` e compartilhada por todos os testes. Sempre que um teste publica uma mensagem, o próximo teste pode lê-la se não drenar antes.
+
+**Regra**: antes de publicar e ler SQS em testes de integração com fila compartilhada, drenar todas as mensagens pendentes com `drenarFilaSQS()` para garantir que só a mensagem esperada seja lida.
