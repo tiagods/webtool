@@ -1,7 +1,7 @@
 ---
 id: "020"
 title: "Reconciliação da Ficha de Abertura (ficha ↔ doc ↔ implementação)"
-status: draft
+status: done   # draft | review | approved | in-progress | done | rejected
 created: 2026-07-13
 updated: 2026-09-18
 author: "Claude"
