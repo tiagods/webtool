@@ -190,3 +190,10 @@ testes unitários/caracterização. Guardar cookies pré-submit para exercitar c
 **Contexto**: migração do leitor manual de config para `github.com/caarlos0/env/v11`.
 **Detalhes**: (1) `env:"KEY,required"` só erra se a var **não existe** — vazio passa; para reproduzir o "ausente OU vazio" antigo, usar `env:"KEY,required,notEmpty"`; (2) `envDefault` é usado quando a var está ausente **ou vazia**; (3) erro de conversão usa o **nome do campo** (`Port`), não a tag (`PORT`) — asserções de teste devem usar `Port`/`SessionExpirySeconds`; (4) o erro agregado é `env.AggregateError` (valor, não ponteiro) e junta todas as ausentes.
 **Regra**: ao migrar para `caarlos0/env`, lembrar do par `required,notEmpty` e ajustar as mensagens esperadas nos testes para os nomes dos campos.
+## 2026-09-20 — Spec 033 — spec marcada `done` sem checkboxes dos critérios de aceite
+
+**Erro**: o commit final `docs(specs): mark 033 as done` alterou `status: done` mas deixou todos os 8 CAs com `[ ]` (não marcados). Uma validação posterior teve que verificar cada critério manualmente para confirmar que o código realmente atendia.
+
+**Causa raiz**: o agente focou em alterar a linha de `status` e não revisou o bloco de critérios de aceite logo abaixo. O diff do commit confirma: 1 inserção, 1 deleção — só o status mudou.
+
+**Regra**: ao marcar uma spec como `done`, SEMPRE percorrer todos os critérios de aceite e marcar `[x]` nos que foram atendidos. Se houver critério não atendido, a spec NÃO pode ir para `done`. A checagem é: `status: done` ⟺ todos os CAs `[x]` + gates verdes.

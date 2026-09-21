@@ -90,14 +90,14 @@ export const ESTADO_CIVIL_ALTERACAO = [
 Schemas passam a importar dessas constantes. Nenhum valor muda.
 ## Critérios de aceite
 
-- [ ] **CA1** — Q03 Endereço permanece inalterado. `docs/ficha-alteracao.md` documenta `logradouro` como campo único.
-- [ ] **CA2** — Q04 Quadro Societário permanece inalterado. Schema, UI e Go batem campo a campo com a ficha.
-- [ ] **CA3** — Q05 Capital Social permanece com `tipoAlteracao: 'aumento' | 'reducao'`. Docs documentam redução.
-- [ ] **CA4** — `packages/shared/src/constants/enums.ts` criado com `TIPO_CONSTITUICAO`, `ESTADO_CIVIL_BASE` e `ESTADO_CIVIL_ALTERACAO`. Schemas importam destas constantes.
-- [ ] **CA5** — `apps/backend/domain/validation/alteracao.go` e `abertura.go` espelham quaisquer mudanças. Testes passam.
-- [ ] **CA6** — `docs/ficha-alteracao.md` atualizado consistentemente (Q03, Q05, enums compartilhados).
-- [ ] **CA7** — `npm run build` e `npm run lint` passam. `make -C apps/backend test` verde.
-- [ ] **CA8** — Fluxo E2E de Alteração validado; Abertura não regride.
+- [x] **CA1** — Q03 Endereço permanece inalterado. `docs/ficha-alteracao.md` documenta `logradouro` como campo único.
+- [x] **CA2** — Q04 Quadro Societário permanece inalterado. Schema, UI e Go batem campo a campo com a ficha.
+- [x] **CA3** — Q05 Capital Social permanece com `tipoAlteracao: 'aumento' | 'reducao'`. Docs documentam redução.
+- [x] **CA4** — `packages/shared/src/constants/enums.ts` criado com `TIPO_CONSTITUICAO`, `ESTADO_CIVIL_BASE` e `ESTADO_CIVIL_ALTERACAO`. Schemas importam destas constantes.
+- [x] **CA5** — `apps/backend/domain/validation/alteracao.go` e `abertura.go` espelham quaisquer mudanças. Testes passam.
+- [x] **CA6** — `docs/ficha-alteracao.md` atualizado consistentemente (Q03, Q05, enums compartilhados).
+- [x] **CA7** — `npm run build` e `npm run lint` passam. `make -C apps/backend test` verde.
+- [x] **CA8** — Fluxo E2E de Alteração validado; Abertura não regride.
 
 ## Notas
 
