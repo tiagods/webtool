@@ -135,13 +135,16 @@ Cada seção abaixo aparece apenas se o quadro correspondente foi selecionado.
 ### Q03 — Mudança de Endereço da Sede
 
 | Campo | Tipo | Validação |
-|---|---|---|
+|-------|------|-----------|
 | Logradouro | `text` | Obrigatório |
 | Bairro | `text` | Obrigatório |
 | Município | `text` | Obrigatório |
 | Estado | `select` (UF) | Obrigatório |
 | CEP | `text` (máscara `00000-000`) | Obrigatório |
 | Nº do IPTU | `text` | Obrigatório |
+
+> **Nota:** Na ficha original, o campo "endereço" é um campo único que inclui o logradouro e o número (ex: "Rua X, 123"). O campo `logradouro` no schema modela isso como string livre.
+> Este endereço NÃO inclui os campos do Passo 2 da Abertura (correspondência, locador, tipo de funcionamento) — são formulários com escopos diferentes.
 
 ---
 
@@ -265,10 +268,13 @@ const cessionario = membroBase.extend({
 ### Q05 — Alteração do Capital Social
 
 | Campo | Tipo | Validação |
-|---|---|---|
+|-------|------|-----------|
+| Tipo de Alteração | `radio` | Obrigatório — `aumento` / `reducao` |
 | Valor do Capital Social (R$) | `currency` | Obrigatório |
-| Forma da integralização (no caso de aumento) — valor (R$) | `currency` | Obrigatório se aumento |
-| Especificar | `textarea` | Obrigatório se aumento |
+| Forma da integralização — valor (R$) | `currency` | **Condicional** — obrigatório se `aumento` |
+| Especificar | `textarea` | **Condicional** — obrigatório se `aumento` |
+
+> **Nota:** A ficha original tem título "Aumento ou Redução" mas só detalha campos para AUMENTO (integralização + especificar). A implementação adiciona `tipoAlteracao` como enum explícito — para REDUÇÃO, apenas `valorCapitalSocial` é exigido, consistente com a ficha.
 
 ---
 
@@ -350,3 +356,20 @@ type FormStatus = 'nao_iniciado' | 'rascunho' | 'enviado' | 'em_analise' | 'conc
 ## Documento Original
 
 [../fichas/FICHA CADASTRAL - ALTERAÇÃO CONTRATUAL.pdf](../fichas/FICHA%20CADASTRAL%20-%20ALTERA%C3%87%C3%83O%20CONTRATUAL.pdf)
+---
+
+## Recursos Compartilhados com a Ficha de Abertura
+
+Alguns enums e constantes são compartilhados entre os dois formulários para evitar
+divergência. A fonte centralizada é `packages/shared/src/constants/enums.ts`.
+
+| Constante | Usado em | Valores |
+|-----------|----------|---------|
+| `TIPO_CONSTITUICAO` | Abertura + Alteração | `ltda`, `slu` |
+| `ESTADO_CIVIL_BASE` | Abertura | 7 valores (sem `divorciado`) |
+| `ESTADO_CIVIL_ALTERACAO` | Alteração | 8 valores (base + `divorciado`) |
+
+> **Schemas não compartilhados:** O sócio da Alteração (~30 campos) e o da Abertura
+> (10 campos) são schemas independentes — cada um reflete sua respectiva ficha original.
+> O endereço do Q03 também é independente do Passo 2 da Abertura (que tem campos de
+> correspondência e locador ausentes na Alteração).
