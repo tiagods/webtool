@@ -195,8 +195,8 @@ exigem **confirmacao explicita do usuario** antes de rodar:
 Durante o batch os commits ficam **locais**. O push acontece **uma vez**, no `/done`, e
 somente quando as quatro condicoes estao satisfeitas:
 
-1. Todos os itens do `todo.md` marcados `[x]`
-2. Todos os criterios de aceite da spec marcados `[x]`
+1. Todos os itens do `todo.md` marcados `[x]`, não é opcional
+2. Todos os criterios de aceite da spec marcados `[x]`, nenhum push deve ocorrer sem os checklists de validação concluidos
 3. Gates do escopo tocado **executados e verdes** (prova de conclusao — nao basta afirmar)
 4. `status: done` na spec e `todo.md` finalizado/removido
 
