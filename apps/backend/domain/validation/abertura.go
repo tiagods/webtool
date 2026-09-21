@@ -76,37 +76,40 @@ type dadosEmpresaForm struct {
 }
 
 type enderecoForm struct {
-	CEP           *string `json:"cep"`
-	Logradouro    *string `json:"logradouro"`
-	Numero        *string `json:"numero"`
-	Complemento   *string `json:"complemento"`
-	Bairro        *string `json:"bairro"`
-	Municipio     *string `json:"municipio"`
-	Estado        *string `json:"estado"`
-	IPTU          *string `json:"iptu"`
-	ImovelAlugado *bool   `json:"imovelAlugado"`
+	CEP                     *string                `json:"cep"`
+	Logradouro              *string                `json:"logradouro"`
+	Numero                  *string                `json:"numero"`
+	Complemento             *string                `json:"complemento"`
+	Bairro                  *string                `json:"bairro"`
+	Municipio               *string                `json:"municipio"`
+	Estado                  *string                `json:"estado"`
+	IPTU                    *string                `json:"iptu"`
+	ImovelAlugado           *string                `json:"imovelAlugado"`
+	Correspondencia         *string                `json:"correspondencia"`
+	EnderecoCorrespondencia *enderecoCorrespForm    `json:"enderecoCorrespondencia"`
+	LocadorTipo             *string                `json:"locadorTipo"`
+	TipoFuncionamento       *string                `json:"tipoFuncionamento"`
+}
+
+type enderecoCorrespForm struct {
+	CEP         *string `json:"cep"`
+	Logradouro  *string `json:"logradouro"`
+	Numero      *string `json:"numero"`
+	Complemento *string `json:"complemento"`
+	Bairro      *string `json:"bairro"`
+	Municipio   *string `json:"municipio"`
+	Estado      *string `json:"estado"`
 }
 
 type socioForm struct {
 	Nome                       *string  `json:"nome"`
 	PIS                        *string  `json:"pis"`
-	CPF                        *string  `json:"cpf"`
-	RG                         *string  `json:"rg"`
-	Nacionalidade              *string  `json:"nacionalidade"`
 	Profissao                  *string  `json:"profissao"`
 	ProLabore                  *float64 `json:"proLabore"`
 	TelefoneCelular            *string  `json:"telefoneCelular"`
 	TelefoneFixo               *string  `json:"telefoneFixo"`
 	Email                      *string  `json:"email"`
 	EstadoCivil                *string  `json:"estadoCivil"`
-	NomeMae                    *string  `json:"nomeMae"`
-	NomePai                    *string  `json:"nomePai"`
-	CEPRegistro                *string  `json:"cepRegistro"`
-	LogradouroRegistro         *string  `json:"logradouroRegistro"`
-	NumeroRegistro             *string  `json:"numeroRegistro"`
-	ComplementoRegistro        *string  `json:"complementoRegistro"`
-	BairroRegistro             *string  `json:"bairroRegistro"`
-	RegistroConselho           *string  `json:"registroConselho"`
 	TeveParticipacaoSocietaria *bool    `json:"teveParticipacaoSocietaria"`
 	CnpjParticipacao           *string  `json:"cnpjParticipacao"`
 }
@@ -367,6 +370,44 @@ func validarEndereco(v *validador, e *enderecoForm) {
 	}
 	if e.ImovelAlugado == nil {
 		v.addFatal(p("endereco", "imovelAlugado"), "Required")
+	} else if s := *e.ImovelAlugado; s != "sim" && s != "nao" {
+		v.addFatal(p("endereco", "imovelAlugado"), "Tipo inválido")
+	}
+	if e.Correspondencia != nil {
+		if s := *e.Correspondencia; s != "sim" && s != "nao" {
+			v.add(p("endereco", "correspondencia"), "Valor inválido")
+		}
+	}
+	if e.LocadorTipo != nil {
+		if s := *e.LocadorTipo; s != "pf" && s != "pj" {
+			v.add(p("endereco", "locadorTipo"), "Tipo de locador inválido")
+		}
+	}
+	if e.TipoFuncionamento != nil {
+		if s := *e.TipoFuncionamento; s != "comercial" && s != "industrial" && s != "servicos" && s != "outros" {
+			v.add(p("endereco", "tipoFuncionamento"), "Tipo de funcionamento inválido")
+		}
+	}
+	if e.EnderecoCorrespondencia != nil {
+		ec := e.EnderecoCorrespondencia
+		if s, ok := v.obrigStr(p("endereco", "enderecoCorrespondencia", "cep"), ec.CEP); ok {
+			v.matches(p("endereco", "enderecoCorrespondencia", "cep"), s, reCEP, "CEP inválido")
+		}
+		if s, ok := v.obrigStr(p("endereco", "enderecoCorrespondencia", "logradouro"), ec.Logradouro); ok {
+			v.minLen(p("endereco", "enderecoCorrespondencia", "logradouro"), s, 2, "Logradouro inválido")
+		}
+		if s, ok := v.obrigStr(p("endereco", "enderecoCorrespondencia", "numero"), ec.Numero); ok {
+			v.minLen(p("endereco", "enderecoCorrespondencia", "numero"), s, 1, "Informe o número")
+		}
+		if s, ok := v.obrigStr(p("endereco", "enderecoCorrespondencia", "bairro"), ec.Bairro); ok {
+			v.minLen(p("endereco", "enderecoCorrespondencia", "bairro"), s, 2, "Bairro inválido")
+		}
+		if s, ok := v.obrigStr(p("endereco", "enderecoCorrespondencia", "municipio"), ec.Municipio); ok {
+			v.minLen(p("endereco", "enderecoCorrespondencia", "municipio"), s, 2, "Município inválido")
+		}
+		if s, ok := v.obrigStr(p("endereco", "enderecoCorrespondencia", "estado"), ec.Estado); ok {
+			v.exatoLen(p("endereco", "enderecoCorrespondencia", "estado"), s, 2, "Estado (UF) inválido")
+		}
 	}
 }
 
@@ -394,15 +435,12 @@ func validarSocio(v *validador, idx int, s *socioForm) {
 
 	strRule("nome", s.Nome, func(x string, path []any) { v.minLen(path, x, 3, "Informe o nome completo") })
 	strRule("pis", s.PIS, func(x string, path []any) { v.matches(path, x, rePIS, "PIS inválido") })
-	strRule("cpf", s.CPF, func(x string, path []any) { v.matches(path, x, reCPF, "CPF inválido") })
-	strRule("rg", s.RG, func(x string, path []any) { v.minLen(path, x, 2, "Informe o RG e emissor") })
-	strRule("nacionalidade", s.Nacionalidade, func(x string, path []any) { v.minLen(path, x, 3, "Informe a nacionalidade") })
 	strRule("profissao", s.Profissao, func(x string, path []any) { v.minLen(path, x, 2, "Informe a profissão") })
 
 	if s.ProLabore == nil {
 		v.addFatal(base("proLabore"), "Required")
-	} else if *s.ProLabore < 1412 {
-		v.add(base("proLabore"), "O pró-labore mínimo é de 1 salário mínimo (R$ 1.412,00)")
+	} else if *s.ProLabore < 1518 {
+		v.add(base("proLabore"), "O pró-labore mínimo é de 1 salário mínimo (R$ 1.518,00)")
 	}
 
 	strRule("telefoneCelular", s.TelefoneCelular, func(x string, path []any) {
@@ -412,11 +450,6 @@ func validarSocio(v *validador, idx int, s *socioForm) {
 	strRule("estadoCivil", s.EstadoCivil, func(x string, path []any) {
 		v.enum(path, x, estadosCivis, "Estado civil inválido")
 	})
-	strRule("nomeMae", s.NomeMae, func(x string, path []any) { v.minLen(path, x, 3, "Informe o nome da mãe") })
-	strRule("cepRegistro", s.CEPRegistro, func(x string, path []any) { v.matches(path, x, reCEP, "CEP inválido") })
-	strRule("logradouroRegistro", s.LogradouroRegistro, func(x string, path []any) { v.minLen(path, x, 2, "Informe o logradouro") })
-	strRule("numeroRegistro", s.NumeroRegistro, func(x string, path []any) { v.minLen(path, x, 1, "Informe o número") })
-	strRule("bairroRegistro", s.BairroRegistro, func(x string, path []any) { v.minLen(path, x, 2, "Informe o bairro") })
 
 	if s.TeveParticipacaoSocietaria == nil {
 		v.addFatal(base("teveParticipacaoSocietaria"), "Required")
