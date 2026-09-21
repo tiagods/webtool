@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useFormContext, useFieldArray, useWatch } from 'react-hook-form'
 import { IMaskInput } from 'react-imask'
 import { AberturaFormValues } from '@prolink/shared'
@@ -10,110 +10,7 @@ import { Button } from '@/components/ui/button'
 import { FormField, FormItem, FormControl, FormMessage, FormLabel } from '@/components/ui/form'
 import RadioChip from '@/components/RadioChip'
 import { Users, Plus, Trash2 } from 'lucide-react'
-import { CEP_MASK, CPF_MASK, PIS_MASK, PHONE_MASK, CNPJ_MASK, CURRENCY_MASK } from '@/lib/masks'
-import { useViaCEP } from '@/lib/viacep'
-
-function SocioEndereco({ index }: { index: number }) {
-  const { control, setValue } = useFormContext<AberturaFormValues>()
-  const cepRegistro = useWatch({ control, name: `dadosSocios.socios.${index}.cepRegistro` })
-  const { data, status, error } = useViaCEP(cepRegistro ?? '')
-
-  useEffect(() => {
-    if (status === 'success' && data) {
-      setValue(`dadosSocios.socios.${index}.logradouroRegistro`, data.logradouro, { shouldValidate: true })
-      setValue(`dadosSocios.socios.${index}.bairroRegistro`, data.bairro, { shouldValidate: true })
-    }
-  }, [data, status, setValue, index])
-
-  const autoFilled = status === 'success'
-
-  return (
-    <div className="flex flex-col gap-4">
-      <h3 className="font-semibold text-sm text-text">Endereço Residencial do Sócio</h3>
-
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-        <FormField
-          control={control}
-          name={`dadosSocios.socios.${index}.cepRegistro`}
-          render={({ field }) => (
-            <FormItem className="flex flex-col gap-2 md:col-span-2">
-              <FormLabel className="text-textAlt text-[13px]">CEP</FormLabel>
-              <FormControl>
-                <IMaskInput
-                  mask={CEP_MASK}
-                  value={field.value ?? ''}
-                  onAccept={(value) => field.onChange(value)}
-                  onBlur={field.onBlur}
-                  inputRef={field.ref}
-                  className="flex h-10 w-full rounded-md border border-input bg-warm px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder="00000-000"
-                />
-              </FormControl>
-              {status === 'loading' && <p className="text-xs text-muted">Buscando endereço...</p>}
-              {error && <p className="text-xs text-error">{error}</p>}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name={`dadosSocios.socios.${index}.logradouroRegistro`}
-          render={({ field }) => (
-            <FormItem className="flex flex-col gap-2 md:col-span-4">
-              <FormLabel className="text-textAlt text-[13px]">Logradouro</FormLabel>
-              <FormControl>
-                <Input {...field} className="bg-warm disabled:opacity-70" disabled={autoFilled} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <FormField
-          control={control}
-          name={`dadosSocios.socios.${index}.bairroRegistro`}
-          render={({ field }) => (
-            <FormItem className="flex flex-col gap-2 md:col-span-3">
-              <FormLabel className="text-textAlt text-[13px]">Bairro</FormLabel>
-              <FormControl>
-                <Input {...field} className="bg-warm disabled:opacity-70" disabled={autoFilled} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name={`dadosSocios.socios.${index}.numeroRegistro`}
-          render={({ field }) => (
-            <FormItem className="flex flex-col gap-2 md:col-span-1">
-              <FormLabel className="text-textAlt text-[13px]">Número</FormLabel>
-              <FormControl>
-                <Input {...field} className="bg-warm" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name={`dadosSocios.socios.${index}.complementoRegistro`}
-          render={({ field }) => (
-            <FormItem className="flex flex-col gap-2 md:col-span-1">
-              <FormLabel className="text-textAlt text-[13px]">Complemento</FormLabel>
-              <FormControl>
-                <Input {...field} className="bg-warm" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-    </div>
-  )
-}
+import { PIS_MASK, PHONE_MASK, CNPJ_MASK, CURRENCY_MASK } from '@/lib/masks'
 
 export default function StepSocios({ isSlu }: { isSlu: boolean }) {
   const methods = useFormContext<AberturaFormValues>()
@@ -129,22 +26,12 @@ export default function StepSocios({ isSlu }: { isSlu: boolean }) {
     append({
       nome: '',
       pis: '',
-      cpf: '',
-      rg: '',
-      nacionalidade: '',
       profissao: '',
       proLabore: 0,
       telefoneCelular: '',
       telefoneFixo: '',
       email: '',
       estadoCivil: 'solteiro',
-      nomeMae: '',
-      nomePai: '',
-      cepRegistro: '',
-      logradouroRegistro: '',
-      numeroRegistro: '',
-      complementoRegistro: '',
-      bairroRegistro: '',
       teveParticipacaoSocietaria: false,
       cnpjParticipacao: '',
     })
@@ -218,45 +105,9 @@ export default function StepSocios({ isSlu }: { isSlu: boolean }) {
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={control}
-                  name={`dadosSocios.socios.${currentFieldIndex}.cpf`}
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col gap-2">
-                      <FormLabel className="text-textAlt font-semibold text-[13px]">CPF</FormLabel>
-                      <FormControl>
-                        <IMaskInput
-                          mask={CPF_MASK}
-                          value={field.value ?? ''}
-                          onAccept={(value) => field.onChange(value)}
-                          onBlur={field.onBlur}
-                          inputRef={field.ref}
-                          className="flex h-10 w-full rounded-md border border-input bg-warm px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                          placeholder="000.000.000-00"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name={`dadosSocios.socios.${currentFieldIndex}.rg`}
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col gap-2">
-                      <FormLabel className="text-textAlt font-semibold text-[13px]">RG / Órgão Expedidor</FormLabel>
-                      <FormControl>
-                        <Input {...field} className="bg-warm" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={control}
                 name={`dadosSocios.socios.${currentFieldIndex}.pis`}
@@ -273,19 +124,6 @@ export default function StepSocios({ isSlu }: { isSlu: boolean }) {
                         className="flex h-10 w-full rounded-md border border-input bg-warm px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="000.00000.00-0"
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name={`dadosSocios.socios.${currentFieldIndex}.nacionalidade`}
-                render={({ field }) => (
-                  <FormItem className="flex flex-col gap-2">
-                    <FormLabel className="text-textAlt font-semibold text-[13px]">Nacionalidade</FormLabel>
-                    <FormControl>
-                      <Input {...field} className="bg-warm" placeholder="Brasileiro(a)" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -370,7 +208,7 @@ export default function StepSocios({ isSlu }: { isSlu: boolean }) {
 
           <hr className="border-border" />
 
-          {/* Estado Civil e Filiação */}
+          {/* Estado Civil */}
           <div className="flex flex-col gap-5">
             <FormField
               control={control}
@@ -392,41 +230,9 @@ export default function StepSocios({ isSlu }: { isSlu: boolean }) {
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={control}
-                name={`dadosSocios.socios.${currentFieldIndex}.nomeMae`}
-                render={({ field }) => (
-                  <FormItem className="flex flex-col gap-2">
-                    <FormLabel className="text-textAlt font-semibold text-[13px]">Nome da Mãe</FormLabel>
-                    <FormControl>
-                      <Input {...field} className="bg-warm" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name={`dadosSocios.socios.${currentFieldIndex}.nomePai`}
-                render={({ field }) => (
-                  <FormItem className="flex flex-col gap-2">
-                    <FormLabel className="text-textAlt font-semibold text-[13px]">Nome do Pai (Opcional)</FormLabel>
-                    <FormControl>
-                      <Input {...field} className="bg-warm" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
-          </div>
 
           <hr className="border-border" />
-
-          <SocioEndereco index={currentFieldIndex} />
-
-          <hr className="border-border my-2" />
 
           <div className="flex flex-col gap-4 bg-slate-50/50 p-4 rounded-lg border border-border/50">
             <FormField

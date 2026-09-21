@@ -46,7 +46,11 @@ export default function StepperEngine() {
         municipio: '',
         estado: '',
         iptu: '',
-        imovelAlugado: false,
+        imovelAlugado: 'nao',
+        correspondencia: undefined,
+        enderecoCorrespondencia: undefined,
+        locadorTipo: undefined,
+        tipoFuncionamento: undefined,
       },
       dadosSocios: {
         socios: [socioVazio()],
