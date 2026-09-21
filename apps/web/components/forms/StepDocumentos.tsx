@@ -46,11 +46,11 @@ function getDocsSocio(socio: AberturaFormValues['dadosSocios']['socios'][number]
   return base;
 }
 
-function getDocsImovel(imovelAlugado: boolean): DocSpec[] {
+function getDocsImovel(imovelAlugado: 'sim' | 'nao'): DocSpec[] {
   const docs: DocSpec[] = [
     { chave: 'imovel_iptu', label: 'Cópia do IPTU', hint: 'Folha/espelho com os dados do local', obrigatorio: true },
   ];
-  if (imovelAlugado) {
+  if (imovelAlugado === 'sim') {
     docs.push({ chave: 'imovel_contrato_locacao', label: 'Contrato de Locação', hint: 'Obrigatório para imóvel alugado', obrigatorio: true });
   }
   return docs;
@@ -176,7 +176,7 @@ export default function StepDocumentos() {
                 onChange={(key) => handleChange(doc.chave, key)}
               />
             ))}
-            {!imovelAlugado && (
+            {imovelAlugado === 'nao' && (
               <p className="text-xs text-muted flex items-center gap-1.5 mt-1">
                 <Info className="w-3.5 h-3.5 shrink-0" />
                 Imóvel próprio/cedido. Se mudou, altere no Passo 2 — Endereço.

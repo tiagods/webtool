@@ -143,17 +143,9 @@
   {
     "nome": "full_cpf_socio_invalido",
     "modo": "full",
-    "aceito": false,
-    "issuePaths": [
-      "dadosSocios/socios/0/cpf"
-    ],
-    "issues": [
-      {
-        "path": "dadosSocios/socios/0/cpf",
-        "code": "invalid_string",
-        "message": "CPF inválido"
-      }
-    ]
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
   },
   {
     "nome": "full_pis_socio_invalido",
@@ -211,7 +203,7 @@
       {
         "path": "dadosSocios/socios/0/proLabore",
         "code": "too_small",
-        "message": "O pró-labore mínimo é de 1 salário mínimo (R$ 1.412,00)"
+        "message": "O pró-labore mínimo é de 1 salário mínimo (R$ 1.518,00)"
       }
     ]
   },

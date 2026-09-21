@@ -69,7 +69,7 @@ export default function StepRevisao() {
             {socios.map((socio, idx) => (
               <div key={idx} className="flex flex-col gap-1 pb-3 border-b border-border/50 last:border-0 last:pb-0">
                  <Label className="text-xs text-muted">Sócio {idx + 1}</Label>
-                 <span className="text-sm font-medium text-text">{socio.nome || 'Não preenchido'} — CPF: {socio.cpf || '-'}</span>
+                 <span className="text-sm font-medium text-text">{socio.nome || 'Não preenchido'}</span>
                  <span className="text-xs text-muted">Pró-labore: R$ {Number(socio.proLabore || 0).toFixed(2)}</span>
               </div>
             ))}

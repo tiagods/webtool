@@ -102,11 +102,11 @@ const stepDadosEmpresa = z.object({
 | Município | `text` | Obrigatório | Auto-preenchido via ViaCEP |
 | Estado | `select` (UF) | Obrigatório | Auto-preenchido via ViaCEP |
 | Nº do IPTU | `text` | Obrigatório | Consta no carnê de IPTU ou na conta de luz |
-| Endereço é de correspondência? | `radio` | Obrigatório | `sim` / `nao` |
-| Imóvel é alugado? | `radio` | Obrigatório | `sim` / `nao` |
-| Locador é PF ou PJ? | `radio` | **Condicional** — obrigatório se `imovelAlugado === 'sim'` | `pessoa_fisica` / `pessoa_juridica` |
-| Endereço de correspondência | `text` | **Condicional** — obrigatório se `correspondencia === 'nao'` | Onde a empresa receberá correspondências, se diferente da sede |
-| Tipo de funcionamento | `radio` | Obrigatório | `estabelecimento` / `ponto_contato` |
+| Imóvel alugado? | `radio` | Obrigatório | `sim` / `nao` — se "Sim", exige contrato de locação (Passo 5) e `locadorTipo` |
+| Tipo do locador | `radio` | **Condicional** — obrigatório se `imovelAlugado === 'sim'` | `pf` / `pj` |
+| Correspondência no mesmo endereço? | `radio` | Obrigatório | `sim` / `nao` — se "Não", exige `enderecoCorrespondencia` |
+| Endereço de correspondência | bloco (CEP, logradouro, número, complemento, bairro, município, estado) | **Condicional** — obrigatório se `correspondencia === 'nao'` | Endereço completo da correspondência |
+| Tipo de funcionamento | `radio` | Opcional | `comercial` / `industrial` / `servicos` / `outros` |
 
 ### Regras de negócio
 
@@ -117,29 +117,34 @@ const stepDadosEmpresa = z.object({
 ### Schema Zod
 
 ```ts
-const stepEndereco = z.object({
+const enderecoCorrespondenciaSchema = z.object({
   cep: z.string().regex(/^\d{5}-\d{3}$/, 'CEP inválido'),
-  logradouro: z.string().min(2),
+  logradouro: z.string().min(2, 'Logradouro inválido'),
   numero: z.string().min(1, 'Informe o número'),
   complemento: z.string().optional(),
-  bairro: z.string().min(2),
-  municipio: z.string().min(2),
-  estado: z.string().length(2),
+  bairro: z.string().min(2, 'Bairro inválido'),
+  municipio: z.string().min(2, 'Município inválido'),
+  estado: z.string().length(2, 'Estado (UF) inválido'),
+})
+
+const stepEndereco = z.object({
+  cep: z.string().regex(/^\d{5}-\d{3}$/, 'CEP inválido'),
+  logradouro: z.string().min(2, 'Logradouro inválido'),
+  numero: z.string().min(1, 'Informe o número'),
+  complemento: z.string().optional(),
+  bairro: z.string().min(2, 'Bairro inválido'),
+  municipio: z.string().min(2, 'Município inválido'),
+  estado: z.string().length(2, 'Estado (UF) inválido'),
   iptu: z.string().min(1, 'Informe o nº do IPTU'),
-  correspondencia: z.enum(['sim', 'nao']),
   imovelAlugado: z.enum(['sim', 'nao']),
-  locadorTipo: z.enum(['pessoa_fisica', 'pessoa_juridica']).optional(),   // obrigatório se imovelAlugado === 'sim'
-  enderecoCorrespondencia: z.string().optional(),                          // obrigatório se correspondencia === 'nao'
-  tipoFuncionamento: z.enum(['estabelecimento', 'ponto_contato']),
-}).superRefine((d, ctx) => {
-  if (d.imovelAlugado === 'sim' && !d.locadorTipo) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Informe se o locador é PF ou PJ', path: ['locadorTipo'] })
-  }
-  if (d.correspondencia === 'nao' && !d.enderecoCorrespondencia) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Informe o endereço de correspondência', path: ['enderecoCorrespondencia'] })
-  }
+  correspondencia: z.enum(['sim', 'nao']).optional(),
+  enderecoCorrespondencia: enderecoCorrespondenciaSchema.optional(),
+  locadorTipo: z.enum(['pf', 'pj']).optional(),
+  tipoFuncionamento: z.enum(['comercial', 'industrial', 'servicos', 'outros']).optional(),
 })
 ```
+
+> **Nota:** As condicionais (`locadorTipo` obrigatório se `imovelAlugado === 'sim'`; `enderecoCorrespondencia` obrigatório se `correspondencia === 'nao'`) são validadas no `superRefine` do **schema mestre** (`aberturaFormSchema`), não no schema do passo — para não quebrar o rascunho parcial (`aberturaFormDraftSchema`).
 
 ---
 
@@ -182,32 +187,24 @@ casado_separacao_bens | casado_separacao_obrigatoria | viuvo | separado_judicial
 
 ```ts
 const socioSchema = z.object({
-  nome: z.string().min(3),
-  pis: z.string().regex(/^\d{3}\.\d{5}\.\d{2}-\d$/),
-  profissao: z.string().min(2),
-  proLabore: z.number().min(1518, 'Mínimo 1 salário mínimo'),
-  telefoneCelular: z.string().min(14),
+  nome: z.string().min(3, 'Informe o nome completo'),
+  pis: z.string().regex(/^\d{3}\.\d{5}\.\d{2}-\d$/, 'PIS inválido'),
+  profissao: z.string().min(2, 'Informe a profissão'),
+  proLabore: z.number().min(1518, 'O pró-labore mínimo é de 1 salário mínimo (R$ 1.518,00)'),
+  telefoneCelular: z.string().min(14, 'Telefone celular incompleto'),
   telefoneFixo: z.string().optional(),
-  email: z.string().email(),
+  email: z.string().email('E-mail inválido'),
   estadoCivil: z.enum([
     'solteiro', 'casado_comunhao_parcial', 'casado_comunhao_universal',
     'casado_separacao_bens', 'casado_separacao_obrigatoria',
     'viuvo', 'separado_judicialmente',
   ]),
-  participacaoAnterior: z.enum(['sim', 'nao']),
-  cnpjAnterior: z.string().optional(),
-}).refine(
-  d => d.participacaoAnterior === 'nao' || !!d.cnpjAnterior,
-  { message: 'Informe o CNPJ da empresa anterior', path: ['cnpjAnterior'] }
-)
-
-// Passo 3 — só valida os sócios
-const stepSociosLtda = z.object({
-  socios: z.array(socioSchema).min(2, 'Ltda requer ao menos 2 sócios'),
+  teveParticipacaoSocietaria: z.boolean(),
+  cnpjParticipacao: z.string().optional(),
 })
 
-const stepSociosSlu = z.object({
-  socios: z.array(socioSchema).length(1, 'SLU tem exatamente 1 sócio'),
+const stepSociosSchema = z.object({
+  socios: z.array(socioSchema).min(1, 'Adicione pelo menos 1 sócio'),
 })
 ```
 

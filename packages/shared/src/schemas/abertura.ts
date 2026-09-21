@@ -10,6 +10,17 @@ export const stepDadosEmpresaSchema = z.object({
   atividade: z.string().min(20, 'Descreva a atividade com mais detalhes (mín. 20 caracteres)'),
 });
 
+// --- Endereço de Correspondência (sub-objeto reutilizável) ---
+export const enderecoCorrespondenciaSchema = z.object({
+  cep: z.string().regex(/^\d{5}-\d{3}$/, 'CEP inválido'),
+  logradouro: z.string().min(2, 'Logradouro inválido'),
+  numero: z.string().min(1, 'Informe o número'),
+  complemento: z.string().optional(),
+  bairro: z.string().min(2, 'Bairro inválido'),
+  municipio: z.string().min(2, 'Município inválido'),
+  estado: z.string().length(2, 'Estado (UF) inválido'),
+});
+
 // --- Passo 2: Endereço da Sede ---
 export const stepEnderecoSchema = z.object({
   cep: z.string().regex(/^\d{5}-\d{3}$/, 'CEP inválido'),
@@ -20,18 +31,19 @@ export const stepEnderecoSchema = z.object({
   municipio: z.string().min(2, 'Município inválido'),
   estado: z.string().length(2, 'Estado (UF) inválido'),
   iptu: z.string().min(1, 'Informe o nº do IPTU'),
-  imovelAlugado: z.boolean(),
+  imovelAlugado: z.enum(['sim', 'nao']),
+  correspondencia: z.enum(['sim', 'nao']).optional(),
+  enderecoCorrespondencia: enderecoCorrespondenciaSchema.optional(),
+  locadorTipo: z.enum(['pf', 'pj']).optional(),
+  tipoFuncionamento: z.enum(['comercial', 'industrial', 'servicos', 'outros']).optional(),
 });
 
 // --- Passo 3: Sócios ---
 export const socioSchema = z.object({
   nome: z.string().min(3, 'Informe o nome completo'),
   pis: z.string().regex(/^\d{3}\.\d{5}\.\d{2}-\d$/, 'PIS inválido'),
-  cpf: z.string().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF inválido'),
-  rg: z.string().min(2, 'Informe o RG e emissor'),
-  nacionalidade: z.string().min(3, 'Informe a nacionalidade'),
   profissao: z.string().min(2, 'Informe a profissão'),
-  proLabore: z.number().min(1412, 'O pró-labore mínimo é de 1 salário mínimo (R$ 1.412,00)'), // Simulando 2024
+  proLabore: z.number().min(1518, 'O pró-labore mínimo é de 1 salário mínimo (R$ 1.518,00)'), // 2026 — atualizado anualmente
   telefoneCelular: z.string().min(14, 'Telefone celular incompleto'),
   telefoneFixo: z.string().optional(),
   email: z.string().email('E-mail inválido'),
@@ -40,14 +52,6 @@ export const socioSchema = z.object({
     'casado_separacao_bens', 'casado_separacao_obrigatoria',
     'viuvo', 'separado_judicialmente',
   ]),
-  nomeMae: z.string().min(3, 'Informe o nome da mãe'),
-  nomePai: z.string().optional(),
-  cepRegistro: z.string().regex(/^\d{5}-\d{3}$/, 'CEP inválido'),
-  logradouroRegistro: z.string().min(2, 'Informe o logradouro'),
-  numeroRegistro: z.string().min(1, 'Informe o número'),
-  complementoRegistro: z.string().optional(),
-  bairroRegistro: z.string().min(2, 'Informe o bairro'),
-  registroConselho: z.string().optional(),
   teveParticipacaoSocietaria: z.boolean(),
   cnpjParticipacao: z.string().optional(),
 });
@@ -93,6 +97,28 @@ export const aberturaFormObjectSchema = z.object({
 });
 
 export const aberturaFormSchema = aberturaFormObjectSchema.superRefine((data, ctx) => {
+  // Regras condicionais do Passo 2 — Endereço
+  if (data.endereco) {
+    // Se imóvel alugado, locadorTipo é obrigatório
+    if (data.endereco.imovelAlugado === 'sim' && !data.endereco.locadorTipo) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Informe o tipo do locador (PF ou PJ)',
+        path: ['endereco', 'locadorTipo'],
+      });
+    }
+    // Se correspondência é diferente da sede, enderecoCorrespondencia é obrigatório
+    if (data.endereco.correspondencia === 'nao') {
+      if (!data.endereco.enderecoCorrespondencia) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Informe o endereço de correspondência',
+          path: ['endereco', 'enderecoCorrespondencia'],
+        });
+      }
+    }
+  }
+
   // Regra de Sócios Mínimos dependendo do tipo
   if (data.dadosEmpresa.tipoConstituicao === 'ltda' && data.dadosSocios.socios.length < 2) {
     ctx.addIssue({
