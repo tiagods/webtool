@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { TIPO_CONSTITUICAO, ESTADO_CIVIL_BASE } from '../constants/enums';
 
 // --- Passo 1: Dados da Empresa ---
 export const stepDadosEmpresaSchema = z.object({
-  tipoConstituicao: z.enum(['ltda', 'slu'], { required_error: 'Informe o tipo de constituição' }),
+  tipoConstituicao: z.enum(TIPO_CONSTITUICAO, { required_error: 'Informe o tipo de constituição' }),
   nomeEmpresarial1: z.string().min(3, 'Informe a 1ª opção (mín. 3 caracteres)'),
   nomeEmpresarial2: z.string().min(3, 'Informe a 2ª opção (mín. 3 caracteres)'),
   nomeEmpresarial3: z.string().min(3, 'Informe a 3ª opção (mín. 3 caracteres)'),
@@ -47,11 +48,7 @@ export const socioSchema = z.object({
   telefoneCelular: z.string().min(14, 'Telefone celular incompleto'),
   telefoneFixo: z.string().optional(),
   email: z.string().email('E-mail inválido'),
-  estadoCivil: z.enum([
-    'solteiro', 'casado_comunhao_parcial', 'casado_comunhao_universal',
-    'casado_separacao_bens', 'casado_separacao_obrigatoria',
-    'viuvo', 'separado_judicialmente',
-  ]),
+  estadoCivil: z.enum(ESTADO_CIVIL_BASE),
   teveParticipacaoSocietaria: z.boolean(),
   cnpjParticipacao: z.string().optional(),
 });

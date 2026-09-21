@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { TIPO_CONSTITUICAO, ESTADO_CIVIL_ALTERACAO } from '../constants/enums';
 
 // --- Passo 1: Identificação ---
 // Decisão Spec 012: sem busca automática de CNPJ — o usuário preenche manualmente os
@@ -16,7 +17,7 @@ export const stepIdentificacaoObjectSchema = z.object({
   cnpj: z.string().regex(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, 'CNPJ inválido'),
   razaoSocial: z.string().min(3, 'Informe a razão social'),
   nomeFantasia: z.string().optional(),
-  tipoConstituicao: z.enum(['ltda', 'slu'], { required_error: 'Informe o tipo de constituição' }),
+  tipoConstituicao: z.enum(TIPO_CONSTITUICAO, { required_error: 'Informe o tipo de constituição' }),
   enderecoAtual: enderecoAtualSchema,
   situacao: z.enum(['ativa', 'inapta', 'baixada'], { required_error: 'Informe a situação cadastral' }),
 });
@@ -71,16 +72,7 @@ export const q03EnderecoSchema = z.object({
 });
 
 // Q04 — Quadro Societário
-export const estadoCivilAlteracao = z.enum([
-  'solteiro',
-  'casado_comunhao_parcial',
-  'casado_comunhao_universal',
-  'casado_separacao_bens',
-  'casado_separacao_obrigatoria',
-  'separado_judicialmente',
-  'divorciado',
-  'viuvo',
-]);
+export const estadoCivilAlteracao = z.enum(ESTADO_CIVIL_ALTERACAO);
 
 // Campos comuns a cedente e cessionário. Exportado SEM refine/extend aplicado diretamente
 // aqui (lição Spec 008/010: ZodEffects de .refine() não expõe .extend()) — o refine de
