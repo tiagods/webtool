@@ -1,7 +1,7 @@
 ﻿---
 id: "033"
 title: "Reconciliação da Ficha de Alteração (ficha ↔ doc ↔ implementação)"
-status: draft
+status: approved  # draft | review | approved | in-progress | done | rejected
 created: 2026-09-20
 author: "Claude"
 batch_size: "medium"
