@@ -10,6 +10,7 @@
     "dev": "npm run dev -w apps/web",
     "build": "npm run build -w apps/web",
     "lint": "npm run lint -w apps/web",
+    "test:e2e": "playwright test",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "infra:owner": "bash infra/local/stack-owner.sh",
@@ -20,6 +21,7 @@
     "infra:validate": "bash infra/local/validate.sh"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.7",

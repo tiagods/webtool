@@ -60,6 +60,27 @@ A suíte cobre:
 
 > O backend Go (`apps/backend`) tem sua própria suíte de testes via `go test` (ver `make -C apps/backend test`).
 
+### Testes E2E (Playwright)
+
+```bash
+npm run test:e2e   # playwright test — executa os 3 specs contra http://localhost
+```
+
+**Pré-requisito:** a stack Docker completa precisa estar rodando (`npm run infra:up`). Os testes
+navegam pelo formulário como um usuário real, passando pelo aceite LGPD, preenchimento de todos os
+passos, upload de documento e submit. O relatório HTML fica em `e2e/report/`.
+
+> `npm run test:e2e` assume que a stack já está de pé — **não** sobe o Docker automaticamente.
+> Instale o Chromium uma vez com `npx playwright install chromium`.
+
+Cobertura atual (3 specs):
+
+| Teste | Fluxo |
+|---|---|
+| `abertura-fluxo-completo.spec.ts` | Ltda completo: aceite → 6 passos → upload → submit → protocolo |
+| `abertura-restauracao-rascunho.spec.ts` | Preenchimento parcial → refresh → dados restaurados |
+| `abertura-slu.spec.ts` | SLU completo: 5 passos (sem Dados da Sociedade) → submit → protocolo |
+
 ### Via Docker Compose (stack completa)
 
 ```bash

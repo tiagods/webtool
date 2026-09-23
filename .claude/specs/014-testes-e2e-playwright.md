@@ -1,8 +1,9 @@
 ---
 id: "014"
 title: "Testes E2E com Playwright (simulação de comportamento humano)"
-status: draft
+status: done
 created: 2026-07-07
+updated: 2026-09-23
 author: "Claude"
 batch_size: "medium"
 depends_on: ["008", "009"]
@@ -16,15 +17,15 @@ O projeto não tem nenhum teste automatizado configurado (`CLAUDE.md`: "There ar
 
 ## Objetivo
 
-Introduzir Playwright como framework de testes E2E, dirigindo um navegador real (Chromium) para simular o comportamento de um usuário preenchendo a Ficha de Abertura: clicar, digitar, fazer upload de arquivo, dar refresh na página, navegar entre steps. Os testes rodam contra a stack real (`apps/web` + `apps/api` + Nginx, via `docker-compose.yml` local com Floci) — não contra mocks, para pegar bugs de integração real (cookies, roteamento Nginx, DynamoDB, S3).
+Introduzir Playwright como framework de testes E2E, dirigindo um navegador real (Chromium) para simular o comportamento de um usuário preenchendo a Ficha de Abertura: clicar, digitar, fazer upload de arquivo, dar refresh na página, navegar entre steps. Os testes rodam contra a stack real (`apps/web` + `apps/backend` (Go) + Nginx, via `docker-compose.yml` local com Floci) — não contra mocks, para pegar bugs de integração real (cookies, roteamento Nginx, DynamoDB, S3).
 
 Esta spec cobre o primeiro conjunto de testes (fluxo de Abertura); a Ficha de Alteração Contratual (Spec 012) ganha seus próprios testes quando for implementada.
 
 ## Fora de escopo
 
 - Pipeline de CI/CD — os testes rodam localmente via comando npm; integrar num pipeline é spec futura.
-- Testes do worker (Spec 013, ainda não implementado).
-- Testes da Ficha de Alteração Contratual (Spec 012, ainda não implementado).
+- Testes do worker (Spec 013, já implementado — fora de escopo desta spec).
+- Testes da Ficha de Alteração Contratual (Spec 012, já implementada — fora de escopo desta spec).
 - Matriz multi-browser (Firefox/WebKit) — começa só com Chromium; expandir depois se necessário.
 - Testes de regressão visual (screenshot diffing).
 - Testes de carga/performance.
@@ -81,14 +82,14 @@ Playwright como devDependency na raiz do monorepo (não um workspace novo) — o
 
 ## Critérios de aceite
 
-- [ ] `@playwright/test` instalado como devDependency raiz, `playwright.config.ts` configurado com `baseURL: http://localhost`
-- [ ] `npm run test:e2e` executa a suíte contra a stack Docker local (assume `docker compose up` já rodando — não sobe a stack automaticamente)
-- [ ] Teste do fluxo completo de Abertura (Ltda) passando: aceite → preenchimento → upload → submit → confirmação com protocolo
-- [ ] Teste de restauração de rascunho passando: preenchimento parcial → refresh → dados restaurados
-- [ ] Teste do fluxo SLU passando: step Sociedade corretamente ausente
-- [ ] Dados de teste únicos por execução (sem colisão em execuções consecutivas contra o mesmo Floci)
-- [ ] `README.md` documenta pré-requisitos e comando para rodar os testes localmente
-- [ ] `npm run lint` passando (incluindo os arquivos `e2e/*.spec.ts`)
+- [x] `@playwright/test` instalado como devDependency raiz, `playwright.config.ts` configurado com `baseURL: http://localhost`
+- [x] `npm run test:e2e` executa a suíte contra a stack Docker local (assume `docker compose up` já rodando — não sobe a stack automaticamente)
+- [x] Teste do fluxo completo de Abertura (Ltda) passando: aceite → preenchimento → upload → submit → confirmação com protocolo
+- [x] Teste de restauração de rascunho passando: preenchimento parcial → refresh → dados restaurados
+- [x] Teste do fluxo SLU passando: step Sociedade corretamente ausente
+- [x] Dados de teste únicos por execução (sem colisão em execuções consecutivas contra o mesmo Floci)
+- [x] `README.md` documenta pré-requisitos e comando para rodar os testes localmente
+- [x] `npm run lint` passando (incluindo os arquivos `e2e/*.spec.ts`)
 
 ## Notas
 
