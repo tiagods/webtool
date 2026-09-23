@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const chromiumPath = process.env.PLAYWRIGHT_CHROMIUM_PATH || undefined;
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
@@ -18,6 +20,9 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         locale: 'pt-BR',
+        launchOptions: {
+          executablePath: chromiumPath,
+        },
       },
     },
   ],

@@ -15,6 +15,10 @@ next-env.d.ts
 # Testing / coverage
 coverage/
 
+# Playwright E2E
+test-results/
+e2e/report/
+
 # Environment files (keep *.example)
 .env
 .env.local
