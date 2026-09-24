@@ -11,11 +11,11 @@ services:
       FLOCI_STORAGE_MODE: hybrid
       FLOCI_DEFAULT_ACCOUNT_ID: "000000000000"
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:4566/_floci/health"]
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/4566"]
       interval: 2s
       timeout: 5s
-      retries: 30
-      start_period: 3s
+      retries: 20
+      start_period: 2s
     restart: unless-stopped
 
   # ─── aws-init — provisiona recursos após o Floci estar saudável ────────────
@@ -77,6 +77,12 @@ services:
       AWS_DYNAMODB_ACEITES_TABLE: prolink-aceites-lgpd
       AWS_S3_BUCKET: prolink-fichas
       AWS_SQS_QUEUE_URL: http://floci:4566/000000000000/prolink-abertura
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM:-noreply@example.com}
+      SMTP_TO: ${SMTP_TO:-destinatario@example.com}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
       interval: 5s
@@ -85,7 +91,7 @@ services:
       start_period: 3s
     restart: unless-stopped
 
-# ─── worker — consumidor SQS (long-poll), geração de e-mail ────────────────
+  # ─── worker — consumidor SQS (long-poll), geração de e-mail ────────────────
   # Usa o mesmo binário Go do módulo apps/backend, selecionado por build arg.
   worker:
     build:
@@ -109,12 +115,12 @@ services:
       AWS_DYNAMODB_ACEITES_TABLE: prolink-aceites-lgpd
       AWS_S3_BUCKET: prolink-fichas
       AWS_SQS_QUEUE_URL: http://floci:4566/000000000000/prolink-abertura
-      SMTP_HOST: ${SMTP_HOST:?SMTP_HOST é obrigatória}
-      SMTP_PORT: ${SMTP_PORT:?SMTP_PORT é obrigatória}
-      SMTP_USER: ${SMTP_USER:?SMTP_USER é obrigatória}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:?SMTP_PASSWORD é obrigatória}
-      SMTP_FROM: ${SMTP_FROM:?SMTP_FROM é obrigatória}
-      SMTP_TO: ${SMTP_TO:?SMTP_TO é obrigatória}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM:-noreply@example.com}
+      SMTP_TO: ${SMTP_TO:-destinatario@example.com}
     restart: unless-stopped
   # ─── nginx — ponto de entrada público (porta 80) ────────────────────────────
   nginx:
