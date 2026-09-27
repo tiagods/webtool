@@ -295,10 +295,18 @@ func parseAberturaForm(v *validador, topo map[string]json.RawMessage, required b
 		validarDadosSocios(v, ds)
 	}
 	// sociedade é sempre opcional no schema completo (a exigência em Ltda é
-	// cross-field), então required não se aplica a ela.
+	// cross-field), então required não se aplica a ela. Além disso, é exclusiva
+	// da Ltda: para SLU o front envia os defaults (capitalSocial, quotas, banco
+	// vazio) mesmo sem o passo "Dados da Sociedade", então validamos as regras
+	// field-level apenas quando tipoConstituicao == ltda — espelha o schema Zod,
+	// que declara sociedade .optional() e só a valida no superRefine para Ltda.
 	if soc, ok := secao[sociedadeForm](v, topo, "sociedade", false); ok {
 		form.sociedade = soc
-		validarSociedade(v, soc)
+		ehSlu := form.dadosEmpresa != nil && form.dadosEmpresa.TipoConstituicao != nil &&
+			*form.dadosEmpresa.TipoConstituicao == "slu"
+		if !ehSlu {
+			validarSociedade(v, soc)
+		}
 	}
 	if raw, presente := topo["documentosAceitos"]; presente {
 		validarDocumentosAceitos(v, raw, required)

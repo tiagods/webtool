@@ -66,6 +66,12 @@ export default function StepperEngine() {
     }
   });
 
+  // Expõe setValue globalmente para testes E2E (IMaskInput)
+  if (typeof window !== 'undefined') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).__prolink_setValue = methods.setValue;
+  }
+
   const tipoConstituicao = useWatch({
     control: methods.control,
     name: 'dadosEmpresa.tipoConstituicao'

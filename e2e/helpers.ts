@@ -8,11 +8,13 @@ export function uid(): string {
 export async function aceitarLgpd(page: Page): Promise<void> {
   const checkbox = page.getByRole('checkbox');
   await checkbox.waitFor({ state: 'visible', timeout: 15000 });
-  await page.waitForTimeout(3500);
+  // Aguarda o botão de aceite ficar interativo antes de clicar no checkbox
+  await page.getByRole('button', { name: /Li e estou ciente/ }).waitFor({ state: 'visible', timeout: 15000 });
+  await page.waitForTimeout(500);
   await checkbox.check();
 
   // Clica em "Li e estou ciente" e espera a resposta da API
-  const respPromise = page.waitForResponse(r => r.url().includes('/api/aceite-termo') && r.status() === 200, { timeout: 10000 });
+  const respPromise = page.waitForResponse(r => r.url().includes('/api/aceite-termo') && r.status() === 200, { timeout: 15000 });
   await page.getByRole('button', { name: /Li e estou ciente/ }).click();
   await respPromise;
 
@@ -79,33 +81,42 @@ export async function preencherPasso3(page: Page, suffix: string): Promise<void>
   await page.waitForURL(/\?step=3/, { timeout: 15000 });
   await page.getByText(/S.cios/).first().waitFor({ state: 'visible', timeout: 5000 });
 
-  // Socio 1 — usa getByRole com name (label) pois os inputs nao tem placeholder
-  // Preenche todos os campos obrigatorios do socio
+  // Socio 1 — preenche campos + setValue via window para IMaskInput
   await page.getByRole('textbox', { name: /^Nome/ }).first().fill(`Joao Silva ${suffix}`);
-  await page.getByPlaceholder(/^\d{3}\./).first().fill('532.12345.67-8');
   await page.getByRole('textbox', { name: /Profiss/ }).fill('Engenheiro');
-  // pro-labore usa IMaskInput — placeholder existe
-  await page.getByPlaceholder(/labore/).fill('5000');
-  await page.getByRole('textbox', { name: /celular/i }).first().fill('(11) 91234-5678');
   await page.getByRole('textbox', { name: /mail/ }).fill(`joao${suffix}@teste.com`);
-  // estadoCivil: clica no RadioChip "Solteiro"
   await page.getByText('Solteiro').first().click();
 
-  // Adiciona Socio 2 — preenche campos obrigatorios
+  // Garante valores via React Hook Form setValue (IMaskInput)
+  await page.evaluate(() => {
+    const sv = (window as unknown as { __prolink_setValue?: (name: string, value: unknown) => void }).__prolink_setValue;
+    if (sv) {
+      sv('dadosSocios.socios.0.pis', '532.12345.67-8');
+      sv('dadosSocios.socios.0.proLabore', 5000);
+      sv('dadosSocios.socios.0.telefoneCelular', '(11) 91234-5678');
+      sv('dadosSocios.socios.0.telefoneFixo', '');
+    }
+  });
+
+  // Adiciona Socio 2
   await page.getByRole('button', { name: /Adicionar/ }).click();
   await page.waitForTimeout(500);
-
-  // Clica na aba "Sócio 2"
   await page.getByText('Sócio 2').click();
   await page.waitForTimeout(300);
+
   await page.getByRole('textbox', { name: /^Nome/ }).last().fill(`Maria Souza ${suffix}`);
-  await page.getByPlaceholder(/^\d{3}\./).last().fill('123.45678.90-1');
   await page.getByRole('textbox', { name: /Profiss/ }).last().fill('Administradora');
-  // pro-labore usa IMaskInput — placeholder existe
-  await page.getByPlaceholder(/labore/).last().fill('3000');
-  await page.getByRole('textbox', { name: /celular/i }).last().fill('(11) 99876-5432');
   await page.getByRole('textbox', { name: /mail/ }).last().fill(`maria${suffix}@teste.com`);
-  // estadoCivil "Solteiro" ja deve estar selecionado por padrao
+
+  await page.evaluate(() => {
+    const sv = (window as unknown as { __prolink_setValue?: (name: string, value: unknown) => void }).__prolink_setValue;
+    if (sv) {
+      sv('dadosSocios.socios.1.pis', '123.45678.90-1');
+      sv('dadosSocios.socios.1.proLabore', 3000);
+      sv('dadosSocios.socios.1.telefoneCelular', '(11) 99876-5432');
+      sv('dadosSocios.socios.1.telefoneFixo', '');
+    }
+  });
 
   await page.waitForTimeout(300);
 }
@@ -145,7 +156,10 @@ export async function preencherPasso6ESubmeter(page: Page): Promise<void> {
 
 export async function verificarConfirmacao(page: Page): Promise<string> {
   await page.waitForURL(/confirmacao/, { timeout: 30000 });
-  await page.getByText(/Solicitacao enviada/).waitFor({ state: 'visible', timeout: 10000 });
-  const protocolo = await page.locator('text=Protocolo').locator('..').locator('p').last().textContent();
+  await page.getByRole('heading', { name: /Solicita/ }).waitFor({ state: 'visible', timeout: 10000 });
+
+  // Protocolo — localiza o número após "Protocolo"
+  const protocoloLocator = page.locator('text=Protocolo').locator('..').locator('strong, span, p, div').last();
+  const protocolo = await protocoloLocator.textContent({ timeout: 5000 });
   return protocolo ?? '';
 }

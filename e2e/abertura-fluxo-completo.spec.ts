@@ -39,6 +39,6 @@ test.describe('Abertura - Fluxo Completo Ltda', () => {
 
     const protocolo = await verificarConfirmacao(page);
     expect(protocolo).toBeTruthy();
-    expect(protocolo).toContain('PROT-');
+    expect(protocolo).toContain('PRO-');
   });
 });

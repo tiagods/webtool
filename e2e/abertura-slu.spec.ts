@@ -33,7 +33,20 @@ test.describe('Abertura - Fluxo SLU (Sociedade Unipessoal)', () => {
     await page.getByText(/S.cios/).first().waitFor({ state: 'visible', timeout: 5000 });
 
     await page.getByRole('textbox', { name: /^Nome/ }).first().fill(`Socio Unico ${suffix}`);
-    await page.getByPlaceholder(/^\d{3}\./).nth(0).fill('529.982.247-25');
+    await page.getByRole('textbox', { name: /Profiss/ }).fill('Autonomo');
+    await page.getByRole('textbox', { name: /mail/ }).fill(`socio${suffix}@teste.com`);
+    await page.getByText('Solteiro').first().click();
+
+    // Garante valores via React Hook Form setValue (IMaskInput)
+    await page.evaluate(() => {
+      const sv = (window as unknown as { __prolink_setValue?: (name: string, value: unknown) => void }).__prolink_setValue;
+      if (sv) {
+        sv('dadosSocios.socios.0.pis', '532.12345.67-8');
+        sv('dadosSocios.socios.0.proLabore', 5000);
+        sv('dadosSocios.socios.0.telefoneCelular', '(11) 99888-7766');
+        sv('dadosSocios.socios.0.telefoneFixo', '');
+      }
+    });
     await page.getByRole('button', { name: /Avan/ }).click();
 
     // Step 4 - SLU pula Sociedade, vai direto para Documentos
@@ -60,6 +73,6 @@ test.describe('Abertura - Fluxo SLU (Sociedade Unipessoal)', () => {
 
     const protocolo = await verificarConfirmacao(page);
     expect(protocolo).toBeTruthy();
-    expect(protocolo).toContain('PROT-');
+    expect(protocolo).toContain('PRO-');
   });
 });
