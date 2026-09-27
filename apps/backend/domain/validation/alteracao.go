@@ -211,7 +211,7 @@ func ValidarAlteracaoDraft(raw json.RawMessage) []Issue {
 		return []Issue{{Path: nil, Message: "corpo inválido"}}
 	}
 
-	v := &validador{}
+	v := &validador{draft: true}
 
 	if fora := chavesForaDoConjunto(topo, chavesAlteracaoConhecidas); len(fora) > 0 {
 		v.add(nil, "Unrecognized key(s) in object: "+listar(fora))

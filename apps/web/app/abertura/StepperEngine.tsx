@@ -56,8 +56,8 @@ export default function StepperEngine() {
         socios: [socioVazio()],
       },
       sociedade: {
-        capitalSocial: undefined,
-        quotas: [{ percentual: '' as unknown as number, isAdministrador: false }],
+        capitalSocial: 0.01,
+        quotas: [{ percentual: 100, isAdministrador: true }],
         tipoAdministracao: 'isoladamente',
         banco: '',
       },

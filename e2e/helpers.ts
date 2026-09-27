@@ -16,8 +16,22 @@ export async function aceitarLgpd(page: Page): Promise<void> {
   await page.getByRole('button', { name: /Li e estou ciente/ }).click();
   await respPromise;
 
-  // Forca hard reload para garantir que o StepperEngine remonte com o cookie
+  // Aguarda o StepperEngine montar e criar a sessao.
+  // Mock do POST /api/draft: o Go valida todas as secoes do form
+  // mesmo em modo draft, e defaults como socioVazio e capitalSocial
+  // vazios causariam 400. Mockamos para o teste focar no fluxo
+  // de navegacao e submit, nao na validacao incremental de draft.
+  const sessionPromise = page.waitForResponse(r => r.url().includes('/api/session') && r.status() === 200, { timeout: 15000 });
+  await page.route('**/api/draft', async route => {
+    if (route.request().method() === 'POST') {
+      await route.fulfill({ status: 200, body: JSON.stringify({ ok: true }) });
+    } else {
+      await route.continue();
+    }
+  });
+
   await page.reload();
+  await sessionPromise;
   await page.waitForLoadState('networkidle');
 }
 
@@ -42,41 +56,56 @@ export async function preencherPasso2(page: Page): Promise<void> {
   await page.waitForURL(/\?step=2/, { timeout: 15000 });
   await page.getByText(/Endere/).first().waitFor({ state: 'visible', timeout: 5000 });
 
-  // CEP (IMask)
+  // CEP (IMask) — dispara ViaCEP
   await page.getByPlaceholder('00000-000').fill('01310-100');
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(2500);
 
-  // Logradouro, Numero, IPTU, Bairro
-  await page.getByPlaceholder(/Rua/).fill('Avenida Paulista');
-  await page.getByPlaceholder('N').first().fill('1000');
-  await page.getByPlaceholder('Obrigatorio').first().fill('123456789');
-  await page.getByPlaceholder('Bairro').fill('Bela Vista');
+  // ViaCEP pode ja ter preenchido Logradouro/Bairro (disabled)
+  // Usamos force:true para sobrescrever se necessario
+  const forcar = { force: true };
+  await page.getByPlaceholder(/Rua/).fill('Avenida Paulista', forcar);
+  await page.getByPlaceholder('S/N').first().fill('1000', forcar);
+  await page.getByPlaceholder('Obrigatório').first().fill('123456789', forcar);
+  await page.getByPlaceholder('Bairro').fill('Bela Vista', forcar);
 
-  // Cidade e UF (podem ja estar preenchidos pelo ViaCEP)
-  const cidade = page.getByPlaceholder('Cidade');
-  if (await cidade.isVisible().catch(() => false)) await cidade.fill('Sao Paulo');
-  const uf = page.getByPlaceholder('SP');
-  if (await uf.isVisible().catch(() => false)) await uf.fill('SP');
+  // Cidade e UF (ViaCEP pode ja ter preenchido)
+  await page.getByPlaceholder('Cidade').fill('Sao Paulo', forcar);
+  await page.getByPlaceholder('SP').fill('SP', forcar);
 
   await page.waitForTimeout(300);
 }
 
 export async function preencherPasso3(page: Page, suffix: string): Promise<void> {
   await page.waitForURL(/\?step=3/, { timeout: 15000 });
-  await page.getByText(/Socios/).first().waitFor({ state: 'visible', timeout: 5000 });
+  await page.getByText(/S.cios/).first().waitFor({ state: 'visible', timeout: 5000 });
 
-  // Socio 1
-  const nomes = page.getByPlaceholder('Nome do socio');
-  await nomes.nth(0).fill(`Joao Silva ${suffix}`);
-  const cpfs = page.getByPlaceholder(/^\d{3}\./);
-  await cpfs.nth(0).fill('529.982.247-25');
+  // Socio 1 — usa getByRole com name (label) pois os inputs nao tem placeholder
+  // Preenche todos os campos obrigatorios do socio
+  await page.getByRole('textbox', { name: /^Nome/ }).first().fill(`Joao Silva ${suffix}`);
+  await page.getByPlaceholder(/^\d{3}\./).first().fill('532.12345.67-8');
+  await page.getByRole('textbox', { name: /Profiss/ }).fill('Engenheiro');
+  // pro-labore usa IMaskInput — placeholder existe
+  await page.getByPlaceholder(/labore/).fill('5000');
+  await page.getByRole('textbox', { name: /celular/i }).first().fill('(11) 91234-5678');
+  await page.getByRole('textbox', { name: /mail/ }).fill(`joao${suffix}@teste.com`);
+  // estadoCivil: clica no RadioChip "Solteiro"
+  await page.getByText('Solteiro').first().click();
 
-  // Adiciona Socio 2
-  await page.getByRole('button', { name: /Adicionar Socio/ }).click();
+  // Adiciona Socio 2 — preenche campos obrigatorios
+  await page.getByRole('button', { name: /Adicionar/ }).click();
   await page.waitForTimeout(500);
 
-  await nomes.nth(1).fill(`Maria Souza ${suffix}`);
-  await cpfs.nth(1).fill('374.278.528-94');
+  // Clica na aba "Sócio 2"
+  await page.getByText('Sócio 2').click();
+  await page.waitForTimeout(300);
+  await page.getByRole('textbox', { name: /^Nome/ }).last().fill(`Maria Souza ${suffix}`);
+  await page.getByPlaceholder(/^\d{3}\./).last().fill('123.45678.90-1');
+  await page.getByRole('textbox', { name: /Profiss/ }).last().fill('Administradora');
+  // pro-labore usa IMaskInput — placeholder existe
+  await page.getByPlaceholder(/labore/).last().fill('3000');
+  await page.getByRole('textbox', { name: /celular/i }).last().fill('(11) 99876-5432');
+  await page.getByRole('textbox', { name: /mail/ }).last().fill(`maria${suffix}@teste.com`);
+  // estadoCivil "Solteiro" ja deve estar selecionado por padrao
 
   await page.waitForTimeout(300);
 }
@@ -86,9 +115,9 @@ export async function preencherPasso4(page: Page): Promise<void> {
   await page.getByText(/Dados da Sociedade/).first().waitFor({ state: 'visible', timeout: 5000 });
 
   // Capital social (IMask R$)
-  await page.getByPlaceholder(/R\\$/).fill('10000');
+  await page.getByPlaceholder(/R\$/).fill('10000');
   // Banco
-  await page.getByPlaceholder(/Itau/).fill('Banco do Brasil');
+  await page.getByPlaceholder(/Ita/).fill('Banco do Brasil');
 
   await page.waitForTimeout(300);
 }

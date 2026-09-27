@@ -134,17 +134,22 @@ type sociedadeForm struct {
 
 // validador acumula as issues e sinaliza se algum erro "aborted" (invalid_type /
 // invalid_enum_value) já apareceu — nesse caso o cross-field não roda.
+// No modo draft (draft=true), v.add() é no-op; só addFatal() persiste.
 type validador struct {
 	issues  []Issue
 	aborted bool
+	draft   bool
 }
 
 func (v *validador) add(path []any, msg string) {
+	if v.draft {
+		return
+	}
 	v.issues = append(v.issues, Issue{Path: path, Message: msg})
 }
 
 func (v *validador) addFatal(path []any, msg string) {
-	v.add(path, msg)
+	v.issues = append(v.issues, Issue{Path: path, Message: msg})
 	v.aborted = true
 }
 
@@ -206,6 +211,7 @@ func ValidarAberturaForm(raw json.RawMessage) []Issue {
 	}
 
 	v := &validador{}
+
 	form := parseAberturaForm(v, topo, true)
 
 	if !v.aborted {
@@ -223,7 +229,7 @@ func ValidarAberturaDraft(raw json.RawMessage) []Issue {
 		return []Issue{{Path: nil, Message: "corpo inválido"}}
 	}
 
-	v := &validador{}
+	v := &validador{draft: true}
 
 	desconhecidas := chavesDesconhecidas(topo)
 	if len(desconhecidas) > 0 {

@@ -30,9 +30,9 @@ test.describe('Abertura - Fluxo SLU (Sociedade Unipessoal)', () => {
 
     // Step 3 - Socio unico
     await page.waitForURL(/\?step=3/, { timeout: 15000 });
-    await page.getByText(/Socios/).first().waitFor({ state: 'visible', timeout: 5000 });
+    await page.getByText(/S.cios/).first().waitFor({ state: 'visible', timeout: 5000 });
 
-    await page.getByPlaceholder('Nome do socio').nth(0).fill(`Socio Unico ${suffix}`);
+    await page.getByRole('textbox', { name: /^Nome/ }).first().fill(`Socio Unico ${suffix}`);
     await page.getByPlaceholder(/^\d{3}\./).nth(0).fill('529.982.247-25');
     await page.getByRole('button', { name: /Avan/ }).click();
 
