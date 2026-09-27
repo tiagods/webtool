@@ -15,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 
 	"github.com/tiagods/webtool/apps/backend/domain/entity"
+	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
 	"github.com/tiagods/webtool/apps/backend/domain/service"
 	infraaws "github.com/tiagods/webtool/apps/backend/infrastructure/aws"
 	"github.com/tiagods/webtool/apps/backend/infrastructure/config"
@@ -44,12 +45,24 @@ func StartWorker() error {
 
 	aberturaRepo := infraaws.NewDynamoRascunhoRepository(clients.Dynamo, cfg.AWS.DynamoAberturaTable)
 	storage := infraaws.NewS3ObjectStorage(clients.S3, cfg.AWS.S3Bucket)
-	mailer := infraemail.NewSMTPMailer(cfg.SMTP)
+
+	var (
+		mailer    outbound.EmailSender
+		emailMode string
+	)
+	if cfg.SMTP.Configured() {
+		mailer = infraemail.NewSMTPMailer(cfg.SMTP)
+		emailMode = "smtp"
+	} else {
+		mailer = infraemail.NewFileMailer(cfg.EmailOutputDir)
+		emailMode = "file"
+	}
 
 	notificar := service.NewNotificarSubmissao(aberturaRepo, storage, mailer, cfg.SMTP.To)
 
 	slog.Info("worker iniciado",
 		"queue", cfg.AWS.SQSQueueURL,
+		"email_mode", emailMode,
 		"email_to", cfg.SMTP.To,
 		"poll_delay", workerPollDelay.String(),
 	)

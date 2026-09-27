@@ -6,6 +6,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/caarlos0/env/v11"
@@ -56,6 +57,12 @@ func (s SMTP) UsesAuth() bool {
 	return s.User != "" || s.Password != ""
 }
 
+// Configured informa se um servidor SMTP foi configurado. Em dev, ausente
+// implica fallback para arquivo (FileMailer); em produção é sempre obrigatória.
+func (s SMTP) Configured() bool {
+	return s.Host != ""
+}
+
 // Config é a configuração completa e validada do processo.
 type Config struct {
 	Port            int
@@ -65,6 +72,7 @@ type Config struct {
 	ShutdownTimeout time.Duration
 	AWS             AWS
 	SMTP            SMTP
+	EmailOutputDir  string // destino do fallback de e-mail em arquivo (dev sem SMTP)
 }
 
 // IsProd informa se o processo roda em ambiente de produção.
@@ -91,12 +99,14 @@ type raw struct {
 	AWSS3Bucket             string `env:"AWS_S3_BUCKET,required,notEmpty"`
 	AWSSQSQueueURL          string `env:"AWS_SQS_QUEUE_URL,required,notEmpty"`
 
-	SMTPHost     string `env:"SMTP_HOST,required,notEmpty"`
-	SMTPPort     int    `env:"SMTP_PORT,required"`
-	SMTPUser     string `env:"SMTP_USER,required,notEmpty"`
-	SMTPPassword string `env:"SMTP_PASSWORD,required,notEmpty"`
-	SMTPFrom     string `env:"SMTP_FROM,required,notEmpty"`
-	SMTPTo       string `env:"SMTP_TO,required,notEmpty"`
+	// SMTP é opcional em dev (fallback para arquivo); obrigatório em prod.
+	SMTPHost       string `env:"SMTP_HOST"`
+	SMTPPort       int    `env:"SMTP_PORT" envDefault:"587"`
+	SMTPUser       string `env:"SMTP_USER"`
+	SMTPPassword   string `env:"SMTP_PASSWORD"`
+	SMTPFrom       string `env:"SMTP_FROM"`
+	SMTPTo         string `env:"SMTP_TO"`
+	EmailOutputDir string `env:"EMAIL_OUTPUT_DIR"`
 }
 
 // LoadFromEnv carrega a configuração a partir do ambiente do processo. Em caso
@@ -129,8 +139,24 @@ func (r raw) config() (Config, error) {
 		}
 	}
 
+	if r.SMTPHost != "" {
+		if r.SMTPFrom == "" {
+			errs = append(errs, errors.New("SMTP_FROM é obrigatória quando SMTP_HOST está definida"))
+		}
+		if r.SMTPTo == "" {
+			errs = append(errs, errors.New("SMTP_TO é obrigatória quando SMTP_HOST está definida"))
+		}
+	} else if environment == EnvProd {
+		errs = append(errs, errors.New("SMTP_HOST é obrigatória em produção (APP_ENV=prod)"))
+	}
+
 	if err := errors.Join(errs...); err != nil {
 		return Config{}, err
+	}
+
+	emailOutputDir := r.EmailOutputDir
+	if emailOutputDir == "" {
+		emailOutputDir = os.TempDir()
 	}
 
 	return Config{
@@ -158,5 +184,6 @@ func (r raw) config() (Config, error) {
 			From:     r.SMTPFrom,
 			To:       r.SMTPTo,
 		},
+		EmailOutputDir: emailOutputDir,
 	}, nil
 }

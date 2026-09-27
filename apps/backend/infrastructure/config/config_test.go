@@ -34,7 +34,13 @@ func baseEnv(t *testing.T) {
 	}
 
 	unset(t, "AWS_ENDPOINT_URL", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY",
-		"PORT", "SESSION_EXPIRY_SECONDS", "SHUTDOWN_TIMEOUT_SECONDS")
+		"PORT", "SESSION_EXPIRY_SECONDS", "SHUTDOWN_TIMEOUT_SECONDS", "EMAIL_OUTPUT_DIR")
+}
+
+// unsetSMTP remove todas as variáveis SMTP, simulando dev sem servidor de e-mail.
+func unsetSMTP(t *testing.T) {
+	t.Helper()
+	unset(t, "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM", "SMTP_TO")
 }
 
 // unset remove as variáveis durante o teste e restaura o estado anterior no fim.
@@ -79,6 +85,12 @@ func TestLoadFromEnv_ValidoComDefaults(t *testing.T) {
 	}
 	if !cfg.SMTP.UsesAuth() {
 		t.Errorf("UsesAuth() = false, esperado true com SMTP_USER/PASSWORD")
+	}
+	if !cfg.SMTP.Configured() {
+		t.Errorf("Configured() = false, esperado true com SMTP_HOST")
+	}
+	if cfg.EmailOutputDir != os.TempDir() {
+		t.Errorf("EmailOutputDir = %q, esperado %q (default os.TempDir())", cfg.EmailOutputDir, os.TempDir())
 	}
 }
 
@@ -152,9 +164,24 @@ func TestLoadFromEnv_ErrosDeValidacao(t *testing.T) {
 			wantInError: []string{"SessionExpirySeconds"},
 		},
 		{
-			name:        "SMTP_PORT ausente",
-			mutate:      func(t *testing.T) { unset(t, "SMTP_PORT") },
-			wantInError: []string{"SMTP_PORT"},
+			name:        "SMTP_PORT nao numerico",
+			mutate:      func(t *testing.T) { t.Setenv("SMTP_PORT", "abc") },
+			wantInError: []string{"SMTPPort"},
+		},
+		{
+			name: "SMTP_HOST presente sem FROM e TO",
+			mutate: func(t *testing.T) {
+				unset(t, "SMTP_FROM", "SMTP_TO")
+			},
+			wantInError: []string{"SMTP_FROM", "SMTP_TO"},
+		},
+		{
+			name: "prod sem SMTP_HOST",
+			mutate: func(t *testing.T) {
+				t.Setenv("APP_ENV", "prod")
+				unsetSMTP(t)
+			},
+			wantInError: []string{"SMTP_HOST", "APP_ENV=prod"},
 		},
 		{
 			name:        "AWS_ENDPOINT_URL sem credenciais",
@@ -178,6 +205,37 @@ func TestLoadFromEnv_ErrosDeValidacao(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestLoadFromEnv_DevSemSMTP_FallbackArquivo(t *testing.T) {
+	baseEnv(t)
+	unsetSMTP(t)
+
+	cfg, err := config.LoadFromEnv()
+	if err != nil {
+		t.Fatalf("dev sem SMTP não deve falhar: %v", err)
+	}
+	if cfg.SMTP.Configured() {
+		t.Errorf("Configured() = true, esperado false sem SMTP_HOST")
+	}
+	if cfg.EmailOutputDir != os.TempDir() {
+		t.Errorf("EmailOutputDir = %q, esperado %q", cfg.EmailOutputDir, os.TempDir())
+	}
+}
+
+func TestLoadFromEnv_EmailOutputDirOverride(t *testing.T) {
+	baseEnv(t)
+	unsetSMTP(t)
+	dir := t.TempDir()
+	t.Setenv("EMAIL_OUTPUT_DIR", dir)
+
+	cfg, err := config.LoadFromEnv()
+	if err != nil {
+		t.Fatalf("erro inesperado: %v", err)
+	}
+	if cfg.EmailOutputDir != dir {
+		t.Errorf("EmailOutputDir = %q, esperado %q", cfg.EmailOutputDir, dir)
 	}
 }
 
