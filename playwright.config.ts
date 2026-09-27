@@ -1,6 +1,19 @@
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync } from 'fs';
+import { resolve } from 'path';
 
-const chromiumPath = process.env.PLAYWRIGHT_CHROMIUM_PATH || undefined;
+function findChromium(): string | undefined {
+  const env = process.env.PLAYWRIGHT_CHROMIUM_PATH;
+  if (env) return env;
+
+  const home = process.env.LOCALAPPDATA || process.env.USERPROFILE + '\\AppData\\Local';
+  const base = resolve(home, 'ms-playwright');
+  for (const ver of ['chromium-1243', 'chromium-1208']) {
+    const exe = resolve(base, ver, 'chrome-win64', 'chrome.exe');
+    if (existsSync(exe)) return exe;
+  }
+  return undefined;
+}
 
 export default defineConfig({
   testDir: './e2e',
@@ -21,7 +34,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         locale: 'pt-BR',
         launchOptions: {
-          executablePath: chromiumPath,
+          executablePath: findChromium(),
         },
       },
     },
