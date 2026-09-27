@@ -8,7 +8,7 @@ Mapeamento de todos os recursos AWS utilizados no projeto, com configuração, s
 >
 > **IaC de produção:** os recursos reais (DynamoDB, S3, SQS, IAM, Secrets Manager e task definitions) são provisionados de forma idempotente pelos scripts em [`infra/aws/`](../infra/aws/) — ver seção "IaC de produção".
 >
-> **Config:** toda variável de ambiente é lida e validada uma única vez em `apps/backend/infrastructure/config` (boot falha rápido com erro agregado listando o que falta). Variáveis: `APP_ENV` (`dev`|`prod`), `JWT_SECRET`, `PORT`, `SESSION_EXPIRY_SECONDS`, `AWS_REGION`, `AWS_DYNAMODB_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_TO` e (só local) `AWS_ENDPOINT_URL` + chaves estáticas. Os seis `SMTP_*` são **obrigatórios** (sem default no código nem no Compose).
+> **Config:** toda variável de ambiente é lida e validada uma única vez em `apps/backend/infrastructure/config` (boot falha rápido com erro agregado listando o que falta). Variáveis: `APP_ENV` (`dev`|`prod`), `JWT_SECRET`, `PORT`, `SESSION_EXPIRY_SECONDS`, `AWS_REGION`, `AWS_DYNAMODB_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_TO`, `EMAIL_OUTPUT_DIR` e (só local) `AWS_ENDPOINT_URL` + chaves estáticas. O grupo `SMTP_*` é **opcional em dev** (sem `SMTP_HOST` o worker cai no fallback de arquivo); com `APP_ENV=prod`, `SMTP_HOST`/`SMTP_FROM`/`SMTP_TO` são obrigatórios.
 
 ---
 
@@ -190,6 +190,8 @@ Em dev, o CORS é aplicado automaticamente pelo `infra/local/init.sh` (origin fi
 ## E-mail (SMTP)
 
 O worker envia o e-mail de notificação **diretamente por SMTP** (`apps/backend/infrastructure/email`), com as credenciais `SMTP_*` lidas do `config.go`. **Não há SNS nem SES** nesta arquitetura.
+
+> **Fallback dev (spec 035):** sem `SMTP_HOST`, o worker não usa SMTP — grava o HTML da notificação (mesmo corpo, com links presigned) como arquivo `<YYYYMMDDTHHMMSSZ>_<slug-do-Subject>.html` em `EMAIL_OUTPUT_DIR` (default: temp do SO — `/tmp` dentro do container dev). Nada é escrito no repositório; para inspecionar: `docker exec prolink-worker ls /tmp` ou `docker cp`. Em `APP_ENV=prod` o fallback não existe: `SMTP_HOST` é obrigatória no boot.
 
 | Parâmetro | Origem |
 |---|---|

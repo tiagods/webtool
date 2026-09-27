@@ -77,12 +77,6 @@ services:
       AWS_DYNAMODB_ACEITES_TABLE: prolink-aceites-lgpd
       AWS_S3_BUCKET: prolink-fichas
       AWS_SQS_QUEUE_URL: http://floci:4566/000000000000/prolink-abertura
-      SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASSWORD: ${SMTP_PASSWORD}
-      SMTP_FROM: ${SMTP_FROM:-noreply@example.com}
-      SMTP_TO: ${SMTP_TO:-destinatario@example.com}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
       interval: 5s
@@ -115,12 +109,13 @@ services:
       AWS_DYNAMODB_ACEITES_TABLE: prolink-aceites-lgpd
       AWS_S3_BUCKET: prolink-fichas
       AWS_SQS_QUEUE_URL: http://floci:4566/000000000000/prolink-abertura
+      # Opcionais em dev: sem SMTP_HOST o worker cai no fallback de arquivo
+      # (HTML em /tmp dentro do container — spec 035).
       SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
-      SMTP_FROM: ${SMTP_FROM:-noreply@example.com}
-      SMTP_TO: ${SMTP_TO:-destinatario@example.com}
+      SMTP_FROM: ${SMTP_FROM}
+      SMTP_TO: ${SMTP_TO}
     restart: unless-stopped
   # ─── nginx — ponto de entrada público (porta 80) ────────────────────────────
   nginx:
