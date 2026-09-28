@@ -22,29 +22,19 @@ const preenchido = {
     municipio: 'São Paulo',
     estado: 'SP',
     iptu: '1-2-3',
-    imovelAlugado: true,
+    imovelAlugado: 'sim',
   },
   dadosSocios: {
     socios: [
       {
         nome: 'Maria Silva',
-        cpf: '123.456.789-09',
         proLabore: 4500,
         pis: '',
-        rg: '',
-        nacionalidade: '',
         profissao: '',
         telefoneCelular: '',
         telefoneFixo: '',
         email: '',
         estadoCivil: 'solteiro' as const,
-        nomeMae: '',
-        nomePai: '',
-        cepRegistro: '',
-        logradouroRegistro: '',
-        numeroRegistro: '',
-        complementoRegistro: '',
-        bairroRegistro: '',
         teveParticipacaoSocietaria: false,
         cnpjParticipacao: '',
       },
@@ -64,7 +54,7 @@ describe('StepRevisao (abertura)', () => {
       screen.getByText('Avenida Paulista, 1374 — Bela Vista, São Paulo/SP — CEP: 01310-100')
     ).toBeInTheDocument();
     expect(screen.getByText('Sócios (1)')).toBeInTheDocument();
-    expect(screen.getByText('Maria Silva — CPF: 123.456.789-09')).toBeInTheDocument();
+    expect(screen.getByText('Maria Silva')).toBeInTheDocument();
     expect(screen.getByText('Pró-labore: R$ 4500.00')).toBeInTheDocument();
   });
 
@@ -75,16 +65,16 @@ describe('StepRevisao (abertura)', () => {
     expect(screen.getAllByText('-').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('usa placeholders para sócio sem nome, CPF e pró-labore', () => {
+  it('usa placeholders para sócio sem nome e pró-labore', () => {
     renderStep(<StepRevisao />, {
       defaultValues: {
         dadosSocios: {
-          socios: [{ ...preenchido.dadosSocios.socios[0], nome: '', cpf: '', proLabore: 0 }],
+          socios: [{ ...preenchido.dadosSocios.socios[0], nome: '', proLabore: 0 }],
         },
       },
     });
 
-    expect(screen.getByText('Não preenchido — CPF: -')).toBeInTheDocument();
+    expect(screen.getByText('Não preenchido')).toBeInTheDocument();
     expect(screen.getByText('Pró-labore: R$ 0.00')).toBeInTheDocument();
   });
 

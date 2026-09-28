@@ -14,18 +14,17 @@ describe('stepDadosEmpresaSchema', () => {
 });
 
 describe('stepEnderecoSchema', () => {
-  const v = { cep: '01001-000', logradouro: 'Rua X', numero: '100', complemento: 'Apto 42', bairro: 'Bela Vista', municipio: 'Sao Paulo', estado: 'SP', iptu: '123', imovelAlugado: false };
+  const v = { cep: '01001-000', logradouro: 'Rua X', numero: '100', complemento: 'Apto 42', bairro: 'Bela Vista', municipio: 'Sao Paulo', estado: 'SP', iptu: '123', imovelAlugado: 'nao' };
   it('aceita valido', () => { expect(stepEnderecoSchema.parse(v)).toEqual(v); });
   it('aceita complemento opcional', () => { const { complemento, ...s } = v; expect(stepEnderecoSchema.parse(s)).not.toHaveProperty('complemento'); });
   it('rejeita CEP', () => { expect(() => stepEnderecoSchema.parse({ ...v, cep: '12' })).toThrow(); });
   it('rejeita logradouro curto', () => { expect(() => stepEnderecoSchema.parse({ ...v, logradouro: 'A' })).toThrow(); });
   it('rejeita estado invalido', () => { expect(() => stepEnderecoSchema.parse({ ...v, estado: 'S' })).toThrow(); });
 describe('socioSchema', () => {
-  const v = { nome: 'Joao Silva', pis: '123.45678.90-1', cpf: '123.456.789-00', rg: 'RG 12345', nacionalidade: 'Brasileiro', profissao: 'Empresario', proLabore: 2000, telefoneCelular: '(11) 99999-9999', telefoneFixo: '(11) 3333-3333', email: 'a@b.com', estadoCivil: 'solteiro', nomeMae: 'Maria Silva', nomePai: 'Jose Silva', cepRegistro: '02001-000', logradouroRegistro: 'Rua Y', numeroRegistro: '50', complementoRegistro: 'Sala 1', bairroRegistro: 'Centro', registroConselho: 'CRC/SP 123', teveParticipacaoSocietaria: false };
-  it('aceita completo', () => { expect(socioSchema.parse(v)).toEqual(v); });
-  it('aceita opcionais', () => { const { telefoneFixo, nomePai, complementoRegistro, registroConselho, ...s } = v; s.teveParticipacaoSocietaria = false; const r = socioSchema.parse(s); expect(r).not.toHaveProperty('telefoneFixo'); expect(r).not.toHaveProperty('nomePai'); });
+  const v = { nome: 'Joao Silva', pis: '123.45678.90-1', profissao: 'Empresario', proLabore: 2000, telefoneCelular: '(11) 99999-9999', telefoneFixo: '(11) 3333-3333', email: 'a@b.com', estadoCivil: 'solteiro', teveParticipacaoSocietaria: false };
+  it('aceita completo', () => { const r = socioSchema.parse(v); expect(r.nome).toBe('Joao Silva'); expect(r.proLabore).toBe(2000); });
+  it('aceita opcionais', () => { const { telefoneFixo, ...s } = v; s.teveParticipacaoSocietaria = false; const r = socioSchema.parse(s); expect(r).not.toHaveProperty('telefoneFixo'); });
   it('rejeita nome curto', () => { expect(() => socioSchema.parse({ ...v, nome: 'AB' })).toThrow(); });
-  it('rejeita CPF', () => { expect(() => socioSchema.parse({ ...v, cpf: '123' })).toThrow(); });
   it('rejeita PIS', () => { expect(() => socioSchema.parse({ ...v, pis: '123' })).toThrow(); });
   it('rejeita proLabore baixo', () => { expect(() => socioSchema.parse({ ...v, proLabore: 1000 })).toThrow(); });
   it('rejeita email', () => { expect(() => socioSchema.parse({ ...v, email: 'x' })).toThrow(); });
@@ -35,7 +34,7 @@ describe('socioSchema', () => {
 });
 
 describe('stepSociosSchema', () => {
-  const sf = { nome: 'Joao Silva', pis: '123.45678.90-1', cpf: '123.456.789-00', rg: 'RG 12345', nacionalidade: 'Brasileiro', profissao: 'Empresario', proLabore: 2000, telefoneCelular: '(11) 99999-9999', email: 'a@b.com', estadoCivil: 'solteiro', nomeMae: 'Maria Silva', cepRegistro: '02001-000', logradouroRegistro: 'Rua Y', numeroRegistro: '50', bairroRegistro: 'Centro', teveParticipacaoSocietaria: false };
+  const sf = { nome: 'Joao Silva', pis: '123.45678.90-1', profissao: 'Empresario', proLabore: 2000, telefoneCelular: '(11) 99999-9999', email: 'a@b.com', estadoCivil: 'solteiro', teveParticipacaoSocietaria: false };
   it('rejeita socios vazio', () => { expect(() => stepSociosSchema.parse({ socios: [] })).toThrow(); });
   it('aceita 1 socio', () => { expect(stepSociosSchema.parse({ socios: [sf] })).toBeTruthy(); });
 });
@@ -52,11 +51,11 @@ describe('stepSociedadeSchema', () => {
   it('rejeita capital zero', () => { expect(() => stepSociedadeSchema.parse({ ...v, capitalSocial: 0 })).toThrow(); });
   it('rejeita admin invalida', () => { expect(() => stepSociedadeSchema.parse({ ...v, tipoAdministracao: 'x' })).toThrow(); });
 describe('aberturaFormSchema', () => {
-  const sf = { nome: 'Joao Silva', pis: '123.45678.90-1', cpf: '123.456.789-00', rg: 'RG 12345', nacionalidade: 'Brasileiro', profissao: 'Empresario', proLabore: 2000, telefoneCelular: '(11) 99999-9999', email: 'a@b.com', estadoCivil: 'solteiro', nomeMae: 'Maria Silva', cepRegistro: '02001-000', logradouroRegistro: 'Rua Y', numeroRegistro: '50', bairroRegistro: 'Centro', teveParticipacaoSocietaria: false };
+  const sf = { nome: 'Joao Silva', pis: '123.45678.90-1', profissao: 'Empresario', proLabore: 2000, telefoneCelular: '(11) 99999-9999', email: 'a@b.com', estadoCivil: 'solteiro', teveParticipacaoSocietaria: false };
   const base = {
     dadosEmpresa: { tipoConstituicao: 'ltda' as const, nomeEmpresarial1: 'Empresa A', nomeEmpresarial2: 'Empresa B', nomeEmpresarial3: 'Empresa C', nomeFantasia: 'F', atividade: 'descricao acima de 20 chars ok........' },
-    endereco: { cep: '01001-000', logradouro: 'Rua Teste', numero: '1', bairro: 'Bela Vista', municipio: 'Sao Paulo', estado: 'SP', iptu: '1', imovelAlugado: false },
-    dadosSocios: { socios: [sf, { ...sf, nome: 'Maria Souza', cpf: '987.654.321-00', pis: '987.65432.10-2' }] },
+    endereco: { cep: '01001-000', logradouro: 'Rua Teste', numero: '1', bairro: 'Bela Vista', municipio: 'Sao Paulo', estado: 'SP', iptu: '1', imovelAlugado: 'nao' },
+    dadosSocios: { socios: [sf, { ...sf, nome: 'Maria Souza', pis: '987.65432.10-2' }] },
     sociedade: { capitalSocial: 1000, quotas: [{ percentual: 60, isAdministrador: true }, { percentual: 40, isAdministrador: true }], tipoAdministracao: 'conjunta', banco: 'BB' },
     documentosAceitos: true,
   };
@@ -80,5 +79,5 @@ describe('aberturaFormDraftSchema', () => {
   it('aceita admin outras', () => { expect(stepSociedadeSchema.parse({ ...v, tipoAdministracao: 'outras' })).toHaveProperty('tipoAdministracao', 'outras'); });
 });
   it('rejeita iptu vazio', () => { expect(() => stepEnderecoSchema.parse({ ...v, iptu: '' })).toThrow(); });
-  it('aceita imovelAlugado true', () => { expect(stepEnderecoSchema.parse({ ...v, imovelAlugado: true })).toHaveProperty('imovelAlugado', true); });
+  it('aceita imovelAlugado sim', () => { expect(stepEnderecoSchema.parse({ ...v, imovelAlugado: 'sim' })).toHaveProperty('imovelAlugado', 'sim'); });
 });

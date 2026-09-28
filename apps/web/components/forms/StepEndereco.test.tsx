@@ -18,7 +18,7 @@ const defaultValues = {
     municipio: '',
     estado: '',
     iptu: '',
-    imovelAlugado: false,
+    imovelAlugado: 'nao',
   },
 };
 
@@ -90,9 +90,9 @@ describe('StepEndereco', () => {
     renderStep(<StepEndereco />, { defaultValues });
 
     await userEvent.click(screen.getByText('Sim — Alugado'));
-    expect(lerEstado().endereco.imovelAlugado).toBe(true);
+    expect(lerEstado().endereco.imovelAlugado).toBe('sim');
 
     await userEvent.click(screen.getByText('Não — Próprio / Cedido'));
-    expect(lerEstado().endereco.imovelAlugado).toBe(false);
+    expect(lerEstado().endereco.imovelAlugado).toBe('nao');
   });
 });

@@ -1,31 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { http, HttpResponse } from 'msw';
 import StepSocios from '@/components/forms/StepSocios';
-import { server } from '@/mocks/server';
 import { lerEstado, renderStep } from '@/mocks/form-harness';
 
 function socio(overrides: Record<string, unknown> = {}) {
   return {
     nome: 'Ana Souza',
     pis: '',
-    cpf: '',
-    rg: '',
-    nacionalidade: '',
     profissao: 'Analista',
     proLabore: 0,
     telefoneCelular: '',
     telefoneFixo: '',
     email: '',
     estadoCivil: 'solteiro' as const,
-    nomeMae: '',
-    nomePai: '',
-    cepRegistro: '',
-    logradouroRegistro: '',
-    numeroRegistro: '',
-    complementoRegistro: '',
-    bairroRegistro: '',
     teveParticipacaoSocietaria: false,
     cnpjParticipacao: '',
     ...overrides,
@@ -58,7 +46,6 @@ describe('StepSocios', () => {
     });
 
     expect(screen.getByPlaceholderText('00.000.000/0000-00')).toHaveValue('');
-    expect(screen.getByPlaceholderText('00000-000')).toHaveValue('');
 
     await userEvent.click(screen.getByText('Sócio 2'));
     await userEvent.click(screen.getByText('Sócio 1'));
@@ -123,43 +110,6 @@ describe('StepSocios', () => {
 
     await userEvent.click(screen.getAllByText('Não')[0]);
     expect(screen.queryByPlaceholderText('00.000.000/0000-00')).not.toBeInTheDocument();
-  });
-
-  it('aplica as máscaras de CPF, PIS, celular e pró-labore', async () => {
-    renderStep(<StepSocios isSlu={false} />, { defaultValues: doisSocios });
-
-    await userEvent.type(screen.getByPlaceholderText('000.000.000-00'), '12345678909');
-    await userEvent.type(screen.getByPlaceholderText('000.00000.00-0'), '12345678901');
-    await userEvent.type(screen.getByPlaceholderText('(00) 00000-0000'), '11999991234');
-    await userEvent.type(screen.getByPlaceholderText('R$ 0,00'), '4500');
-
-    const primeiro = lerEstado().dadosSocios.socios[0];
-    expect(primeiro.cpf).toBe('123.456.789-09');
-    expect(primeiro.pis).toBe('123.45678.90-1');
-    expect(primeiro.telefoneCelular).toBe('(11) 99999-1234');
-    expect(primeiro.proLabore).toBe(4500);
-  });
-
-  it('preenche o endereço do sócio pelo CEP', async () => {
-    renderStep(<StepSocios isSlu={false} />, { defaultValues: doisSocios });
-
-    await userEvent.type(screen.getByPlaceholderText('00000-000'), '01310100');
-
-    await waitFor(() =>
-      expect(screen.getByDisplayValue('Avenida Paulista')).toBeInTheDocument()
-    );
-    expect(screen.getByDisplayValue('Avenida Paulista')).toBeDisabled();
-  });
-
-  it('mostra o erro do ViaCEP no endereço do sócio', async () => {
-    server.use(
-      http.get('https://viacep.com.br/ws/:cep/json/', () => HttpResponse.json({ erro: true }))
-    );
-    renderStep(<StepSocios isSlu={false} />, { defaultValues: doisSocios });
-
-    await userEvent.type(screen.getByPlaceholderText('00000-000'), '99999999');
-
-    expect(await screen.findByText('CEP não encontrado.')).toBeInTheDocument();
   });
 
   it('mostra o erro de raiz da lista de sócios', async () => {

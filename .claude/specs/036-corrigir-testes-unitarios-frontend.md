@@ -1,7 +1,7 @@
 ---
 id: "036"
 title: "Corrigir testes unitários quebrados em packages/shared e apps/web"
-status: draft
+status: wip
 created: 2026-09-27
 author: "Tiago"
 batch_size: "small"

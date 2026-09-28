@@ -8,22 +8,12 @@ function socio(overrides: Record<string, unknown>) {
   return {
     nome: 'Ana Souza',
     pis: '',
-    cpf: '',
-    rg: '',
-    nacionalidade: '',
     profissao: 'Analista',
     proLabore: 2000,
     telefoneCelular: '',
     telefoneFixo: '',
     email: '',
     estadoCivil: 'solteiro' as const,
-    nomeMae: '',
-    nomePai: '',
-    cepRegistro: '',
-    logradouroRegistro: '',
-    numeroRegistro: '',
-    complementoRegistro: '',
-    bairroRegistro: '',
     teveParticipacaoSocietaria: false,
     cnpjParticipacao: '',
     ...overrides,
@@ -31,7 +21,7 @@ function socio(overrides: Record<string, unknown>) {
 }
 
 const comParticipacao = {
-  endereco: { imovelAlugado: true },
+  endereco: { imovelAlugado: 'sim' },
   dadosSocios: {
     socios: [
       socio({ nome: 'Ana Souza', estadoCivil: 'casado_comunhao_parcial', profissao: 'Advogada' }),
@@ -86,7 +76,7 @@ describe('StepDocumentos', () => {
   it('imóvel próprio não pede contrato e avisa para alterar no passo 2', async () => {
     renderStep(<StepDocumentos />, {
       defaultValues: {
-        endereco: { imovelAlugado: false },
+        endereco: { imovelAlugado: 'nao' },
         dadosSocios: { socios: [socio({})] },
       },
     });
@@ -101,7 +91,7 @@ describe('StepDocumentos', () => {
   it('usa fallback de nome do sócio na aba e no conteúdo', () => {
     renderStep(<StepDocumentos />, {
       defaultValues: {
-        endereco: { imovelAlugado: false },
+        endereco: { imovelAlugado: 'nao' },
         dadosSocios: { socios: [socio({ nome: '' })] },
       },
     });
@@ -125,7 +115,7 @@ describe('StepDocumentos', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Remover arquivo' }));
     await waitFor(() => expect(screen.getByText('0/2')).toBeInTheDocument());
-    expect(lerEstado().endereco?.imovelAlugado).toBe(true);
+    expect(lerEstado().endereco?.imovelAlugado).toBe('sim');
 
     fireEvent.change(container.querySelectorAll('input[type="file"]')[0], {
       target: { files: [arquivo()] },

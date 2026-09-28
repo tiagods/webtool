@@ -71,7 +71,7 @@ function ProgressBar({ sent, total }: { sent: number; total: number }) {
 export default function StepDocumentos() {
   const { control } = useFormContext<AberturaFormValues>();
   const socios      = useWatch({ control, name: 'dadosSocios.socios' }) ?? [];
-  const imovelAlugado = useWatch({ control, name: 'endereco.imovelAlugado' }) ?? false;
+  const imovelAlugado = useWatch({ control, name: 'endereco.imovelAlugado' }) ?? 'nao';
 
   // Tab: 0 = Imóvel, 1..N = Sócios
   const [activeTab, setActiveTab] = useState(1);
