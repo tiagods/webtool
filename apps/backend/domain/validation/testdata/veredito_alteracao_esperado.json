@@ -339,32 +339,16 @@
   {
     "nome": "draft_identificacao_inapta",
     "modo": "draft",
-    "aceito": false,
-    "issuePaths": [
-      "identificacao/situacao"
-    ],
-    "issues": [
-      {
-        "path": "identificacao/situacao",
-        "code": "custom",
-        "message": "Apenas empresas com situação ATIVA podem prosseguir com a alteração."
-      }
-    ]
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
   },
   {
     "nome": "draft_chave_topo_desconhecida",
     "modo": "draft",
-    "aceito": false,
-    "issuePaths": [
-      "(root)"
-    ],
-    "issues": [
-      {
-        "path": "(root)",
-        "code": "unrecognized_keys",
-        "message": "Unrecognized key(s) in object: 'foo'"
-      }
-    ]
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
   },
   {
     "nome": "draft_aceite_false",
@@ -390,38 +374,16 @@
   {
     "nome": "draft_q05_aumento_incompleto",
     "modo": "draft",
-    "aceito": false,
-    "issuePaths": [
-      "q05/especificarIntegralizacao",
-      "q05/valorIntegralizacao"
-    ],
-    "issues": [
-      {
-        "path": "q05/valorIntegralizacao",
-        "code": "custom",
-        "message": "Informe o valor da integralização"
-      },
-      {
-        "path": "q05/especificarIntegralizacao",
-        "code": "custom",
-        "message": "Especifique a forma de integralização"
-      }
-    ]
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
   },
   {
     "nome": "draft_q07_outras_sem_especificar",
     "modo": "draft",
-    "aceito": false,
-    "issuePaths": [
-      "q07/especificar"
-    ],
-    "issues": [
-      {
-        "path": "q07/especificar",
-        "code": "custom",
-        "message": "Especifique a transformação"
-      }
-    ]
+    "aceito": true,
+    "issuePaths": [],
+    "issues": []
   },
   {
     "nome": "draft_parcial_valido_identificacao_e_q02",

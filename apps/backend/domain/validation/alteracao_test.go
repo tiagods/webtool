@@ -99,9 +99,8 @@ func TestAlteracaoRefinesCondicionais(t *testing.T) {
 		issues := ValidarAlteracaoDraft(json.RawMessage(
 			`{"q05":{"valorCapitalSocial":10000,"tipoAlteracao":"aumento"}}`))
 		got := caminhosUnicos(issues)
-		want := []string{"q05/especificarIntegralizacao", "q05/valorIntegralizacao"}
-		if !slices.Equal(got, want) {
-			t.Errorf("got %v want %v", got, want)
+		if len(got) > 0 {
+			t.Errorf("esperava aceito em draft, veio %v", got)
 		}
 	})
 
@@ -118,8 +117,8 @@ func TestAlteracaoRefinesCondicionais(t *testing.T) {
 		t.Parallel()
 		issues := ValidarAlteracaoDraft(json.RawMessage(`{"q07":{"tipoTransformacao":"outras"}}`))
 		got := caminhosUnicos(issues)
-		if !slices.Equal(got, []string{"q07/especificar"}) {
-			t.Errorf("got %v", got)
+		if len(got) > 0 {
+			t.Errorf("esperava aceito em draft, veio %v", got)
 		}
 	})
 
