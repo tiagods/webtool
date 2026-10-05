@@ -227,3 +227,10 @@ testes unitários/caracterização. Guardar cookies pré-submit para exercitar c
 **Causa raiz**: a fila SQS é criada uma vez no `TestMain` e compartilhada por todos os testes. Sempre que um teste publica uma mensagem, o próximo teste pode lê-la se não drenar antes.
 
 **Regra**: antes de publicar e ler SQS em testes de integração com fila compartilhada, drenar todas as mensagens pendentes com `drenarFilaSQS()` para garantir que só a mensagem esperada seja lida.
+## 2026-10-05 — Spec 038 — Spec não narra o que foi descartado
+
+**Contexto**: ao escrever a spec 038 (infra em Terraform), os recursos que o usuário decidiu não usar (Secrets Manager, ECS/task definitions) ficaram na spec como linhas "descartado", itens de "Fora de escopo" e notas explicando a decisão. O usuário pediu para apenas remover.
+
+**Causa raiz**: a spec foi derivada dos scripts existentes em `infra/aws` em vez de confirmar antes o que o projeto de fato usa; ao receber o corte, a decisão foi documentada em vez de simplesmente aplicada.
+
+**Regra**: quando o usuário corta um recurso do escopo, removê-lo da spec por inteiro — sem linha "descartado", sem nota justificando. A spec descreve o que será construído. Antes de espelhar scripts/IaC legados numa spec, confirmar com o usuário quais recursos estão realmente em uso.
