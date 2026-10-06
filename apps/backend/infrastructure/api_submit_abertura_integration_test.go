@@ -115,12 +115,21 @@ func TestIntegrationAbertura_SubmitSLU(t *testing.T) {
 	resp := req(d, t, http.MethodPost, "/api/draft", payload, []*http.Cookie{aceiteCookie, sessCookie})
 	assertStatus(t, resp, http.StatusOK)
 
+	// Drena mensagens de testes anteriores na fila SQS antes de submeter
+	drenarFilaSQS(d, t)
+
 	resp = req(d, t, http.MethodPost, "/api/submit", payload, []*http.Cookie{aceiteCookie, sessCookie})
 	assertStatus(t, resp, http.StatusOK)
 	var submitRes struct{ Protocolo string }
 	mustDecodeJSON(t, resp, &submitRes)
 	if !strings.HasPrefix(submitRes.Protocolo, "PRO-") {
 		t.Fatalf("protocolo = %q", submitRes.Protocolo)
+	}
+
+	// Remove a mensagem SQS gerada pelo submit para não contaminar o próximo teste
+	msg := receberMensagemSQS(d, t)
+	if msg != nil {
+		deletarMensagemSQS(d, t, *msg.ReceiptHandle)
 	}
 }
 

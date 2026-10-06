@@ -61,6 +61,7 @@ func TestFileMailer_CriaDiretorio(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ReadDir: %v", err)
 	}
+	t.Logf("Diretório: %s", dir)
 	if len(entries) != 1 {
 		t.Fatalf("arquivos = %d, esperado 1", len(entries))
 	}

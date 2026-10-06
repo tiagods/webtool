@@ -12,6 +12,5 @@ import (
 func TestMain(m *testing.M) {
 	testhelpers.SetupTestMain()
 	code := m.Run()
-	testhelpers.Teardown()
 	os.Exit(code)
 }

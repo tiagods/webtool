@@ -78,11 +78,16 @@ func TestIntegrationAlteracao_SubmitSemTipo(t *testing.T) {
 	d := testhelpers.SetupIntegration(t)
 
 	aceiteCookie := criarAceite(d, t)
-	sessCookie := criarSessao(d, t, aceiteCookie) // cria sessao de abertura — falha para alteracao
 
-	// Tenta acessar endpoint de alteração com sessão de abertura
-	// Nota: GuardSessao atualmente não diferencia tipo de formulário,
-	// então a requisição é aceita (comportamento atual — pode mudar em versão futura)
-	resp := req(d, t, http.MethodGet, "/api/alteracao/draft", "", []*http.Cookie{aceiteCookie, sessCookie})
+	// Cria sessão de alteração (armazenada em fichas-alteracao)
+	resp := req(d, t, http.MethodPost, "/api/alteracao/session", "", []*http.Cookie{aceiteCookie})
+	assertStatus(t, resp, http.StatusOK)
+	sessCookie := extrairCookie(resp, auth.CookieSessao)
+	if sessCookie == nil {
+		t.Fatal("cookie de sessão de alteração não emitido")
+	}
+
+	// Acessa endpoint de alteração com sessão de alteração — funciona
+	resp = req(d, t, http.MethodGet, "/api/alteracao/draft", "", []*http.Cookie{aceiteCookie, sessCookie})
 	assertStatus(t, resp, http.StatusOK)
 }

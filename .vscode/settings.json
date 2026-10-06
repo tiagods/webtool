@@ -1,0 +1,16 @@
+{
+    // ─── Go ──────────────────────────────────────────────────────────────────
+    // Build tag exigida pelos testes de integração (//go:build integration)
+    // go.testTags é suportado a partir da extensão Go v0.40.0+
+    // go.testFlags + -tags cobre versões anteriores
+    "go.buildTags": "integration",
+    "go.testTags": "integration",
+    "go.testFlags": ["-tags=integration", "-count=1"],
+
+    // ─── gopls ───────────────────────────────────────────────────────────────
+    // Faz o gopls reconhecer arquivos com build tag "integration" no
+    // autocomplete, navegação e diagnósticos.
+    "gopls": {
+        "build.buildFlags": ["-tags=integration"]
+    }
+}

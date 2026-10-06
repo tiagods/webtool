@@ -27,6 +27,14 @@ import (
 	"github.com/tiagods/webtool/apps/backend/infrastructure/ratelimit"
 )
 
+const (
+	// Recursos REAIS do Floci — cada repositório aponta para sua tabela.
+	testAberturaTable  = "fichas-abertura"
+	testAlteracaoTable = "fichas-alteracao"
+	testAceiteTable    = "prolink-aceites-lgpd"
+	testBucket         = "prolink-fichas"
+)
+
 type MockEmailSender struct {
 	mu       sync.Mutex
 	Enviados []outbound.EmailData
@@ -68,14 +76,16 @@ type TestDeps struct {
 }
 
 var (
-	cleanupFn func()
-	setupOnce sync.Once
-	deps      *TestDeps
+	setupTestMainOnce sync.Once
+	deps              *TestDeps
+	testQueueURL      string // URL real da fila SQS (nome único por execução)
 )
 
-// SetupTestMain is called from TestMain — no *testing.T, uses panic.
+// ─── SetupTestMain ───────────────────────────────────────────────────────────
+// Cria recursos AWS compartilhados (nomes fixos) UMA vez.
+// Teardown os deleta após todos os testes.
 func SetupTestMain() {
-	setupOnce.Do(func() {
+	setupTestMainOnce.Do(func() {
 		ctx := context.Background()
 		endpoint := testEndpoint()
 		clients, err := infraaws.NewClients(ctx, config.AWS{
@@ -87,16 +97,22 @@ func SetupTestMain() {
 		if err != nil {
 			panic("montar clients AWS: " + err.Error())
 		}
-		table := createOrReplaceDynamoTableTM(clients)
-		bucket := createOrReplaceBucketTM(ctx, clients)
-		queueURL := createOrReplaceQueueTM(clients)
 
-		aberturaRepo := infraaws.NewDynamoRascunhoRepository(clients.Dynamo, table)
-		alteracaoRepo := infraaws.NewDynamoRascunhoRepository(clients.Dynamo, table)
-		aceiteRepo := infraaws.NewDynamoAceiteRepository(clients.Dynamo, table)
-		storage := infraaws.NewS3ObjectStorage(clients.S3, bucket)
-		aberturaProtocolo := infraaws.NewDynamoProtocoloCounter(clients.Dynamo, table)
-		alteracaoProtocolo := infraaws.NewDynamoProtocoloCounter(clients.Dynamo, table)
+		// Recria tabelas "sessionId" (PK) — fichas-abertura e fichas-alteracao
+		createOrReplaceDynamoTableFixed(ctx, clients, testAberturaTable)
+		createOrReplaceDynamoTableFixed(ctx, clients, testAlteracaoTable)
+		// prolink-aceites-lgpd NÃO é recriada (schema PK+SK diferente)
+		createOrReplaceBucketFixed(ctx, clients)
+		createOrReplaceQueueFixed(ctx, clients)
+
+		queueURL := testQueueURL
+
+		aberturaRepo := infraaws.NewDynamoRascunhoRepository(clients.Dynamo, testAberturaTable)
+		alteracaoRepo := infraaws.NewDynamoRascunhoRepository(clients.Dynamo, testAlteracaoTable)
+		aceiteRepo := infraaws.NewDynamoAceiteRepository(clients.Dynamo, testAceiteTable)
+		storage := infraaws.NewS3ObjectStorage(clients.S3, testBucket)
+		aberturaProtocolo := infraaws.NewDynamoProtocoloCounter(clients.Dynamo, testAberturaTable)
+		alteracaoProtocolo := infraaws.NewDynamoProtocoloCounter(clients.Dynamo, testAlteracaoTable)
 		submissoes := infraaws.NewSQSSubmissaoPublisher(clients.SQS, queueURL)
 		tokens := auth.NewJWTTokenService("test-secret", 30*time.Minute)
 		emailMock := &MockEmailSender{}
@@ -116,108 +132,73 @@ func SetupTestMain() {
 
 		notificar := service.NewNotificarSubmissao(aberturaRepo, storage, emailMock, "test@prolink.local")
 
-		cleanupFn = func() {
-			e.Shutdown(context.Background())
-			deleteDynamoTable(context.Background(), clients, table)
-			emptyBucket(context.Background(), clients, bucket)
-			clients.S3.DeleteBucket(context.Background(), &s3.DeleteBucketInput{Bucket: awssdk.String(bucket)})
-			clients.SQS.DeleteQueue(context.Background(), &sqs.DeleteQueueInput{QueueUrl: awssdk.String(queueURL)})
-		}
-
 		deps = &TestDeps{
-			DynamoTable: table, S3Bucket: bucket, SQSQueueURL: queueURL,
+			DynamoTable: testAberturaTable, S3Bucket: testBucket, SQSQueueURL: queueURL,
 			Echo: e, Clients: clients, EmailMock: emailMock, Tokens: tokens,
 			AberturaRepo: aberturaRepo, AlteracaoRepo: alteracaoRepo, Notificar: notificar,
 		}
 	})
 }
 
-// Teardown cleans up all resources created by SetupTestMain.
-func Teardown() {
-	if cleanupFn != nil {
-		cleanupFn()
-		cleanupFn = nil
-	}
-}
+func Teardown() {}
 
-// SetupIntegration is called from individual _test.go files.
-// Resources are managed by TestMain (SetupTestMain + Teardown).
+// ─── SetupIntegration ────────────────────────────────────────────────────────
+// Retorna os deps compartilhados (criados por SetupTestMain).
+// Cada teste usa os MESMOS recursos — sem criação aleatória por teste.
 func SetupIntegration(t *testing.T) *TestDeps {
 	t.Helper()
-	setupOnce.Do(func() { deps = setup(t) })
+	if deps == nil {
+		t.Fatal("SetupIntegration: SetupTestMain nao foi chamado. Use 'go test -tags integration' com TestMain ou chame SetupTestMain primeiro.")
+	}
 	return deps
 }
 
-func setup(t *testing.T) *TestDeps {
-	t.Helper()
-	ctx := context.Background()
-	endpoint := testEndpoint()
-	clients, err := infraaws.NewClients(ctx, config.AWS{
-		Region:          "us-east-1",
-		EndpointURL:     endpoint,
-		AccessKeyID:     "test",
-		SecretAccessKey: "test",
+// ─── Helpers de criação com nomes FIXOS ─────────────────────────────────────
+
+func createOrReplaceDynamoTableFixed(ctx context.Context, c *infraaws.Clients, tableName string) {
+	_, _ = c.Dynamo.DeleteTable(ctx, &dynamodb.DeleteTableInput{TableName: awssdk.String(tableName)})
+	_, err := c.Dynamo.CreateTable(ctx, &dynamodb.CreateTableInput{
+		TableName: awssdk.String(tableName), BillingMode: ddbtypes.BillingModePayPerRequest,
+		AttributeDefinitions: []ddbtypes.AttributeDefinition{
+			{AttributeName: awssdk.String("sessionId"), AttributeType: ddbtypes.ScalarAttributeTypeS},
+		},
+		KeySchema: []ddbtypes.KeySchemaElement{
+			{AttributeName: awssdk.String("sessionId"), KeyType: ddbtypes.KeyTypeHash},
+		},
 	})
 	if err != nil {
-		t.Fatalf("montar clients AWS: %v", err)
+		panic("criar tabela " + tableName + ": " + err.Error())
 	}
-
-	table := createOrReplaceDynamoTable(t, clients)
-	bucket := createOrReplaceBucket(t, ctx, clients)
-	queueURL := createOrReplaceQueue(t, clients)
-
-	aberturaRepo := infraaws.NewDynamoRascunhoRepository(clients.Dynamo, table)
-	alteracaoRepo := infraaws.NewDynamoRascunhoRepository(clients.Dynamo, table)
-	aceiteRepo := infraaws.NewDynamoAceiteRepository(clients.Dynamo, table)
-	storage := infraaws.NewS3ObjectStorage(clients.S3, bucket)
-	aberturaProtocolo := infraaws.NewDynamoProtocoloCounter(clients.Dynamo, table)
-	alteracaoProtocolo := infraaws.NewDynamoProtocoloCounter(clients.Dynamo, table)
-	submissoes := infraaws.NewSQSSubmissaoPublisher(clients.SQS, queueURL)
-	tokens := auth.NewJWTTokenService("test-secret", 30*time.Minute)
-	emailMock := &MockEmailSender{}
-
-	e := web.NewRouter(web.Deps{
-		Aceite:            service.NewAceiteService(aceiteRepo, tokens),
-		Sessao:            service.NewSessaoService(aberturaRepo, alteracaoRepo, tokens, storage),
-		Rascunho:          service.NewRascunhoService(aberturaRepo),
-		Upload:            service.NewUploadService(storage, service.PresignUploadExpiraEm),
-		Submit:            service.NewSubmitService(aberturaRepo, aberturaProtocolo, submissoes, storage),
-		RascunhoAlteracao: service.NewAlteracaoRascunhoService(alteracaoRepo),
-		SubmitAlteracao:   service.NewAlteracaoSubmitService(alteracaoProtocolo, storage, submissoes, alteracaoRepo),
-		Tokens:            tokens,
-		Cookies:           auth.NewCookieBuilder(false, 30*time.Minute),
-		RateLimit:         ratelimit.NewFixedWindow(100000, ratelimit.PadraoJanela),
+	// Habilita TTL no atributo "ttl" (igual ao init.sh das tabelas reais)
+	_, _ = c.Dynamo.UpdateTimeToLive(ctx, &dynamodb.UpdateTimeToLiveInput{
+		TableName: awssdk.String(tableName),
+		TimeToLiveSpecification: &ddbtypes.TimeToLiveSpecification{
+			Enabled: awssdk.Bool(true),
+			AttributeName: awssdk.String("ttl"),
+		},
 	})
+}
 
-	notificar := service.NewNotificarSubmissao(aberturaRepo, storage, emailMock, "test@prolink.local")
-
-	cleanupFn = func() {
-		e.Shutdown(context.Background())
-		deleteDynamoTable(context.Background(), clients, table)
-		emptyBucket(context.Background(), clients, bucket)
-		clients.S3.DeleteBucket(context.Background(), &s3.DeleteBucketInput{Bucket: awssdk.String(bucket)})
-		clients.SQS.DeleteQueue(context.Background(), &sqs.DeleteQueueInput{QueueUrl: awssdk.String(queueURL)})
-	}
-
-	return &TestDeps{
-		DynamoTable: table, S3Bucket: bucket, SQSQueueURL: queueURL,
-		Echo: e, Clients: clients, EmailMock: emailMock, Tokens: tokens,
-		AberturaRepo: aberturaRepo, AlteracaoRepo: alteracaoRepo, Notificar: notificar,
+func createOrReplaceBucketFixed(ctx context.Context, c *infraaws.Clients) {
+	emptyBucket(ctx, c, testBucket)
+	_, _ = c.S3.DeleteBucket(ctx, &s3.DeleteBucketInput{Bucket: awssdk.String(testBucket)})
+	_, err := c.S3.CreateBucket(ctx, &s3.CreateBucketInput{Bucket: awssdk.String(testBucket)})
+	if err != nil {
+		panic("criar bucket " + testBucket + ": " + err.Error())
 	}
 }
 
-func testEndpoint() string {
-	if v := os.Getenv("AWS_ENDPOINT_URL"); v != "" {
-		return v
+func createOrReplaceQueueFixed(ctx context.Context, c *infraaws.Clients) {
+	// Nome único por execução para não contaminar outros testes via SQS
+	name := fmt.Sprintf("it-queue-%d", time.Now().UnixNano())
+	out, err := c.SQS.CreateQueue(ctx, &sqs.CreateQueueInput{QueueName: awssdk.String(name)})
+	if err != nil {
+		panic("criar fila " + name + ": " + err.Error())
 	}
-	return "http://localhost:4566"
+	testQueueURL = *out.QueueUrl
 }
 
-func uniqueName(prefix string) string {
-	return fmt.Sprintf("%s-%d", prefix, time.Now().UnixNano())
-}
-
-// ---- helpers with *testing.T ----
+// ─── Helpers de criação com nomes ÚNICOS (mantidos para compatibilidade) ─────
 
 func createOrReplaceDynamoTable(t *testing.T, c *infraaws.Clients) string {
 	t.Helper()
@@ -256,8 +237,6 @@ func createOrReplaceQueue(t *testing.T, c *infraaws.Clients) string {
 	return *out.QueueUrl
 }
 
-// ---- helpers without *testing.T (for TestMain) ----
-
 func createOrReplaceDynamoTableTM(c *infraaws.Clients) string {
 	ctx := context.Background()
 	name := uniqueName("it-tbl")
@@ -292,8 +271,17 @@ func createOrReplaceQueueTM(c *infraaws.Clients) string {
 	return *out.QueueUrl
 }
 
-func deleteDynamoTable(ctx context.Context, c *infraaws.Clients, table string) {
-	_, _ = c.Dynamo.DeleteTable(ctx, &dynamodb.DeleteTableInput{TableName: awssdk.String(table)})
+// ─── Utilitários ─────────────────────────────────────────────────────────────
+
+func testEndpoint() string {
+	if v := os.Getenv("AWS_ENDPOINT_URL"); v != "" {
+		return v
+	}
+	return "http://localhost:4566"
+}
+
+func uniqueName(prefix string) string {
+	return fmt.Sprintf("%s-%d", prefix, time.Now().UnixNano())
 }
 
 func emptyBucket(ctx context.Context, c *infraaws.Clients, bucket string) {
