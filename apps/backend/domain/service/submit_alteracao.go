@@ -6,9 +6,12 @@ import (
 	"fmt"
 
 	"github.com/tiagods/webtool/apps/backend/domain/entity"
+	"github.com/tiagods/webtool/apps/backend/domain/ports/inbound"
 	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
 	"github.com/tiagods/webtool/apps/backend/domain/validation"
 )
+
+var _ inbound.SubmissaoUseCase = (*AlteracaoSubmitService)(nil)
 
 // AlteracaoSubmitService finaliza a Ficha de Alteração (rota POST
 // /api/alteracao/submit).

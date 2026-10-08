@@ -8,7 +8,10 @@ import (
 	"strings"
 	"testing"
 
+	"go.uber.org/mock/gomock"
+
 	"github.com/tiagods/webtool/apps/backend/domain/entity"
+	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
 	testhelpers "github.com/tiagods/webtool/apps/backend/infrastructure/testhelpers"
 )
 
@@ -34,6 +37,15 @@ func TestIntegrationWorker_ProcessaAbertura(t *testing.T) {
 	}
 	seedS3Object(d, t, sessionID+"/contrato_social.pdf", "application/pdf", "%PDF-1.4 conteudo")
 
+	// Captura o DTO da notificação enviado ao canal configurado
+	var recebida *outbound.NotificacaoAbertura
+	d.Notificacoes.EXPECT().
+		EnviarAbertura(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ context.Context, n outbound.NotificacaoAbertura) error {
+			recebida = &n
+			return nil
+		})
+
 	// Executa o worker
 	msg := entity.SubmissaoMessage{
 		SessionID: sessionID,
@@ -46,16 +58,21 @@ func TestIntegrationWorker_ProcessaAbertura(t *testing.T) {
 		t.Fatalf("Processar (abertura): %v", err)
 	}
 
-	// Verifica email
-	email := d.EmailMock.Ultimo()
-	if email == nil {
-		t.Fatal("email não enviado")
+	// Verifica a notificação
+	if recebida == nil {
+		t.Fatal("notificação não enviada")
 	}
-	if !strings.Contains(email.Subject, "Nova abertura") {
-		t.Fatalf("assunto = %q", email.Subject)
+	if recebida.Protocolo != "PRO-2026-000999" {
+		t.Fatalf("protocolo = %q", recebida.Protocolo)
 	}
-	if len(email.BodyHTML) == 0 {
-		t.Fatal("body HTML vazio")
+	if recebida.DataHora.IsZero() {
+		t.Fatal("dataHora zerada")
+	}
+	if len(recebida.Documentos) != 1 {
+		t.Fatalf("documentos = %d, esperado 1", len(recebida.Documentos))
+	}
+	if recebida.Documentos[0].URL == "" {
+		t.Fatal("URL de download vazia")
 	}
 }
 
@@ -75,6 +92,14 @@ func TestIntegrationWorker_ProcessaAlteracao(t *testing.T) {
 		t.Fatalf("PutPayload: %v", err)
 	}
 
+	var recebida *outbound.NotificacaoAlteracao
+	d.Notificacoes.EXPECT().
+		EnviarAlteracao(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ context.Context, n outbound.NotificacaoAlteracao) error {
+			recebida = &n
+			return nil
+		})
+
 	msg := entity.SubmissaoMessage{
 		SessionID: sessionID,
 		Protocolo: "ALT-2026-000042",
@@ -85,18 +110,24 @@ func TestIntegrationWorker_ProcessaAlteracao(t *testing.T) {
 		t.Fatalf("Processar (alteracao): %v", err)
 	}
 
-	email := d.EmailMock.Ultimo()
-	if email == nil {
-		t.Fatal("email não enviado")
+	if recebida == nil {
+		t.Fatal("notificação não enviada")
 	}
-	if !strings.Contains(email.Subject, "Nova alteração") {
-		t.Fatalf("assunto = %q", email.Subject)
+	if recebida.Protocolo != "ALT-2026-000042" {
+		t.Fatalf("protocolo = %q", recebida.Protocolo)
+	}
+	if len(recebida.Quadros) != 1 || recebida.Quadros[0] != "objeto_social" {
+		t.Fatalf("quadros = %v, esperado [objeto_social]", recebida.Quadros)
 	}
 }
 
 func TestIntegrationWorker_IgnoraRascunhoAusente(t *testing.T) {
 	d := testhelpers.SetupIntegration(t)
 	ctx := context.Background()
+
+	// Sem rascunho, o worker não notifica ninguém
+	d.Notificacoes.EXPECT().EnviarAbertura(gomock.Any(), gomock.Any()).Times(0)
+	d.Notificacoes.EXPECT().EnviarAlteracao(gomock.Any(), gomock.Any()).Times(0)
 
 	msg := entity.SubmissaoMessage{
 		SessionID: "inexistente",
@@ -150,6 +181,14 @@ func TestIntegrationWorker_MultiplosDocumentos(t *testing.T) {
 		seedS3Object(d, t, s3key, "application/pdf", "%PDF-1.4 "+doc)
 	}
 
+	var recebida *outbound.NotificacaoAbertura
+	d.Notificacoes.EXPECT().
+		EnviarAbertura(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ context.Context, n outbound.NotificacaoAbertura) error {
+			recebida = &n
+			return nil
+		})
+
 	msg := entity.SubmissaoMessage{
 		SessionID: sessionID,
 		Protocolo: "PRO-2026-000888",
@@ -161,11 +200,15 @@ func TestIntegrationWorker_MultiplosDocumentos(t *testing.T) {
 		t.Fatalf("Processar: %v", err)
 	}
 
-	email := d.EmailMock.Ultimo()
-	if email == nil {
-		t.Fatal("email não enviado")
+	if recebida == nil {
+		t.Fatal("notificação não enviada")
 	}
-	if len(email.BodyHTML) == 0 {
-		t.Fatal("body HTML vazio")
+	if len(recebida.Documentos) != 3 {
+		t.Fatalf("documentos = %d, esperado 3", len(recebida.Documentos))
+	}
+	for _, doc := range recebida.Documentos {
+		if doc.Label == "" || doc.URL == "" {
+			t.Fatalf("documento sem label/URL: %+v", doc)
+		}
 	}
 }

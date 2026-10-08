@@ -1,33 +1,34 @@
 package handler
 
 import (
-	"github.com/tiagods/webtool/apps/backend/domain/service"
+	"github.com/tiagods/webtool/apps/backend/domain/ports/inbound"
 	"github.com/tiagods/webtool/apps/backend/infrastructure/auth"
 )
 
-// Handlers agrupa os serviços de domínio e utilitários de transporte usados pelos
-// handlers HTTP. Construído no ponto de composição (StartApp).
+// Handlers agrupa os ports de entrada (casos de uso do domínio) e utilitários
+// de transporte usados pelos handlers HTTP. Construído no ponto de composição
+// (StartApp).
 type Handlers struct {
-	aceite            *service.AceiteService
-	sessao            *service.SessaoService
+	aceite            inbound.AceiteUseCase
+	sessao            inbound.SessaoUseCase
 	cookies           *auth.CookieBuilder
-	rascunho          *service.RascunhoService
-	upload            *service.UploadService
-	submit            *service.SubmitService
-	rascunhoAlteracao *service.AlteracaoRascunhoService
-	submitAlteracao   *service.AlteracaoSubmitService
+	rascunho          inbound.RascunhoUseCase
+	upload            inbound.DocumentoUseCase
+	submit            inbound.SubmissaoUseCase
+	rascunhoAlteracao inbound.RascunhoUseCase
+	submitAlteracao   inbound.SubmissaoUseCase
 }
 
-// NewHandlers injeta os serviços de domínio e o construtor de cookies.
+// NewHandlers injeta os ports de entrada e o construtor de cookies.
 func NewHandlers(
-	aceite *service.AceiteService,
-	sessao *service.SessaoService,
+	aceite inbound.AceiteUseCase,
+	sessao inbound.SessaoUseCase,
 	cookies *auth.CookieBuilder,
-	rascunho *service.RascunhoService,
-	upload *service.UploadService,
-	submit *service.SubmitService,
-	rascunhoAlteracao *service.AlteracaoRascunhoService,
-	submitAlteracao *service.AlteracaoSubmitService,
+	rascunho inbound.RascunhoUseCase,
+	upload inbound.DocumentoUseCase,
+	submit inbound.SubmissaoUseCase,
+	rascunhoAlteracao inbound.RascunhoUseCase,
+	submitAlteracao inbound.SubmissaoUseCase,
 ) *Handlers {
 	return &Handlers{
 		aceite:            aceite,

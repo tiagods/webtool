@@ -6,14 +6,17 @@ import (
 	"fmt"
 
 	"github.com/tiagods/webtool/apps/backend/domain/entity"
+	"github.com/tiagods/webtool/apps/backend/domain/ports/inbound"
 	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
 	"github.com/tiagods/webtool/apps/backend/domain/validation"
 )
 
+var _ inbound.RascunhoUseCase = (*RascunhoService)(nil)
+
 // RascunhoService cobre as operações de rascunho da Ficha de Abertura ligadas às
-// rotas GET/POST /api/draft: leitura do rascunho, gravação do payload parcial
-// validado e confirmação de upload de documento. Opera sobre o repositório da
-// tabela de abertura.
+// rotas GET/POST /api/draft: leitura do rascunho e gravação do payload parcial
+// validado. A confirmação de upload de documento é da UploadService. Opera sobre
+// o repositório da tabela de abertura.
 type RascunhoService struct {
 	repo outbound.RascunhoRepository
 }
@@ -46,22 +49,6 @@ func (s *RascunhoService) Salvar(ctx context.Context, sessionID string, raw json
 		return nil, fmt.Errorf("gravar rascunho: %w", err)
 	}
 	return nil, nil
-}
-
-// ConfirmarUpload registra a key S3 de um documento confirmado como enviado.
-func (s *RascunhoService) ConfirmarUpload(ctx context.Context, sessionID, campo, contentType string) error {
-	if !entity.CampoDocumentoValido(campo) {
-		return ErrCampoDocumentoInvalido
-	}
-	if !entity.ContentTypeDocumentoPermitido(contentType) {
-		return ErrContentTypeDocumentoInvalido
-	}
-
-	key := entity.ChaveDocumento(sessionID, campo, contentType)
-	if err := s.repo.PutDocumentoKey(ctx, sessionID, campo, key); err != nil {
-		return fmt.Errorf("gravar key de documento: %w", err)
-	}
-	return nil
 }
 
 // extrairTipoConstituicao lê dadosEmpresa.tipoConstituicao do payload para

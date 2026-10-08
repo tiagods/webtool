@@ -8,6 +8,7 @@ package mocks
 
 //go:generate go tool mockgen -typed -package mocks -destination aceite_repository.go github.com/tiagods/webtool/apps/backend/domain/ports/outbound AceiteRepository
 //go:generate go tool mockgen -typed -package mocks -destination documento_storage.go github.com/tiagods/webtool/apps/backend/domain/ports/outbound DocumentoStorage
+//go:generate go tool mockgen -typed -package mocks -destination notificacao_sender.go github.com/tiagods/webtool/apps/backend/domain/ports/outbound NotificacaoSender
 //go:generate go tool mockgen -typed -package mocks -destination protocolo_counter.go github.com/tiagods/webtool/apps/backend/domain/ports/outbound ProtocoloCounter
 //go:generate go tool mockgen -typed -package mocks -destination rascunho_repository.go github.com/tiagods/webtool/apps/backend/domain/ports/outbound RascunhoRepository
 //go:generate go tool mockgen -typed -package mocks -destination submissao_publisher.go github.com/tiagods/webtool/apps/backend/domain/ports/outbound SubmissaoPublisher

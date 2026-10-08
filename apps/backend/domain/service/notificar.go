@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"github.com/tiagods/webtool/apps/backend/domain/entity"
+	"github.com/tiagods/webtool/apps/backend/domain/ports/inbound"
 	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
-	"github.com/tiagods/webtool/apps/backend/infrastructure/email"
 )
 
-// PresignedDownloadExpiraEm é a validade das URLs de download dos documentos no
-// e-mail de notificação.
+// PresignedDownloadExpiraEm é a validade das URLs de download dos documentos na
+// notificação de submissão.
 const PresignedDownloadExpiraEm = 7 * 24 * time.Hour
 
 var labelMap = map[string]string{
@@ -41,22 +41,26 @@ func labelDoc(campo string) string {
 	return lbl
 }
 
-// NotificarSubmissao consome a mensagem de submissão e envia o e-mail com os
-// links de download dos documentos.
+// NotificarSubmissao consome a mensagem de submissão e notifica a empresa:
+// extrai os dados do payload, gera os links de download dos documentos e
+// delega ao NotificacaoSender — canal (e-mail, evento, …) é decisão do adapter
+// de infraestrutura, não do serviço.
 type NotificarSubmissao struct {
 	rascunhos outbound.RascunhoRepository
 	storage   outbound.DocumentoStorage
-	email     outbound.EmailSender
-	to        string
+	notificar outbound.NotificacaoSender
 }
 
-// NewNotificarSubmissao injeta o repositório, o storage, o sender de e-mail e o
-// destinatário interno.
-func NewNotificarSubmissao(r outbound.RascunhoRepository, s outbound.DocumentoStorage, m outbound.EmailSender, to string) *NotificarSubmissao {
-	return &NotificarSubmissao{rascunhos: r, storage: s, email: m, to: to}
+// NewNotificarSubmissao injeta o repositório, o storage e o sender de
+// notificação.
+func NewNotificarSubmissao(r outbound.RascunhoRepository, s outbound.DocumentoStorage, n outbound.NotificacaoSender) *NotificarSubmissao {
+	return &NotificarSubmissao{rascunhos: r, storage: s, notificar: n}
 }
 
-// Processar monta e envia a notificação da submissão conforme o formType.
+var _ inbound.NotificacaoUseCase = (*NotificarSubmissao)(nil)
+
+// Processar monta a notificação conforme o formType e envia pelo canal
+// configurado.
 func (ns *NotificarSubmissao) Processar(ctx context.Context, msg entity.SubmissaoMessage) error {
 	r, err := ns.rascunhos.Get(ctx, msg.SessionID)
 	if err != nil {
@@ -76,55 +80,41 @@ func (ns *NotificarSubmissao) Processar(ctx context.Context, msg entity.Submissa
 }
 
 func (ns *NotificarSubmissao) processarAbertura(ctx context.Context, msg entity.SubmissaoMessage, r *entity.Rascunho) error {
-	d, err := extrairAbertura(r.Payload)
+	n, err := extrairAbertura(r.Payload)
 	if err != nil {
 		return err
 	}
-	lns, err := ns.gerarLinks(ctx, r.DocumentosKeys)
+	n.Documentos, err = ns.gerarLinks(ctx, r.DocumentosKeys)
 	if err != nil {
 		return err
 	}
-	d.Documentos = lns
-	d.Protocolo = msg.Protocolo
-	d.DataHora = email.FormatarDataHora()
-	body, err := email.RenderAbertura(*d)
-	if err != nil {
-		return err
-	}
-	return ns.email.Send(ctx, outbound.EmailData{
-		To: ns.to, Subject: "Nova abertura — " + msg.Protocolo, BodyHTML: body,
-	})
+	n.Protocolo = msg.Protocolo
+	n.DataHora = time.Now().UTC()
+	return ns.notificar.EnviarAbertura(ctx, n)
 }
 
 func (ns *NotificarSubmissao) processarAlteracao(ctx context.Context, msg entity.SubmissaoMessage, r *entity.Rascunho) error {
-	d, err := extrairAlteracao(r.Payload)
+	n, err := extrairAlteracao(r.Payload)
 	if err != nil {
 		return err
 	}
-	lns, err := ns.gerarLinks(ctx, r.DocumentosKeys)
+	n.Documentos, err = ns.gerarLinks(ctx, r.DocumentosKeys)
 	if err != nil {
 		return err
 	}
-	d.Documentos = lns
-	d.Protocolo = msg.Protocolo
-	d.DataHora = email.FormatarDataHora()
-	body, err := email.RenderAlteracao(*d)
-	if err != nil {
-		return err
-	}
-	return ns.email.Send(ctx, outbound.EmailData{
-		To: ns.to, Subject: "Nova alteração — " + msg.Protocolo, BodyHTML: body,
-	})
+	n.Protocolo = msg.Protocolo
+	n.DataHora = time.Now().UTC()
+	return ns.notificar.EnviarAlteracao(ctx, n)
 }
 
-func (ns *NotificarSubmissao) gerarLinks(ctx context.Context, docs map[string]string) ([]email.DocLink, error) {
-	lns := make([]email.DocLink, 0, len(docs))
+func (ns *NotificarSubmissao) gerarLinks(ctx context.Context, docs map[string]string) ([]outbound.DocumentoLink, error) {
+	lns := make([]outbound.DocumentoLink, 0, len(docs))
 	for campo, s3key := range docs {
 		url, err := ns.storage.PresignedDownloadURL(ctx, s3key, PresignedDownloadExpiraEm)
 		if err != nil {
 			return nil, fmt.Errorf("URL download %q: %w", campo, err)
 		}
-		lns = append(lns, email.DocLink{Label: labelDoc(campo), URL: url})
+		lns = append(lns, outbound.DocumentoLink{Label: labelDoc(campo), URL: url})
 	}
 	return lns, nil
 }
@@ -154,23 +144,23 @@ type socioPayload struct {
 	ProLabore    string `json:"proLabore"`
 }
 
-func extrairAbertura(raw json.RawMessage) (*email.DadosEmailAbertura, error) {
+func extrairAbertura(raw json.RawMessage) (outbound.NotificacaoAbertura, error) {
 	var p aberturaPayload
 	if err := json.Unmarshal(raw, &p); err != nil {
-		return nil, fmt.Errorf("payload abertura: %w", err)
+		return outbound.NotificacaoAbertura{}, fmt.Errorf("payload abertura: %w", err)
 	}
 	tipo := "Ltda"
 	if p.TipoConstituicao == "slu" {
 		tipo = "SLU"
 	}
-	ss := make([]email.SocioEmail, 0, len(p.Socios))
+	ss := make([]outbound.SocioNotificacao, 0, len(p.Socios))
 	for _, s := range p.Socios {
-		ss = append(ss, email.SocioEmail{
+		ss = append(ss, outbound.SocioNotificacao{
 			Nome: s.Nome, CPF: s.CPF, Email: s.Email,
 			Qualificacao: s.Qualificacao, ProLabore: s.ProLabore,
 		})
 	}
-	return &email.DadosEmailAbertura{
+	return outbound.NotificacaoAbertura{
 		Tipo: tipo, RazaoSocial: p.RazaoSocial, NomeFantasia: p.NomeFantasia,
 		CNPJ: p.CNPJ, NaturezaJuridica: p.NaturezaJuridica,
 		Logradouro: p.Logradouro, Numero: p.Numero, Bairro: p.Bairro,
@@ -187,12 +177,12 @@ type alteracaoPayload struct {
 	Quadros     []string `json:"quadros"`
 }
 
-func extrairAlteracao(raw json.RawMessage) (*email.DadosEmailAlteracao, error) {
+func extrairAlteracao(raw json.RawMessage) (outbound.NotificacaoAlteracao, error) {
 	var p alteracaoPayload
 	if err := json.Unmarshal(raw, &p); err != nil {
-		return nil, fmt.Errorf("payload alteração: %w", err)
+		return outbound.NotificacaoAlteracao{}, fmt.Errorf("payload alteração: %w", err)
 	}
-	return &email.DadosEmailAlteracao{
+	return outbound.NotificacaoAlteracao{
 		CNPJ: p.CNPJ, RazaoSocial: p.RazaoSocial,
 		Situacao: p.Situacao, Quadros: p.Quadros,
 	}, nil

@@ -15,9 +15,10 @@ os 10 mandamentos de `boas-praticas.md` e a Clean Architecture do `.claude/CLAUD
 cmd/api, cmd/worker  →  chamam o entrypoint de composição (main enxuto)
 infrastructure       →  StartApp() — ÚNICO ponto de composição: importa config,
                         adapter/web, adapters e faz o wiring + ciclo de vida
-adapter/web          →  adapter/web/handler, infrastructure/middleware      (SÓ o router.go:
+adapter/web          →  adapter/web/handler, infrastructure/middleware,
+                        domain/ports, domain/entity, infra/auth  (SÓ o router.go:
                         Deps + NewRouter — liga rota → handler)
-adapter/web/handler  →  domain/service, domain/ports, domain/entity,
+adapter/web/handler  →  domain/ports/inbound, domain/entity,
                         adapter/web/presenter, infra/{middleware,auth,httperrors}  (handlers Echo)
 adapter/web/presenter→  domain/entity, domain/validation                   (contratos JSON da API;
                         só o handler usa; presenter ⇆ entity)
@@ -29,6 +30,8 @@ infra/aws/model      →  domain/entity                                    (proj
                         só o repositório usa; model → entity)
 domain/service       →  domain/ports, domain/entity                       (implementa ports/inbound)
 domain/ports/inbound →  domain/entity + stdlib (context)                  APENAS
+                        (exceção registrada: + domain/validation — Salvar/Submeter
+                        devolvem []validation.Issue para o handler responder 400)
 domain/ports/outbound→  domain/entity + stdlib (context)                  APENAS
 domain/entity        →  stdlib APENAS
 ```
@@ -42,7 +45,8 @@ domain/entity        →  stdlib APENAS
   `github.com/aws/aws-sdk-go-v2/...` ou qualquer SDK. Se um tipo de domínio precisa de algo
   externo, isso vira um **port** (interface) que a `infrastructure` implementa.
 - Handlers (`adapter/web/handler`) recebem `echo.Context`, extraem/validam o request, chamam
-  um `service` com tipos de domínio, e traduzem o resultado/erro em resposta HTTP.
+  o caso de uso (port `inbound`) com tipos de domínio, e traduzem o resultado/erro em
+  resposta HTTP.
   **Sem regra de negócio no handler.** Os métodos exportados (`h.PostSubmit`, …) e `Health`
   são a superfície que o `router.go` consome; helpers (`valorOuPadrao`) ficam não-exportados.
 - **Contratos da API em `adapter/web/presenter`** (structs de request/response com tags
@@ -110,15 +114,25 @@ domain/entity        →  stdlib APENAS
   operações de uma entidade do domínio (ex.: `RascunhoRepository` = buscar + criar + editar +
   marcar enviado + apagar). **Não** dividir em `Reader`/`Writer` só para caber num limite de
   métodos — a coesão por entidade vem primeiro.
-- **`domain/ports/inbound/`** — o que é chamado de dentro para fora (casos de uso / serviços
-  invocados pelos handlers). **`domain/ports/outbound/`** — o que chama sistemas externos
-  (repositórios, storage, publishers) implementado pela `infrastructure`.
+- **`domain/ports/inbound/`** — o que é chamado de dentro para fora: contratos de caso de uso
+  (agrupados por entidade), implementados por `domain/service` (com asserção de conformidade
+  `var _ inbound.XUseCase = (*XService)(nil)`) e consumidos por handlers/router/guards — o
+  adapter não conhece os services concretos. Exceção registrada no §1: `inbound` pode
+  importar `domain/validation` (`Salvar`/`Submeter` devolvem `[]validation.Issue` para o
+  handler responder 400).
+- **`domain/ports/outbound/`** — o que chama sistemas externos (repositórios, storage,
+  publishers) implementado pela `infrastructure`. Ports de saída trocam **objetos de
+  fronteira** (DTOs) definidos no próprio pacote do port — entity crua não cruza a fronteira
+  (ex.: `NotificacaoSender` com `NotificacaoAbertura`/`NotificacaoAlteracao` em
+  `notificacao.go`; quem projeta entity → DTO é o service).
 - "Accept interfaces, return structs." Manter o método enxuto e a assinatura em tipos de
   domínio + `context.Context`.
 - Construtor explícito para tudo: `NewDynamoDraftRepository(client *dynamodb.Client, table string) *DynamoDraftRepository`.
 - **Zero estado global:** proibido `var` de pacote com client/config/logger; proibido `init()`
   com efeito colateral (abrir conexão, ler env). Tudo flui de `infrastructure.StartApp()` para
-  baixo. (Exceção sancionada: a fachada `infrastructure/logger` sobre `slog.Default()`,
+  baixo. Exemplo: `infrastructure/email.NewRenderer()` faz o parse dos templates embutidos no
+  construtor (devolvendo erro) — o pacote não tem `init()` nem `var` de pacote.
+  (Exceção sancionada: a fachada `infrastructure/logger` sobre `slog.Default()`,
   configurado uma vez no `StartApp`.)
 
 ## 6. `context.Context`
@@ -150,6 +164,11 @@ domain/entity        →  stdlib APENAS
   `context.Context`). O `middleware` do Echo entra alias `echomw` (colisão com o nosso).
 - Middlewares em `infrastructure/middleware` (§1): `RequestContext`, `HTTPErrorHandler`,
   `RateLimit`, `GuardAceite`, `GuardSessao` (chave `ContextSessionID`, helper `LerCookie`).
+  Os guards recebem `inbound.SessaoUseCase` (não o service concreto). `RateLimit` recebe
+  `middleware.Limitador` (`Permitir(string) bool`) — interface declarada pelo consumidor no
+  próprio middleware: rate limit é infraestrutura de adapter, **não** é port de domínio.
+  `auth.CookieBuilder` segue concreto (utilitário de transporte injetado em handlers/router —
+  sem port).
 
 ## 9. Concorrência
 

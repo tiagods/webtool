@@ -11,19 +11,32 @@ import (
 	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
 )
 
+func newTestMailer(t *testing.T, dir string) *FileMailer {
+	t.Helper()
+	r, err := NewRenderer()
+	if err != nil {
+		t.Fatalf("NewRenderer: %v", err)
+	}
+	return &FileMailer{dir: dir, renderer: r}
+}
+
+func notificacaoAberturaFixa() outbound.NotificacaoAbertura {
+	return outbound.NotificacaoAbertura{
+		Tipo: "Ltda", Protocolo: "20260923-001",
+		RazaoSocial: "ACME Construções Ltda", CNPJ: "12.345.678/0001-90",
+		DataHora: dataHoraFixo,
+	}
+}
+
 var nomeArquivoRe = regexp.MustCompile(`^\d{8}T\d{6}Z_nova-abertura-20260923-001(-\d+)?\.html$`)
 
-func TestFileMailer_SendGravaHTML(t *testing.T) {
+func TestFileMailer_EnviarAberturaGravaHTML(t *testing.T) {
 	dir := t.TempDir()
-	m := NewFileMailer(dir)
+	m := newTestMailer(t, dir)
 
-	data := outbound.EmailData{
-		To:       "dest@example.com",
-		Subject:  "Nova abertura — 20260923-001",
-		BodyHTML: "<html><body>ficha</body></html>",
-	}
-	if err := m.Send(context.Background(), data); err != nil {
-		t.Fatalf("Send: %v", err)
+	n := notificacaoAberturaFixa()
+	if err := m.EnviarAbertura(context.Background(), n); err != nil {
+		t.Fatalf("EnviarAbertura: %v", err)
 	}
 
 	entries, err := os.ReadDir(dir)
@@ -42,20 +55,21 @@ func TestFileMailer_SendGravaHTML(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ReadFile: %v", err)
 	}
-	if string(conteudo) != data.BodyHTML {
-		t.Errorf("conteudo = %q, esperado %q", conteudo, data.BodyHTML)
+	// O HTML completo é coberto pelo teste golden do Renderer; aqui só
+	// verificamos que o corpo renderizado saiu com os dados do DTO.
+	if !strings.Contains(string(conteudo), n.Protocolo) || !strings.Contains(string(conteudo), n.RazaoSocial) {
+		t.Errorf("corpo não contém os dados da notificação: %q", conteudo)
 	}
 }
 
 func TestFileMailer_CriaDiretorio(t *testing.T) {
 	dir := filepath.Join(t.TempDir(), "nao_existe", "emails")
-	m := NewFileMailer(dir)
+	m := newTestMailer(t, dir)
 
-	if err := m.Send(context.Background(), outbound.EmailData{
-		Subject:  "Nova alteração — ALT-2026-000042",
-		BodyHTML: "<html>alteracao</html>",
+	if err := m.EnviarAlteracao(context.Background(), outbound.NotificacaoAlteracao{
+		Protocolo: "ALT-2026-000042", CNPJ: "98.765.432/0001-10", DataHora: dataHoraFixo,
 	}); err != nil {
-		t.Fatalf("Send: %v", err)
+		t.Fatalf("EnviarAlteracao: %v", err)
 	}
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -69,15 +83,14 @@ func TestFileMailer_CriaDiretorio(t *testing.T) {
 
 func TestFileMailer_NaoSobrescreveEmColisao(t *testing.T) {
 	dir := t.TempDir()
-	m := NewFileMailer(dir)
-	data := outbound.EmailData{Subject: "Nova abertura — 20260923-001", BodyHTML: "<html>1</html>"}
+	m := newTestMailer(t, dir)
+	n := notificacaoAberturaFixa()
 
-	if err := m.Send(context.Background(), data); err != nil {
-		t.Fatalf("Send 1: %v", err)
+	if err := m.EnviarAbertura(context.Background(), n); err != nil {
+		t.Fatalf("EnviarAbertura 1: %v", err)
 	}
-	data.BodyHTML = "<html>2</html>"
-	if err := m.Send(context.Background(), data); err != nil {
-		t.Fatalf("Send 2: %v", err)
+	if err := m.EnviarAbertura(context.Background(), n); err != nil {
+		t.Fatalf("EnviarAbertura 2: %v", err)
 	}
 
 	entries, err := os.ReadDir(dir)
@@ -98,19 +111,6 @@ func TestSlugify(t *testing.T) {
 	for _, c := range cases {
 		if got := slugify(c.in); got != c.want {
 			t.Errorf("slugify(%q) = %q, esperado %q", c.in, got, c.want)
-		}
-	}
-}
-
-func TestProtocoloDoAssunto(t *testing.T) {
-	cases := []struct{ in, want string }{
-		{"Nova abertura — 20260923-001", "20260923-001"},
-		{"Nova alteração — ALT-2026-000042", "ALT-2026-000042"},
-		{"sem protocolo", "sem protocolo"},
-	}
-	for _, c := range cases {
-		if got := protocoloDoAssunto(c.in); got != c.want {
-			t.Errorf("protocoloDoAssunto(%q) = %q, esperado %q", c.in, got, c.want)
 		}
 	}
 }

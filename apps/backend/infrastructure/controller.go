@@ -85,7 +85,7 @@ func montarDeps(ctx context.Context, cfg config.Config) (web.Deps, error) {
 		Aceite:            service.NewAceiteService(aceiteRepo, tokens),
 		Sessao:            service.NewSessaoService(aberturaRepo, alteracaoRepo, tokens, storage),
 		Rascunho:          service.NewRascunhoService(aberturaRepo),
-		Upload:            service.NewUploadService(storage, service.PresignUploadExpiraEm),
+		Upload:            service.NewUploadService(storage, aberturaRepo, service.PresignUploadExpiraEm),
 		Submit:            service.NewSubmitService(aberturaRepo, aberturaProtocolo, submissoes, storage),
 		RascunhoAlteracao: service.NewAlteracaoRascunhoService(alteracaoRepo),
 		SubmitAlteracao:   service.NewAlteracaoSubmitService(alteracaoProtocolo, storage, submissoes, alteracaoRepo),

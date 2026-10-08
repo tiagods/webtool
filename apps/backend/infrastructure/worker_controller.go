@@ -46,19 +46,24 @@ func StartWorker() error {
 	aberturaRepo := infraaws.NewDynamoRascunhoRepository(clients.Dynamo, cfg.AWS.DynamoAberturaTable)
 	storage := infraaws.NewS3ObjectStorage(clients.S3, cfg.AWS.S3Bucket)
 
+	renderer, err := infraemail.NewRenderer()
+	if err != nil {
+		return fmt.Errorf("carregar templates de e-mail: %w", err)
+	}
+
 	var (
-		mailer    outbound.EmailSender
+		mailer    outbound.NotificacaoSender
 		emailMode string
 	)
 	if cfg.SMTP.Configured() {
-		mailer = infraemail.NewSMTPMailer(cfg.SMTP)
+		mailer = infraemail.NewSMTPMailer(cfg.SMTP, renderer)
 		emailMode = "smtp"
 	} else {
-		mailer = infraemail.NewFileMailer(cfg.EmailOutputDir)
+		mailer = infraemail.NewFileMailer(cfg.EmailOutputDir, renderer)
 		emailMode = "file"
 	}
 
-	notificar := service.NewNotificarSubmissao(aberturaRepo, storage, mailer, cfg.SMTP.To)
+	notificar := service.NewNotificarSubmissao(aberturaRepo, storage, mailer)
 
 	slog.Info("worker iniciado",
 		"queue", cfg.AWS.SQSQueueURL,

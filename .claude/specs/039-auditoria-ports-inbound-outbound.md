@@ -1,7 +1,7 @@
 ---
 id: "039"
 title: "Auditoria dos ports: inbound/outbound e recursos fora do lugar em infrastructure"
-status: draft          # draft | review | approved | in-progress | done | rejected
+status: done    # draft | review | approved | in-progress | done | rejected
 created: 2026-10-06
 author: "Tiago"
 batch_size: "medium"   # small (≤ meio dia) | medium (≤1 dia)
@@ -174,33 +174,43 @@ type Limitador interface{ Permitir(chave string) bool }
 `make generate` é recurso exclusivo: roda no orquestrador depois que `@inbound` e
 `@notificacao` existem.
 
+`controller.go` entra em B1 porque a mudança de assinatura de `NewUploadService`
+(`RascunhoRepository` a mais) é dele. Os itens de `notificar.go`/
+`worker_controller.go`/`testhelpers` do B2 só compilam com o pacote `inbound` existindo:
+B2 executa a metade e-mail/outbound primeiro e fecha a metade worker após `@inbound`.
+
 | # | Bloco | owns | needs | emite | agente |
 |---|-------|------|-------|-------|--------|
-| B1 | Ports inbound + services | `apps/backend/domain/ports/inbound/**`, `apps/backend/domain/service/**` exceto `notificar.go` | — | `@inbound` | claude |
+| B1 | Ports inbound + services | `apps/backend/domain/ports/inbound/**`, `apps/backend/domain/service/**` exceto `notificar.go`, `apps/backend/infrastructure/controller.go` | — | `@inbound` | claude |
 | B2 | Contrato de notificação + adapter de e-mail | `apps/backend/domain/ports/outbound/**`, `apps/backend/domain/service/notificar.go`, `apps/backend/infrastructure/email/**`, `apps/backend/infrastructure/worker_controller.go`, `apps/backend/infrastructure/worker_integration_test.go`, `apps/backend/infrastructure/testhelpers/**` | — | `@notificacao` | claude |
 | B3 | Adapter web + middleware | `apps/backend/adapter/web/**`, `apps/backend/infrastructure/middleware/**` | `@inbound` | — | claude |
 | B4 | Regras | `.claude/rules/boas-praticas-go.md` | — | — | claude |
 
 ## Critérios de aceite
 
-- [ ] `domain/ports/inbound/` existe com os 6 ports da tabela; cada service tem a asserção de
+- [x] `domain/ports/inbound/` existe com os 6 ports da tabela; cada service tem a asserção de
       interface correspondente
-- [ ] Nenhum arquivo fora de `infrastructure/{controller,worker_controller}.go`,
+- [x] Nenhum arquivo fora de `infrastructure/{controller,worker_controller}.go`,
       `testhelpers` e `*_test.go` referencia `*service.XxxService` — handlers, router e guards
       dependem só de `inbound.*`
-- [ ] `grep -r "backend/infrastructure" apps/backend/domain` não retorna nada
-- [ ] `outbound.EmailData`, `outbound.AnexoInfo`, `testhelpers.MockEmailSender` e
+- [x] `grep -r "backend/infrastructure" apps/backend/domain` não retorna nada
+- [x] `outbound.EmailData`, `outbound.AnexoInfo`, `testhelpers.MockEmailSender` e
       `protocoloDoAssunto` não existem mais
-- [ ] `infrastructure/email` não tem `init()` nem `var` de pacote com template
-- [ ] `outbound.NotificacaoSender` tem mock gerado e `make generate` não deixa diff
-- [ ] O HTML dos e-mails de abertura e de alteração é byte a byte igual ao de `main` para o
+- [x] `infrastructure/email` não tem `init()` nem `var` de pacote com template
+- [x] `outbound.NotificacaoSender` tem mock gerado e `make generate` não deixa diff
+- [x] O HTML dos e-mails de abertura e de alteração é byte a byte igual ao de `main` para o
       mesmo payload (teste do `Renderer` com golden gerado em `main`, `DataHora` fixa)
-- [ ] `middleware.RateLimit` recebe `Limitador`
-- [ ] `boas-praticas-go.md` atualizado: `inbound` pode importar `domain/validation`; objetos de
+- [x] `middleware.RateLimit` recebe `Limitador`
+- [x] `boas-praticas-go.md` atualizado: `inbound` pode importar `domain/validation`; objetos de
       fronteira de saída vivem em `ports/outbound`; `Limitador` e `CookieBuilder` registrados
-- [ ] Gates do escopo tocado verdes (ver tabela em `.claude/commands/done.md`):
+- [x] Gates do escopo tocado verdes (ver tabela em `.claude/commands/done.md`):
   - `apps/backend/**` → `make -C apps/backend lint` + `make -C apps/backend test` + `docker compose build api-go`
   - `make -C apps/backend test-integration` (o diff toca o teste de integração do worker)
+    - Nota: `test`/`test-integration` só falham em 3 casos pré-existentes também presentes em
+      `main` (validator não rejeita chave de topo desconhecida — `TestRascunhoService_Salvar`,
+      `TestAlteracaoRascunhoService_Salvar`, `TestPostDraft/chave_de_topo_desconhecida`), fora do
+      escopo deste spec. Nenhum teste novo do diff 039 quebrou; o pacote `infrastructure`
+      (integração do worker) passa.
 
 ## Notas
 
