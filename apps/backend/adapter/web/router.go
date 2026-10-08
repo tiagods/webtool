@@ -10,26 +10,26 @@ import (
 
 	"github.com/tiagods/webtool/apps/backend/adapter/web/handler"
 	"github.com/tiagods/webtool/apps/backend/domain/entity"
+	"github.com/tiagods/webtool/apps/backend/domain/ports/inbound"
 	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
-	"github.com/tiagods/webtool/apps/backend/domain/service"
 	"github.com/tiagods/webtool/apps/backend/infrastructure/auth"
 	"github.com/tiagods/webtool/apps/backend/infrastructure/middleware"
-	"github.com/tiagods/webtool/apps/backend/infrastructure/ratelimit"
 )
 
 // Deps reúne tudo que o router precisa, já montado no ponto de composição
-// (infrastructure.StartApp).
+// (infrastructure.StartApp). Os casos de uso entram pelos ports de entrada
+// (domain/ports/inbound) — o adapter não conhece os services concretos.
 type Deps struct {
-	Aceite            *service.AceiteService
-	Sessao            *service.SessaoService
-	Rascunho          *service.RascunhoService
-	Upload            *service.UploadService
-	Submit            *service.SubmitService
-	RascunhoAlteracao *service.AlteracaoRascunhoService
-	SubmitAlteracao   *service.AlteracaoSubmitService
+	Aceite            inbound.AceiteUseCase
+	Sessao            inbound.SessaoUseCase
+	Rascunho          inbound.RascunhoUseCase
+	Upload            inbound.DocumentoUseCase
+	Submit            inbound.SubmissaoUseCase
+	RascunhoAlteracao inbound.RascunhoUseCase
+	SubmitAlteracao   inbound.SubmissaoUseCase
 	Tokens            outbound.TokenService
 	Cookies           *auth.CookieBuilder
-	RateLimit         *ratelimit.FixedWindow
+	RateLimit         middleware.Limitador
 }
 
 // NewRouter constrói a instância Echo com os middlewares base e as rotas de

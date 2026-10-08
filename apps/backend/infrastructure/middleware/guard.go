@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/tiagods/webtool/apps/backend/domain/entity"
+	"github.com/tiagods/webtool/apps/backend/domain/ports/inbound"
 	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
 	"github.com/tiagods/webtool/apps/backend/domain/service"
 	"github.com/tiagods/webtool/apps/backend/infrastructure/auth"
@@ -15,7 +16,7 @@ const ContextSessionID = "sessionID"
 
 // GuardAceite exige um cookie prolink_aceite válido para a versão vigente do
 // termo. Falha com service.ErrAceiteAusente (→ 403 no HTTPErrorHandler).
-func GuardAceite(sessao *service.SessaoService) echo.MiddlewareFunc {
+func GuardAceite(sessao inbound.SessaoUseCase) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if err := sessao.VerificarAceite(LerCookie(c, auth.CookieAceite)); err != nil {
@@ -29,7 +30,7 @@ func GuardAceite(sessao *service.SessaoService) echo.MiddlewareFunc {
 // GuardSessao exige um cookie prolink_session válido cuja sessão ainda exista na
 // tabela de formType e não tenha sido enviada. Publica o sessionID no contexto.
 // Falha com service.ErrSessaoInvalida (→ 403) ou service.ErrSessaoEnviada (→ 409).
-func GuardSessao(sessao *service.SessaoService, tokens outbound.TokenService, formType entity.FormType) echo.MiddlewareFunc {
+func GuardSessao(sessao inbound.SessaoUseCase, tokens outbound.TokenService, formType entity.FormType) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			sessionID, err := tokens.VerificarSessao(LerCookie(c, auth.CookieSessao))
