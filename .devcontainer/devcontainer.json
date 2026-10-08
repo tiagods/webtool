@@ -1,0 +1,40 @@
+{
+  "name": "prolink-webtool",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  // Caminho fixo: a chave de projeto do Claude (~/.claude/projects/-workspaces-webtool) deriva dele.
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/webtool,type=bind",
+  "workspaceFolder": "/workspaces/webtool",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "20" },
+    "ghcr.io/devcontainers/features/go:1": { "version": "1.27", "golangciLintVersion": "latest" },
+    // docker-in-docker (e não o socket do host): os binds relativos do docker-compose.yml
+    // precisam resolver dentro do container.
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+  },
+  "containerEnv": {
+    // Mantém o .claude.json do container dentro da pasta montada, sem tocar no do host.
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+    "JWT_SECRET": "dev-secret-change-in-production",
+    "APP_ENV": "dev"
+  },
+  "mounts": [
+    "source=${localEnv:USERPROFILE}/.claude,target=/home/vscode/.claude,type=bind",
+    "source=${localEnv:USERPROFILE}/.agents,target=/home/vscode/.agents,type=bind",
+    // Específico da máquina: aponta a chave de projeto do container para a do host,
+    // preservando memória e histórico do Claude deste projeto.
+    "source=${localEnv:USERPROFILE}/.claude/projects/c--Users-Tiago-workspace-prolink-webtool,target=/home/vscode/.claude/projects/-workspaces-webtool,type=bind",
+    // Host (Windows) e container (Linux) usam binários nativos diferentes em node_modules.
+    "source=prolink-node-modules,target=/workspaces/webtool/node_modules,type=volume",
+    "source=prolink-web-node-modules,target=/workspaces/webtool/apps/web/node_modules,type=volume",
+    "source=prolink-web-next,target=/workspaces/webtool/apps/web/.next,type=volume"
+  ],
+  "forwardPorts": [3000, 3001, 80, 4566, 4500],
+  "postCreateCommand": "sudo chown vscode:vscode node_modules apps/web/node_modules apps/web/.next && npm install && cd apps/backend && go mod download",
+  "customizations": {
+    "vscode": {
+      "extensions": ["anthropic.claude-code", "golang.go", "dbaeumer.vscode-eslint"]
+    }
+  }
+}
