@@ -173,6 +173,44 @@ testes unitários/caracterização. Guardar cookies pré-submit para exercitar c
 **Causa raiz**: o critério foi escrito sem rodar o gate no estado atual; o trabalho anterior (migração Go 022–028) deixou o lint vermelho e ninguém percebeu.
 **Regra**: antes de aprovar uma spec, rodar os gates do escopo no baseline (`origin/main`) e colar a evidência na própria spec; se o gate já falha, tratar como dívida separada (spec própria), não como critério da spec nova.
 
+## 2026-10-07 — Spec 039 (ports inbound/outbound) — `go test` falha com "Access is denied" no pacote `validation`
+
+**Erro**: `go test ./domain/validation/` falha com
+`open C:\Users\Tiago\AppData\Local\Temp\go-build*\validation.test.exe: Access is denied` — tanto no
+worktree quanto no `origin/main`. Não é causada pelo batch.
+**Causa raiz**: o antivírus do Windows trava o `.test.exe` recém-gerado em `%TEMP%` (o Go compila o
+binário de teste num diretório temporário e o AV o isola antes do `go` conseguir executá-lo).
+**Regra**: esse erro é **ambiental**, não do código. Ao ver "Access is denied" num `validation.test.exe`
+em `%TEMP%`, **não** culpar o batch — confirmar rodando o MESMO comando no `origin/main` (limpo). Se
+falhar nos dois, é o AV/`%TEMP%`; registrar e seguir (os demais pacotes passam normalmente). Para
+validar o escopo do batch, focar nos pacotes que o batch tocou e tratar o `validation` como ruído.
+
+## 2026-10-07 — Spec 039 — subtestes `chave_de_topo_desconhecida` já falham no baseline
+
+**Erro**: `TestRascunhoService_Salvar`, `TestAlteracaoRascunhoService_Salvar`, `TestPostDraft` e
+`TestPostAlteracaoDraft` (subteste "chave de topo desconhecida → 400/issues") falham **tanto no
+worktree quanto no `origin/main`** — esperam `issues`/400 para chave desconhecida e recebem 200/vazio.
+**Causa raiz**: o validador ainda não devolve issues para chaves de topo desconhecidas no draft —
+devida a uma spec anterior, não à refatoração de ports do batch 039.
+**Regra**: ao ver esses 4 testes falharem, **não** atribuir à refatoração — rodar `-run` no
+`origin/main` para confirmar que são pré-existentes. O gate do batch 039 é "nenhuma falha **nova**":
+comparar o conjunto de falhas antes/depois da mudança, não exigir verde absoluto em pacotes cujo
+baseline já é vermelho.
+
+## 2026-10-07 — Spec 039 — `go fmt`/`gofmt -l` reescreve arquivos FORA do `owns` por drift de versão
+
+**Erro**: rodar `go run golang.org/x/tools/cmd/gofmt -l` (ou `go fmt`) sobre `./domain/...` reformata
+arquivos que o batch **não** tocou (`domain/validation/abertura.go`, `alteracao.go`, vários
+`*_integration_test.go` em `infrastructure/`) — eles já estavam "desformatados" segundo a versão de
+gofmt local (drift entre a versão do Go que formatou o repo e o `go1.27` local, ex.: reflow de
+comentários).
+**Causa raiz**: `gofmt` é sensível a versão; arquivos escritos com um gofmt antigo podem parecer
+"sujos" para um gofmt novo. Reformatar em massa misturaria ruído de formatação no diff do batch.
+**Regra**: num batch de refatoração, **não** rodar `gofmt -l`/`go fmt` no escopo inteiro do módulo —
+aplicar **apenas** aos caminhos que o batch criou/mudou (ex.: `gofmt -l <pkg/tocado>/...`). Arquivos
+alheios que aparecerem "sujo" no `gofmt -l` do baseline: deixar como estão e não commitar a
+re-formatação (fora do escopo, polui o diff e o `git revert`).
+
 ## 2026-09-19 — Spec 030 — `next build` type-checa `*.test.tsx` (gate de build já vermelho)
 
 **Erro**: o critério `npm run build -w apps/web` da 030 falhou com erro de tipo em `apps/web/mocks/handlers.ts` (`body: unknown` não atribuível a `JsonBodyType`) e em vários `*.test.tsx` de `forms-alteracao`. `npx tsc --noEmit -p apps/web/tsconfig.json` no `main` limpo reproduziu dezenas de erros — nenhum introduzido pela 030.

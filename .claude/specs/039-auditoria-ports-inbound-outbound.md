@@ -1,7 +1,7 @@
 ---
 id: "039"
 title: "Auditoria dos ports: inbound/outbound e recursos fora do lugar em infrastructure"
-status: draft          # draft | review | approved | in-progress | done | rejected
+status: in-progress    # draft | review | approved | in-progress | done | rejected
 created: 2026-10-06
 author: "Tiago"
 batch_size: "medium"   # small (≤ meio dia) | medium (≤1 dia)
@@ -174,9 +174,14 @@ type Limitador interface{ Permitir(chave string) bool }
 `make generate` é recurso exclusivo: roda no orquestrador depois que `@inbound` e
 `@notificacao` existem.
 
+`controller.go` entra em B1 porque a mudança de assinatura de `NewUploadService`
+(`RascunhoRepository` a mais) é dele. Os itens de `notificar.go`/
+`worker_controller.go`/`testhelpers` do B2 só compilam com o pacote `inbound` existindo:
+B2 executa a metade e-mail/outbound primeiro e fecha a metade worker após `@inbound`.
+
 | # | Bloco | owns | needs | emite | agente |
 |---|-------|------|-------|-------|--------|
-| B1 | Ports inbound + services | `apps/backend/domain/ports/inbound/**`, `apps/backend/domain/service/**` exceto `notificar.go` | — | `@inbound` | claude |
+| B1 | Ports inbound + services | `apps/backend/domain/ports/inbound/**`, `apps/backend/domain/service/**` exceto `notificar.go`, `apps/backend/infrastructure/controller.go` | — | `@inbound` | claude |
 | B2 | Contrato de notificação + adapter de e-mail | `apps/backend/domain/ports/outbound/**`, `apps/backend/domain/service/notificar.go`, `apps/backend/infrastructure/email/**`, `apps/backend/infrastructure/worker_controller.go`, `apps/backend/infrastructure/worker_integration_test.go`, `apps/backend/infrastructure/testhelpers/**` | — | `@notificacao` | claude |
 | B3 | Adapter web + middleware | `apps/backend/adapter/web/**`, `apps/backend/infrastructure/middleware/**` | `@inbound` | — | claude |
 | B4 | Regras | `.claude/rules/boas-praticas-go.md` | — | — | claude |
