@@ -6,9 +6,12 @@ import (
 	"fmt"
 
 	"github.com/tiagods/webtool/apps/backend/domain/entity"
+	"github.com/tiagods/webtool/apps/backend/domain/ports/inbound"
 	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
 	"github.com/tiagods/webtool/apps/backend/domain/validation"
 )
+
+var _ inbound.RascunhoUseCase = (*AlteracaoRascunhoService)(nil)
 
 // AlteracaoRascunhoService cobre as rotas GET/POST /api/alteracao/draft: leitura
 // do rascunho e gravação do payload parcial validado. Opera sobre o repositório

@@ -94,38 +94,3 @@ func TestRascunhoService_Salvar(t *testing.T) {
 		}
 	})
 }
-
-func TestRascunhoService_ConfirmarUpload(t *testing.T) {
-	t.Parallel()
-
-	t.Run("campo e content-type válidos gravam a key", func(t *testing.T) {
-		t.Parallel()
-		repo := newFakeRascunhoRepo()
-		svc := NewRascunhoService(repo)
-
-		if err := svc.ConfirmarUpload(context.Background(), "s1", "contrato_social", "application/pdf"); err != nil {
-			t.Fatalf("erro inesperado: %v", err)
-		}
-		if got := repo.docsGravados["contrato_social"]; got != "s1/documentos/contrato_social.pdf" {
-			t.Errorf("key gravada = %q", got)
-		}
-	})
-
-	t.Run("campo inválido", func(t *testing.T) {
-		t.Parallel()
-		svc := NewRascunhoService(newFakeRascunhoRepo())
-		err := svc.ConfirmarUpload(context.Background(), "s1", "Contrato Social", "application/pdf")
-		if !errors.Is(err, ErrCampoDocumentoInvalido) {
-			t.Errorf("err = %v, esperado ErrCampoDocumentoInvalido", err)
-		}
-	})
-
-	t.Run("content-type não permitido", func(t *testing.T) {
-		t.Parallel()
-		svc := NewRascunhoService(newFakeRascunhoRepo())
-		err := svc.ConfirmarUpload(context.Background(), "s1", "rg", "image/gif")
-		if !errors.Is(err, ErrContentTypeDocumentoInvalido) {
-			t.Errorf("err = %v, esperado ErrContentTypeDocumentoInvalido", err)
-		}
-	})
-}

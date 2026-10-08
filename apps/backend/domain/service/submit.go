@@ -9,9 +9,12 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/tiagods/webtool/apps/backend/domain/entity"
+	"github.com/tiagods/webtool/apps/backend/domain/ports/inbound"
 	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
 	"github.com/tiagods/webtool/apps/backend/domain/validation"
 )
+
+var _ inbound.SubmissaoUseCase = (*SubmitService)(nil)
 
 // SubmitService finaliza a Ficha de Abertura (rota POST /api/submit). A ordem
 // (copiar documentos → publicar → marcar enviado → limpar) é deliberada: nada

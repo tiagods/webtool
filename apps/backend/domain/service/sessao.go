@@ -7,8 +7,11 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/tiagods/webtool/apps/backend/domain/entity"
+	"github.com/tiagods/webtool/apps/backend/domain/ports/inbound"
 	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
 )
+
+var _ inbound.SessaoUseCase = (*SessaoService)(nil)
 
 // SessaoService orquestra a autenticação por cookie: valida o aceite do termo,
 // cria ou reaproveita a sessão (JWT + item inicial de rascunho) e encerra a
@@ -28,14 +31,6 @@ func NewSessaoService(
 	storage outbound.DocumentoStorage,
 ) *SessaoService {
 	return &SessaoService{abertura: abertura, alteracao: alteracao, tokens: tokens, storage: storage}
-}
-
-// SessaoResult descreve o desfecho de CriarOuObter. Token só precisa ser gravado
-// no cookie quando Nova é true (o cookie existente continua válido caso contrário).
-type SessaoResult struct {
-	SessionID string
-	Token     string
-	Nova      bool
 }
 
 // repoDe seleciona o repositório da tabela correspondente ao formulário.
@@ -64,27 +59,27 @@ func (s *SessaoService) VerificarAceite(aceiteToken string) error {
 // sessão nova (UUID + token). Em ambos os casos garante o item inicial de
 // rascunho na tabela do formType (EnsureInicial é idempotente) — isso cobre o
 // caso do usuário que trocou de formulário reusando a mesma sessão.
-func (s *SessaoService) CriarOuObter(ctx context.Context, formType entity.FormType, sessaoToken string) (SessaoResult, error) {
+func (s *SessaoService) CriarOuObter(ctx context.Context, formType entity.FormType, sessaoToken string) (inbound.SessaoResult, error) {
 	repo := s.repoDe(formType)
 
 	if sessaoToken != "" {
 		if sessionID, err := s.tokens.VerificarSessao(sessaoToken); err == nil {
 			if err := repo.EnsureInicial(ctx, sessionID); err != nil {
-				return SessaoResult{}, fmt.Errorf("garantir rascunho inicial: %w", err)
+				return inbound.SessaoResult{}, fmt.Errorf("garantir rascunho inicial: %w", err)
 			}
-			return SessaoResult{SessionID: sessionID, Token: sessaoToken, Nova: false}, nil
+			return inbound.SessaoResult{SessionID: sessionID, Token: sessaoToken, Nova: false}, nil
 		}
 	}
 
 	sessionID := uuid.NewString()
 	token, err := s.tokens.AssinarSessao(sessionID)
 	if err != nil {
-		return SessaoResult{}, fmt.Errorf("assinar token de sessão: %w", err)
+		return inbound.SessaoResult{}, fmt.Errorf("assinar token de sessão: %w", err)
 	}
 	if err := repo.EnsureInicial(ctx, sessionID); err != nil {
-		return SessaoResult{}, fmt.Errorf("garantir rascunho inicial: %w", err)
+		return inbound.SessaoResult{}, fmt.Errorf("garantir rascunho inicial: %w", err)
 	}
-	return SessaoResult{SessionID: sessionID, Token: token, Nova: true}, nil
+	return inbound.SessaoResult{SessionID: sessionID, Token: token, Nova: true}, nil
 }
 
 // RequireSessao valida que a sessão existe na tabela do formType e ainda não foi

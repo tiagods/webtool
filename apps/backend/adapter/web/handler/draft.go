@@ -37,7 +37,9 @@ func (h *Handlers) PostDraft(c echo.Context) error {
 	var conf presenter.UploadConfirmacao
 	_ = json.Unmarshal(raw, &conf)
 	if conf.UploadedCampo != nil {
-		if err := h.rascunho.ConfirmarUpload(c.Request().Context(), sessionID, *conf.UploadedCampo, conf.ContentType); err != nil {
+		// ConfirmarUpload mora na UploadService desde o batch 039 (B1): a key
+		// confirmada é gravada no repositório de rascunho que o upload injeta.
+		if err := h.upload.ConfirmarUpload(c.Request().Context(), sessionID, *conf.UploadedCampo, conf.ContentType); err != nil {
 			return err
 		}
 		return c.JSON(http.StatusOK, presenter.NewOK())

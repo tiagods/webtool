@@ -44,7 +44,7 @@ func novoAmbiente(t *testing.T) *ambiente {
 		Aceite:            service.NewAceiteService(aceiteRepo, tokens),
 		Sessao:            service.NewSessaoService(abertura, alteracao, tokens, storage),
 		Rascunho:          service.NewRascunhoService(abertura),
-		Upload:            service.NewUploadService(storage, service.PresignUploadExpiraEm),
+		Upload:            service.NewUploadService(storage, abertura, service.PresignUploadExpiraEm),
 		Submit:            service.NewSubmitService(abertura, protocolo, publisher, storage),
 		RascunhoAlteracao: service.NewAlteracaoRascunhoService(alteracao),
 		SubmitAlteracao:   service.NewAlteracaoSubmitService(protocolo, storage, publisher, alteracao),

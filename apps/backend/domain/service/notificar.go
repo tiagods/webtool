@@ -7,9 +7,12 @@ import (
 	"time"
 
 	"github.com/tiagods/webtool/apps/backend/domain/entity"
+	"github.com/tiagods/webtool/apps/backend/domain/ports/inbound"
 	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
 	"github.com/tiagods/webtool/apps/backend/infrastructure/email"
 )
+
+var _ inbound.NotificacaoUseCase = (*NotificarSubmissao)(nil)
 
 // PresignedDownloadExpiraEm é a validade das URLs de download dos documentos no
 // e-mail de notificação.

@@ -8,8 +8,11 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/tiagods/webtool/apps/backend/domain/entity"
+	"github.com/tiagods/webtool/apps/backend/domain/ports/inbound"
 	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
 )
+
+var _ inbound.AceiteUseCase = (*AceiteService)(nil)
 
 // AceiteService registra o aceite do termo de consentimento LGPD de uma sessão e
 // emite o token do cookie prolink_aceite.
