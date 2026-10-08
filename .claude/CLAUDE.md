@@ -79,7 +79,7 @@ Spec (definicao) → Aprovacao → Batch (implementacao) → Verificacao → Don
 2. **Revisar e aprovar**: discutir design, marcar `status: approved`
 3. **Iniciar batch**: `/start-batch [spec]` — abre a **worktree da spec** (`EnterWorktree`) e
    cria o `.claude/tasks/todo.md` dela
-4. **Implementar**: seguir o checklist, marcar progresso com `[/]` (em andamento) e `[x]` (concluido)
+4. **Implementar**: seguir o checklist, marcar progresso com `[/]` (em andamento) quando iniciar e `[x]` (concluido) quando terminar cada tarefa
 5. **Explicar mudancas**: resumo de alto nivel a cada passo
 6. **Capturar licoes**: atualizar `.claude/tasks/lessons.md` apos correcoes
 7. **Finalizar**: `/done` — roda os gates do escopo, commita, pusha, abre o PR, gera walkthrough

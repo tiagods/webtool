@@ -13,7 +13,6 @@ touches:
   - "scripts/nginx/**"
   - "docker-compose.yml"
   - "docker-compose.prod.yml"
-  - "package.json"
   - ".gitignore"
   - "CLAUDE.md"
   - "README.md"

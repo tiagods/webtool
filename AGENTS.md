@@ -17,6 +17,8 @@ existirem duas versões da mesma instrução.
 
 `.agents/` é um link para `.claude/`: os dois caminhos levam ao mesmo lugar.
 
+Se for Cline, use `.clinerules` e leia suas subspastas
+
 ## Não negociáveis
 
 - **Spec-first** — sem spec aprovada, sem implementação (exceto hotfix trivial)
