@@ -5,7 +5,9 @@ package testhelpers
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -17,12 +19,14 @@ import (
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/labstack/echo/v4"
+	"go.uber.org/mock/gomock"
 
 	"github.com/tiagods/webtool/apps/backend/adapter/web"
 	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
+	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound/mocks"
 	"github.com/tiagods/webtool/apps/backend/domain/service"
-	infraaws "github.com/tiagods/webtool/apps/backend/infrastructure/aws"
 	"github.com/tiagods/webtool/apps/backend/infrastructure/auth"
+	infraaws "github.com/tiagods/webtool/apps/backend/infrastructure/aws"
 	"github.com/tiagods/webtool/apps/backend/infrastructure/config"
 	"github.com/tiagods/webtool/apps/backend/infrastructure/ratelimit"
 )
@@ -35,31 +39,18 @@ const (
 	testBucket         = "prolink-fichas"
 )
 
-type MockEmailSender struct {
-	mu       sync.Mutex
-	Enviados []outbound.EmailData
+// mainReporter implementa gomock.TestReporter para o mock de notificação
+// criado no SetupTestMain — que roda no TestMain, antes de existir qualquer
+// *testing.T. Fatalf derruba o binário de teste (Goexit), como a stdlib faz.
+type mainReporter struct{}
+
+func (mainReporter) Errorf(format string, args ...any) {
+	log.Printf("gomock: "+format, args...)
 }
 
-func (m *MockEmailSender) Send(_ context.Context, data outbound.EmailData) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.Enviados = append(m.Enviados, data)
-	return nil
-}
-
-func (m *MockEmailSender) Ultimo() *outbound.EmailData {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	if len(m.Enviados) == 0 {
-		return nil
-	}
-	return &m.Enviados[len(m.Enviados)-1]
-}
-
-func (m *MockEmailSender) Reset() {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.Enviados = nil
+func (mainReporter) Fatalf(format string, args ...any) {
+	log.Printf("gomock: "+format, args...)
+	runtime.Goexit()
 }
 
 type TestDeps struct {
@@ -68,7 +59,7 @@ type TestDeps struct {
 	SQSQueueURL   string
 	Echo          *echo.Echo
 	Clients       *infraaws.Clients
-	EmailMock     *MockEmailSender
+	Notificacoes  *mocks.MockNotificacaoSender
 	Tokens        outbound.TokenService
 	AberturaRepo  *infraaws.DynamoRascunhoRepository
 	AlteracaoRepo *infraaws.DynamoRascunhoRepository
@@ -115,13 +106,13 @@ func SetupTestMain() {
 		alteracaoProtocolo := infraaws.NewDynamoProtocoloCounter(clients.Dynamo, testAlteracaoTable)
 		submissoes := infraaws.NewSQSSubmissaoPublisher(clients.SQS, queueURL)
 		tokens := auth.NewJWTTokenService("test-secret", 30*time.Minute)
-		emailMock := &MockEmailSender{}
+		notificacoes := mocks.NewMockNotificacaoSender(gomock.NewController(mainReporter{}))
 
 		e := web.NewRouter(web.Deps{
 			Aceite:            service.NewAceiteService(aceiteRepo, tokens),
 			Sessao:            service.NewSessaoService(aberturaRepo, alteracaoRepo, tokens, storage),
 			Rascunho:          service.NewRascunhoService(aberturaRepo),
-			Upload:            service.NewUploadService(storage, service.PresignUploadExpiraEm),
+			Upload:            service.NewUploadService(storage, aberturaRepo, service.PresignUploadExpiraEm),
 			Submit:            service.NewSubmitService(aberturaRepo, aberturaProtocolo, submissoes, storage),
 			RascunhoAlteracao: service.NewAlteracaoRascunhoService(alteracaoRepo),
 			SubmitAlteracao:   service.NewAlteracaoSubmitService(alteracaoProtocolo, storage, submissoes, alteracaoRepo),
@@ -130,11 +121,11 @@ func SetupTestMain() {
 			RateLimit:         ratelimit.NewFixedWindow(100000, ratelimit.PadraoJanela),
 		})
 
-		notificar := service.NewNotificarSubmissao(aberturaRepo, storage, emailMock, "test@prolink.local")
+		notificar := service.NewNotificarSubmissao(aberturaRepo, storage, notificacoes)
 
 		deps = &TestDeps{
 			DynamoTable: testAberturaTable, S3Bucket: testBucket, SQSQueueURL: queueURL,
-			Echo: e, Clients: clients, EmailMock: emailMock, Tokens: tokens,
+			Echo: e, Clients: clients, Notificacoes: notificacoes, Tokens: tokens,
 			AberturaRepo: aberturaRepo, AlteracaoRepo: alteracaoRepo, Notificar: notificar,
 		}
 	})
@@ -173,7 +164,7 @@ func createOrReplaceDynamoTableFixed(ctx context.Context, c *infraaws.Clients, t
 	_, _ = c.Dynamo.UpdateTimeToLive(ctx, &dynamodb.UpdateTimeToLiveInput{
 		TableName: awssdk.String(tableName),
 		TimeToLiveSpecification: &ddbtypes.TimeToLiveSpecification{
-			Enabled: awssdk.Bool(true),
+			Enabled:       awssdk.Bool(true),
 			AttributeName: awssdk.String("ttl"),
 		},
 	})

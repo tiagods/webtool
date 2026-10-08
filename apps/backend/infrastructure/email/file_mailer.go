@@ -13,32 +13,52 @@ import (
 	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
 )
 
-// FileMailer implementa outbound.EmailSender gravando o e-mail como arquivo
-// HTML em disco. É o fallback de dev sem SMTP: permite inspecionar a
+// FileMailer implementa outbound.NotificacaoSender gravando a notificação como
+// arquivo HTML em disco. É o fallback de dev sem SMTP: permite inspecionar a
 // notificação no navegador sem servidor de e-mail.
 type FileMailer struct {
-	dir string
+	dir      string
+	renderer *Renderer
 }
 
-var _ outbound.EmailSender = (*FileMailer)(nil)
+var _ outbound.NotificacaoSender = (*FileMailer)(nil)
 
 // NewFileMailer cria um remetente que grava os e-mails em dir (criada se não
 // existir).
-func NewFileMailer(dir string) *FileMailer {
-	return &FileMailer{dir: dir}
+func NewFileMailer(dir string, r *Renderer) *FileMailer {
+	return &FileMailer{dir: dir, renderer: r}
 }
 
-// Send grava o mesmo HTML que o e-mail SMTP levaria (links presigned incluídos)
-// em <dir>/<YYYYMMDDTHHMMSSZ>_<slug-do-Subject>.html.
-func (m *FileMailer) Send(_ context.Context, data outbound.EmailData) error {
+// EnviarAbertura grava o mesmo HTML que o e-mail SMTP levaria (links presigned
+// incluídos) em <dir>/<YYYYMMDDTHHMMSSZ>_<slug>.html.
+func (m *FileMailer) EnviarAbertura(_ context.Context, n outbound.NotificacaoAbertura) error {
+	body, err := m.renderer.RenderAbertura(projetarAbertura(n))
+	if err != nil {
+		return err
+	}
+	return m.gravar("Nova abertura — "+n.Protocolo, body, n.Protocolo)
+}
+
+// EnviarAlteracao grava a notificação de alteração em disco.
+func (m *FileMailer) EnviarAlteracao(_ context.Context, n outbound.NotificacaoAlteracao) error {
+	body, err := m.renderer.RenderAlteracao(projetarAlteracao(n))
+	if err != nil {
+		return err
+	}
+	return m.gravar("Nova alteração — "+n.Protocolo, body, n.Protocolo)
+}
+
+// gravar escreve o corpo no caminho livre dentro de dir. O protocolo vem do
+// DTO — não há parsing do assunto.
+func (m *FileMailer) gravar(subject, body, protocolo string) error {
 	if err := os.MkdirAll(m.dir, 0o755); err != nil {
 		return fmt.Errorf("criar diretório de saída: %w", err)
 	}
-	path := m.nomeLivre(data.Subject)
-	if err := os.WriteFile(path, []byte(data.BodyHTML), 0o644); err != nil {
+	path := m.nomeLivre(subject)
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
 		return fmt.Errorf("gravar e-mail em arquivo: %w", err)
 	}
-	slog.Info("e-mail salvo em arquivo (dev sem SMTP)", "file", path, "protocolo", protocoloDoAssunto(data.Subject))
+	slog.Info("e-mail salvo em arquivo (dev sem SMTP)", "file", path, "protocolo", protocolo)
 	return nil
 }
 
@@ -58,16 +78,6 @@ func (m *FileMailer) nomeLivre(subject string) string {
 			return candidate // erro inesperado: deixar o WriteFile reportá-lo
 		}
 	}
-}
-
-// protocoloDoAssunto extrai o protocolo do fim do assunto (ex:
-// "Nova abertura — 20260923-001" → "20260923-001").
-func protocoloDoAssunto(subject string) string {
-	const dash = "—"
-	if i := strings.LastIndex(subject, dash); i >= 0 && i+len(dash) < len(subject) {
-		return strings.TrimSpace(subject[i+len(dash):])
-	}
-	return subject
 }
 
 var naoSlug = regexp.MustCompile(`[^a-z0-9]+`)

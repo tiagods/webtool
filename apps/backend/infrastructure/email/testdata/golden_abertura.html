@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1C1C1C; margin: 0; padding: 0; }
+  .container { max-width: 600px; margin: 20px auto; border: 1px solid #E5E5E8; border-radius: 8px; }
+  .header { background: #05354C; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; }
+  .header h1 { margin: 0; font-size: 18px; font-weight: 600; }
+  .header p { margin: 4px 0 0; font-size: 13px; opacity: 0.85; }
+  .body { padding: 20px; }
+  .section { margin-bottom: 16px; }
+  .section h2 { font-size: 14px; font-weight: 600; color: #05354C; margin: 0 0 8px; padding-bottom: 4px; border-bottom: 1px solid #E5E5E8; }
+  .field { display: flex; margin: 3px 0; font-size: 13px; }
+  .field-label { width: 120px; color: #999; flex-shrink: 0; }
+  .field-value { flex: 1; }
+  .docs { margin-top: 12px; }
+  .docs a { display: inline-block; margin: 4px; padding: 4px 10px; background: #0099FF; color: #fff; border-radius: 4px; text-decoration: none; font-size: 12px; }
+  .docs a:hover { background: #0077CC; }
+  .footer { padding: 16px 20px; font-size: 12px; color: #999; border-top: 1px solid #E5E5E8; text-align: center; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📋 Nova Ficha de Abertura</h1>
+    <p>Protocolo: PRO-2026-000999</p>
+  </div>
+  <div class="body">
+    <div class="section">
+      <h2>Dados da Empresa</h2>
+      <div class="field"><span class="field-label">Tipo:</span><span class="field-value">Ltda</span></div>
+      <div class="field"><span class="field-label">Razão Social:</span><span class="field-value">ACME Construções Ltda</span></div>
+      <div class="field"><span class="field-label">Nome Fantasia:</span><span class="field-value">ACME</span></div>
+      <div class="field"><span class="field-label">CNPJ:</span><span class="field-value">12.345.678/0001-90</span></div>
+      <div class="field"><span class="field-label">Natureza Jurídica:</span><span class="field-value">Sociedade Empresária Limitada</span></div>
+    </div>
+
+    
+    <div class="section">
+      <h2>Sócios (2)</h2>
+      
+      <div style="margin: 8px 0; padding: 8px; background: #F9F9F9; border-radius: 6px;">
+        <div class="field"><span class="field-label">Nome:</span><span class="field-value">Maria da Silva</span></div>
+        <div class="field"><span class="field-label">CPF:</span><span class="field-value">123.456.789-00</span></div>
+        <div class="field"><span class="field-label">E-mail:</span><span class="field-value">maria@acme.com</span></div>
+        <div class="field"><span class="field-label">Qualificação:</span><span class="field-value">Sócia-Administradora</span></div>
+        <div class="field"><span class="field-label">Pró-labore:</span><span class="field-value">5.000,00</span></div>
+      </div>
+      
+      <div style="margin: 8px 0; padding: 8px; background: #F9F9F9; border-radius: 6px;">
+        <div class="field"><span class="field-label">Nome:</span><span class="field-value">João Souza</span></div>
+        <div class="field"><span class="field-label">CPF:</span><span class="field-value">987.654.321-00</span></div>
+        <div class="field"><span class="field-label">E-mail:</span><span class="field-value">joao@acme.com</span></div>
+        <div class="field"><span class="field-label">Qualificação:</span><span class="field-value">Sócio</span></div>
+        <div class="field"><span class="field-label">Pró-labore:</span><span class="field-value">—</span></div>
+      </div>
+      
+    </div>
+    
+
+    <div class="section">
+      <h2>Endereço</h2>
+      <div class="field"><span class="field-label">Logradouro:</span><span class="field-value">Av. Paulista, 1000</span></div>
+      <div class="field"><span class="field-label">Bairro:</span><span class="field-value">Bela Vista</span></div>
+      <div class="field"><span class="field-label">Município:</span><span class="field-value">São Paulo</span></div>
+      <div class="field"><span class="field-label">UF:</span><span class="field-value">SP</span></div>
+      <div class="field"><span class="field-label">CEP:</span><span class="field-value">01310-100</span></div>
+    </div>
+
+    <div class="section">
+      <h2>Capital Social</h2>
+      <div class="field"><span class="field-label">Capital:</span><span class="field-value">100.000,00</span></div>
+      <div class="field"><span class="field-label">Administração:</span><span class="field-value">Sócios</span></div>
+    </div>
+
+    <div class="section">
+      <h2>📎 Documentos</h2>
+      <p style="font-size: 13px; color: #666;">Links válidos por 7 dias. Cada link acessa apenas o documento específico.</p>
+      <div class="docs">
+        
+        <a href="https://s3.local/prolink/s1/documentos/contrato_social.pdf?X-Amz-Signature=abc123" target="_blank">Contrato Social</a>
+        
+        <a href="https://s3.local/prolink/s1/documentos/rg.png?X-Amz-Signature=def456" target="_blank">RG Frente (Sócio 1)</a>
+        
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    Prolink Contábil — Sistema de Abertura de Empresas<br>
+    Enviado automaticamente em 23/09/2026 12:00 UTC
+  </div>
+</div>
+</body>
+</html>

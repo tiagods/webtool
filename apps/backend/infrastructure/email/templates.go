@@ -1,24 +1,27 @@
 package email
 
 import (
+	"bytes"
 	"embed"
 	"fmt"
 	"html/template"
-	"time"
+
+	"github.com/tiagods/webtool/apps/backend/domain/ports/outbound"
 )
 
 //go:embed templates/*.html
-var templatesFS embed.FS
+var templateFS embed.FS
 
-// templates carregados uma vez na inicialização.
-var templates *template.Template
+// layoutDataHora é o formato de exibição da data/hora no corpo do e-mail. A
+// formatação é responsabilidade do adapter — o contrato outbound trafega
+// time.Time (mesmo layout do FormatarDataHora pré-refator).
+const layoutDataHora = "02/01/2006 15:04 MST"
 
-func init() {
-	templates = template.Must(template.ParseFS(templatesFS, "templates/*.html"))
-}
-
-// DadosEmailAbertura são os dados do template de e-mail de abertura.
-type DadosEmailAbertura struct {
+// dadosAbertura/dadosAlteracao são os modelos de exibição dos templates — a
+// projeção interna do DTO outbound (DataHora já formatado). Não fazem parte
+// do contrato de fronteira; os nomes dos campos espelham o contrato para o
+// template.
+type dadosAbertura struct {
 	Protocolo        string
 	Tipo             string
 	RazaoSocial      string
@@ -33,13 +36,12 @@ type DadosEmailAbertura struct {
 	CEP              string
 	CapitalSocial    string
 	Administracao    string
-	Socios           []SocioEmail
-	Documentos       []DocLink
+	Socios           []socioEmail
+	Documentos       []docLink
 	DataHora         string
 }
 
-// SocioEmail são os dados de um sócio exibidos no e-mail.
-type SocioEmail struct {
+type socioEmail struct {
 	Nome         string
 	CPF          string
 	Email        string
@@ -47,59 +49,91 @@ type SocioEmail struct {
 	ProLabore    string
 }
 
-// DocLink é um link presigned gerado para download de documento.
-type DocLink struct {
-	Label string // ex: "RG Frente (Sócio 1)"
-	URL   string // presigned GET URL
-}
-
-// DadosEmailAlteracao são os dados do template de e-mail de alteração.
-type DadosEmailAlteracao struct {
+type dadosAlteracao struct {
 	Protocolo        string
 	CNPJ             string
 	RazaoSocial      string
 	Situacao         string
 	Quadros          []string
 	ResumoAlteracoes string
-	Documentos       []DocLink
+	Documentos       []docLink
 	DataHora         string
 }
 
-// RenderAbertura renderiza o template HTML de notificação de abertura.
-func RenderAbertura(d DadosEmailAbertura) (string, error) {
-	var buf templateToString
-	err := templates.ExecuteTemplate(&buf, "abertura", d)
+type docLink struct {
+	Label string // ex: "RG Frente (Sócio 1)"
+	URL   string // presigned GET URL
+}
+
+// Renderer renderiza os templates HTML das notificações. Os templates são
+// parseados no construtor (erro devolvido ao caller) — não há init() nem
+// variável de pacote global.
+type Renderer struct {
+	templates *template.Template
+}
+
+// NewRenderer carrega e parseia os templates embutidos.
+func NewRenderer() (*Renderer, error) {
+	templates, err := template.ParseFS(templateFS, "templates/*.html")
 	if err != nil {
-		return "", fmt.Errorf("renderizar template abertura: %w", err)
+		return nil, fmt.Errorf("parsear templates: %w", err)
+	}
+	return &Renderer{templates: templates}, nil
+}
+
+// RenderAbertura renderiza o template HTML de notificação de abertura.
+func (r *Renderer) RenderAbertura(d dadosAbertura) (string, error) {
+	var buf bytes.Buffer
+	if err := r.templates.ExecuteTemplate(&buf, "abertura", d); err != nil {
+		return "", fmt.Errorf("executar template abertura: %w", err)
 	}
 	return buf.String(), nil
 }
 
 // RenderAlteracao renderiza o template HTML de notificação de alteração.
-func RenderAlteracao(d DadosEmailAlteracao) (string, error) {
-	var buf templateToString
-	err := templates.ExecuteTemplate(&buf, "alteracao", d)
-	if err != nil {
-		return "", fmt.Errorf("renderizar template alteracao: %w", err)
+func (r *Renderer) RenderAlteracao(d dadosAlteracao) (string, error) {
+	var buf bytes.Buffer
+	if err := r.templates.ExecuteTemplate(&buf, "alteracao", d); err != nil {
+		return "", fmt.Errorf("executar template alteracao: %w", err)
 	}
 	return buf.String(), nil
 }
 
-// templateToString é um writer simples que acumula a saída do template.
-type templateToString struct {
-	data []byte
+// projetarAbertura converte o DTO outbound para o modelo de exibição
+// (DataHora formatado para o layout do template).
+func projetarAbertura(n outbound.NotificacaoAbertura) dadosAbertura {
+	ss := make([]socioEmail, 0, len(n.Socios))
+	for _, s := range n.Socios {
+		ss = append(ss, socioEmail{
+			Nome: s.Nome, CPF: s.CPF, Email: s.Email,
+			Qualificacao: s.Qualificacao, ProLabore: s.ProLabore,
+		})
+	}
+	docs := make([]docLink, 0, len(n.Documentos))
+	for _, d := range n.Documentos {
+		docs = append(docs, docLink{Label: d.Label, URL: d.URL})
+	}
+	return dadosAbertura{
+		Protocolo: n.Protocolo, Tipo: n.Tipo,
+		RazaoSocial: n.RazaoSocial, NomeFantasia: n.NomeFantasia,
+		CNPJ: n.CNPJ, NaturezaJuridica: n.NaturezaJuridica,
+		Logradouro: n.Logradouro, Numero: n.Numero, Bairro: n.Bairro,
+		Municipio: n.Municipio, UF: n.UF, CEP: n.CEP,
+		CapitalSocial: n.CapitalSocial, Administracao: n.Administracao,
+		Socios: ss, Documentos: docs,
+		DataHora: n.DataHora.Format(layoutDataHora),
+	}
 }
 
-func (w *templateToString) Write(p []byte) (int, error) {
-	w.data = append(w.data, p...)
-	return len(p), nil
-}
-
-func (w *templateToString) String() string {
-	return string(w.data)
-}
-
-// FormatarDataHora devolve a data/hora atual formatada para exibição no e-mail.
-func FormatarDataHora() string {
-	return time.Now().UTC().Format("02/01/2006 15:04 MST")
+// projetarAlteracao converte o DTO outbound para o modelo de exibição.
+func projetarAlteracao(n outbound.NotificacaoAlteracao) dadosAlteracao {
+	docs := make([]docLink, 0, len(n.Documentos))
+	for _, d := range n.Documentos {
+		docs = append(docs, docLink{Label: d.Label, URL: d.URL})
+	}
+	return dadosAlteracao{
+		Protocolo: n.Protocolo, CNPJ: n.CNPJ, RazaoSocial: n.RazaoSocial,
+		Situacao: n.Situacao, Quadros: n.Quadros, Documentos: docs,
+		DataHora: n.DataHora.Format(layoutDataHora),
+	}
 }

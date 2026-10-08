@@ -1,6 +1,8 @@
-// Package email implementa outbound.EmailSender via SMTP com conteúdo HTML.
-// Os documentos do S3 são enviados como presigned URLs no corpo do e-mail
-// (não como anexos MIME), evitando o limite de ~25MB do SMTP.
+// Package email implementa outbound.NotificacaoSender com conteúdo HTML.
+// Os documentos do S3 vão como presigned URLs no corpo do e-mail (não como
+// anexos MIME), evitando o limite de ~25MB do SMTP. Assunto, HTML e
+// destinatário são montados aqui a partir do DTO outbound — o domínio não
+// conhece e-mail.
 package email
 
 import (
@@ -16,26 +18,49 @@ import (
 	"github.com/tiagods/webtool/apps/backend/infrastructure/config"
 )
 
-// SMTPMailer implementa outbound.EmailSender enviando e-mail como HTML via SMTP.
+// SMTPMailer implementa outbound.NotificacaoSender enviando e-mail como HTML
+// via SMTP.
 type SMTPMailer struct {
-	cfg config.SMTP
+	cfg      config.SMTP
+	renderer *Renderer
 }
 
-var _ outbound.EmailSender = (*SMTPMailer)(nil)
+var _ outbound.NotificacaoSender = (*SMTPMailer)(nil)
 
 // NewSMTPMailer cria um remetente conectado ao servidor SMTP configurado.
-func NewSMTPMailer(cfg config.SMTP) *SMTPMailer {
-	return &SMTPMailer{cfg: cfg}
+func NewSMTPMailer(cfg config.SMTP, r *Renderer) *SMTPMailer {
+	return &SMTPMailer{cfg: cfg, renderer: r}
 }
 
-// Send envia o e-mail HTML com os links presigned dos documentos embutidos
-// no corpo. O assunto é prefixado com "[WebTool]" para identificação em
-// caixa de entrada.
-func (m *SMTPMailer) Send(ctx context.Context, data outbound.EmailData) error {
+// EnviarAbertura envia a notificação de abertura com os links presigned dos
+// documentos embutidos no corpo. O assunto é prefixado com "[WebTool]" para
+// identificação em caixa de entrada.
+func (m *SMTPMailer) EnviarAbertura(_ context.Context, n outbound.NotificacaoAbertura) error {
+	subject := "Nova abertura — " + n.Protocolo
+	body, err := m.renderer.RenderAbertura(projetarAbertura(n))
+	if err != nil {
+		return err
+	}
+	return m.enviar(subject, body)
+}
+
+// EnviarAlteracao envia a notificação de alteração. O assunto é prefixado com
+// "[WebTool]" para identificação em caixa de entrada.
+func (m *SMTPMailer) EnviarAlteracao(_ context.Context, n outbound.NotificacaoAlteracao) error {
+	subject := "Nova alteração — " + n.Protocolo
+	body, err := m.renderer.RenderAlteracao(projetarAlteracao(n))
+	if err != nil {
+		return err
+	}
+	return m.enviar(subject, body)
+}
+
+// enviar monta os cabeçalhos e envia o HTML para o destinatário configurado.
+func (m *SMTPMailer) enviar(subject, body string) error {
 	header := make(map[string]string)
 	header["From"] = m.cfg.From
-	header["To"] = data.To
-	header["Subject"] = "[WebTool] " + data.Subject
+	header["To"] = m.cfg.To
+	header["Subject"] = "[WebTool] " + subject
 	header["MIME-Version"] = "1.0"
 	header["Content-Type"] = "text/html; charset=\"UTF-8\""
 	header["Date"] = time.Now().UTC().Format(time.RFC1123Z)
@@ -45,7 +70,7 @@ func (m *SMTPMailer) Send(ctx context.Context, data outbound.EmailData) error {
 		fmt.Fprintf(&buf, "%s: %s\r\n", k, v)
 	}
 	buf.WriteString("\r\n")
-	buf.WriteString(data.BodyHTML)
+	buf.WriteString(body)
 
 	return sendMail(m.cfg, buf.String())
 }
