@@ -1,7 +1,7 @@
 ---
 id: "040"
 title: "Validador draft: rejeitar chave de topo desconhecida (v.add é no-op em modo draft)"
-status: draft    # draft | review | approved | in-progress | done | rejected
+status: in-progress    # draft | review | approved | in-progress | done | rejected
 created: 2026-10-08
 author: "Tiago"
 batch_size: "small"    # small (≤ meio dia) | medium (≤1 dia)
