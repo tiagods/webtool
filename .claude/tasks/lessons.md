@@ -272,3 +272,9 @@ re-formatação (fora do escopo, polui o diff e o `git revert`).
 **Causa raiz**: a spec foi derivada dos scripts existentes em `infra/aws` em vez de confirmar antes o que o projeto de fato usa; ao receber o corte, a decisão foi documentada em vez de simplesmente aplicada.
 
 **Regra**: quando o usuário corta um recurso do escopo, removê-lo da spec por inteiro — sem linha "descartado", sem nota justificando. A spec descreve o que será construído. Antes de espelhar scripts/IaC legados numa spec, confirmar com o usuário quais recursos estão realmente em uso.
+
+## 2026-10-08 — Spec 039 — golden HTML: drift de CRLF vs LF entre checkouts
+
+**Contexto**: o golden byte a byte do e-mail de notificação (B2) falhava na linha 1 — `testdata/golden_*.html` começava com `\r\n` (CRLF) enquanto o `Renderer` produzia LF. Nenhuma normalização existe no código: o output reflete os bytes do template em disco.
+**Causa raiz**: o golden foi capturado no worktree principal, onde `infrastructure/email/templates/*.html` está checado em CRLF (checkout antigo, anterior ao `eol=lf` do `.gitattributes` para esses arquivos). No worktree da spec (e no CI) o mesmo template é LF.
+**Regra**: capturar goldens/fixtures no worktree onde o código está sendo desenvolvido. Antes de confiar numa comparação byte a byte, conferir os line endings do fixture E da fonte (hexdumpar os primeiros bytes: `0D 0A` = CRLF, `0A` = LF; checar `git check-attr eol -- <arquivo>`). Se o fixture foi capturado num checkout com line endings diferentes, regenerá-lo da mesma fonte (ex.: código pré-refator num módulo scratch) com os templates locais — não "corrigir" o código de produção para casar com fixture capturado no lugar errado.
