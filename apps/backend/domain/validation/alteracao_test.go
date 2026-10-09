@@ -99,8 +99,10 @@ func TestAlteracaoRefinesCondicionais(t *testing.T) {
 		issues := ValidarAlteracaoDraft(json.RawMessage(
 			`{"q05":{"valorCapitalSocial":10000,"tipoAlteracao":"aumento"}}`))
 		got := caminhosUnicos(issues)
-		if len(got) > 0 {
-			t.Errorf("esperava aceito em draft, veio %v", got)
+		// Paridade com o Zod strict().partial() (spec 040): o refine roda em
+		// draft — bloco presente é validado por inteiro.
+		if !slices.Contains(got, "q05/valorIntegralizacao") || !slices.Contains(got, "q05/especificarIntegralizacao") {
+			t.Errorf("esperava issues de integralização em q05, veio %v", got)
 		}
 	})
 
@@ -117,8 +119,10 @@ func TestAlteracaoRefinesCondicionais(t *testing.T) {
 		t.Parallel()
 		issues := ValidarAlteracaoDraft(json.RawMessage(`{"q07":{"tipoTransformacao":"outras"}}`))
 		got := caminhosUnicos(issues)
-		if len(got) > 0 {
-			t.Errorf("esperava aceito em draft, veio %v", got)
+		// Paridade com o Zod strict().partial() (spec 040): o refine roda em
+		// draft — bloco presente é validado por inteiro.
+		if !slices.Contains(got, "q07/especificar") {
+			t.Errorf("esperava issue em q07/especificar, veio %v", got)
 		}
 	})
 

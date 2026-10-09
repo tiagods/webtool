@@ -61,7 +61,7 @@ func TestIntegrationAbertura_FluxoFeliz(t *testing.T) {
 	resp = req(d, t, http.MethodGet, "/api/draft", "", []*http.Cookie{aceiteCookie, sessCookie})
 	assertStatus(t, resp, http.StatusOK)
 	var draftRes struct {
-		Payload        json.RawMessage `json:"payload"`
+		Payload        json.RawMessage   `json:"payload"`
 		DocumentosKeys map[string]string `json:"documentosKeys"`
 	}
 	mustDecodeJSON(t, resp, &draftRes)

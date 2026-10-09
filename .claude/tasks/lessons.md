@@ -278,3 +278,26 @@ re-formatação (fora do escopo, polui o diff e o `git revert`).
 **Contexto**: o golden byte a byte do e-mail de notificação (B2) falhava na linha 1 — `testdata/golden_*.html` começava com `\r\n` (CRLF) enquanto o `Renderer` produzia LF. Nenhuma normalização existe no código: o output reflete os bytes do template em disco.
 **Causa raiz**: o golden foi capturado no worktree principal, onde `infrastructure/email/templates/*.html` está checado em CRLF (checkout antigo, anterior ao `eol=lf` do `.gitattributes` para esses arquivos). No worktree da spec (e no CI) o mesmo template é LF.
 **Regra**: capturar goldens/fixtures no worktree onde o código está sendo desenvolvido. Antes de confiar numa comparação byte a byte, conferir os line endings do fixture E da fonte (hexdumpar os primeiros bytes: `0D 0A` = CRLF, `0A` = LF; checar `git check-attr eol -- <arquivo>`). Se o fixture foi capturado num checkout com line endings diferentes, regenerá-lo da mesma fonte (ex.: código pré-refator num módulo scratch) com os templates locais — não "corrigir" o código de produção para casar com fixture capturado no lugar errado.
+
+## 2026-10-08 — Spec 040 — flake do guard de infra via npm: stack "no ar" que não estava
+
+**Contexto**: durante o gate de integração, `npm run infra:down` reportou 4x seguidas
+"stack Docker (de pe) pertence a OUTRA worktree — dona: /home/tiago/workspace-prolink/
+webtool" (owner do lado WSL) e bloqueou o down/up, enquanto `docker ps -a` mostrava só
+containers Exited donos da worktree principal (`working_dir = C:\Users\Tiago\...`).
+Rodar `bash infra/local/stack-owner.sh --guard-down` diretamente no Git Bash passou na
+seguida e o down/up seguiu.
+
+**Causa raiz**: na máquina local a stack prolink também é manipulada do lado WSL (meio
+automático); o estado do daemon oscilou durante o batch e o guard leu um estado
+diferente do que `docker ps -a` mostrou segundos antes. Via npm a falha era "real" do
+ponto de vista do guard, mas já obsoleta no momento da conferência — e o wrapper npm
+dificultou o diagnóstico.
+
+**Regra**: antes de confiar no guard de owner (ou em qualquer script de infra),
+verificar o estado real diretamente: `docker ps -a` + o label do container
+(`docker inspect prolink-floci --format '{{index .Config.Labels "working_dir"}}'`).
+Se o resultado via npm divergir do estado direto, invocar o script diretamente no Git
+Bash (`bash infra/local/stack-owner.sh --guard-down` / `--guard`) e reverificar. O guard
+é a autoridade sobre *de quem* é a stack; `docker ps -a` + labels é a autoridade sobre
+*qual é* o estado.

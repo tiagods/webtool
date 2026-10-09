@@ -211,10 +211,10 @@ func ValidarAlteracaoDraft(raw json.RawMessage) []Issue {
 		return []Issue{{Path: nil, Message: "corpo inválido"}}
 	}
 
-	v := &validador{draft: true}
+	v := &validador{}
 
 	if fora := chavesForaDoConjunto(topo, chavesAlteracaoConhecidas); len(fora) > 0 {
-		v.add(nil, "Unrecognized key(s) in object: "+listar(fora))
+		v.addFatal(nil, "Unrecognized key(s) in object: "+listar(fora))
 	}
 
 	if ident, ok := secao[identificacaoForm](v, topo, "identificacao", false); ok {
