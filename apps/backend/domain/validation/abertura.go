@@ -76,19 +76,19 @@ type dadosEmpresaForm struct {
 }
 
 type enderecoForm struct {
-	CEP                     *string                `json:"cep"`
-	Logradouro              *string                `json:"logradouro"`
-	Numero                  *string                `json:"numero"`
-	Complemento             *string                `json:"complemento"`
-	Bairro                  *string                `json:"bairro"`
-	Municipio               *string                `json:"municipio"`
-	Estado                  *string                `json:"estado"`
-	IPTU                    *string                `json:"iptu"`
-	ImovelAlugado           *string                `json:"imovelAlugado"`
-	Correspondencia         *string                `json:"correspondencia"`
-	EnderecoCorrespondencia *enderecoCorrespForm    `json:"enderecoCorrespondencia"`
-	LocadorTipo             *string                `json:"locadorTipo"`
-	TipoFuncionamento       *string                `json:"tipoFuncionamento"`
+	CEP                     *string              `json:"cep"`
+	Logradouro              *string              `json:"logradouro"`
+	Numero                  *string              `json:"numero"`
+	Complemento             *string              `json:"complemento"`
+	Bairro                  *string              `json:"bairro"`
+	Municipio               *string              `json:"municipio"`
+	Estado                  *string              `json:"estado"`
+	IPTU                    *string              `json:"iptu"`
+	ImovelAlugado           *string              `json:"imovelAlugado"`
+	Correspondencia         *string              `json:"correspondencia"`
+	EnderecoCorrespondencia *enderecoCorrespForm `json:"enderecoCorrespondencia"`
+	LocadorTipo             *string              `json:"locadorTipo"`
+	TipoFuncionamento       *string              `json:"tipoFuncionamento"`
 }
 
 type enderecoCorrespForm struct {
@@ -133,18 +133,15 @@ type sociedadeForm struct {
 // --- Acumulador ---------------------------------------------------------
 
 // validador acumula as issues e sinaliza se algum erro "aborted" (invalid_type /
-// invalid_enum_value) já apareceu — nesse caso o cross-field não roda.
-// No modo draft (draft=true), v.add() é no-op; só addFatal() persiste.
+// invalid_enum_value) já apareceu — nesse caso o cross-field não roda. add()
+// registra a issue nos dois modos (full e draft): o .partial() do Zod não relaxa
+// a validação de campos presentes — spec 040.
 type validador struct {
 	issues  []Issue
 	aborted bool
-	draft   bool
 }
 
 func (v *validador) add(path []any, msg string) {
-	if v.draft {
-		return
-	}
 	v.issues = append(v.issues, Issue{Path: path, Message: msg})
 }
 
@@ -221,19 +218,20 @@ func ValidarAberturaForm(raw json.RawMessage) []Issue {
 }
 
 // ValidarAberturaDraft valida um rascunho parcial: chave de topo desconhecida é
-// rejeitada, qualquer subconjunto das chaves é aceito, o cross-field não roda e
-// `documentosAceitos` é apenas um booleano opcional (sem exigir `true`).
+// rejeitada, qualquer subconjunto das chaves é aceito, o cross-field não roda,
+// `documentosAceitos` é apenas um booleano opcional (sem exigir `true`) e campos
+// presentes são validados por inteiro (paridade com o Zod strict().partial()).
 func ValidarAberturaDraft(raw json.RawMessage) []Issue {
 	topo, ok := decodificarTopo(raw)
 	if !ok {
 		return []Issue{{Path: nil, Message: "corpo inválido"}}
 	}
 
-	v := &validador{draft: true}
+	v := &validador{}
 
 	desconhecidas := chavesDesconhecidas(topo)
 	if len(desconhecidas) > 0 {
-		v.add(nil, "Unrecognized key(s) in object: "+listar(desconhecidas))
+		v.addFatal(nil, "Unrecognized key(s) in object: "+listar(desconhecidas))
 	}
 
 	parseAberturaForm(v, topo, false)

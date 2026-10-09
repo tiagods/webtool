@@ -338,9 +338,17 @@
   {
     "nome": "draft_chave_topo_desconhecida",
     "modo": "draft",
-    "aceito": true,
-    "issuePaths": [],
-    "issues": []
+    "aceito": false,
+    "issuePaths": [
+      "(root)"
+    ],
+    "issues": [
+      {
+        "path": "(root)",
+        "code": "unrecognized_keys",
+        "message": "Unrecognized key(s) in object: 'foo'"
+      }
+    ]
   },
   {
     "nome": "draft_step_incompleto",
@@ -395,10 +403,16 @@
     "aceito": false,
     "issuePaths": [
       "sociedade/banco",
+      "sociedade/capitalSocial",
       "sociedade/quotas",
       "sociedade/tipoAdministracao"
     ],
     "issues": [
+      {
+        "path": "sociedade/capitalSocial",
+        "code": "too_small",
+        "message": "Informe um valor para o Capital Social"
+      },
       {
         "path": "sociedade/quotas",
         "code": "invalid_type",
