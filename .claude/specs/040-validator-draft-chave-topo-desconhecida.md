@@ -1,7 +1,7 @@
 ---
 id: "040"
 title: "Validador draft: paridade total com o Zod strict().partial() (chave de topo desconhecida + regras field-level em draft)"
-status: in-progress    # draft | review | approved | in-progress | done | rejected
+status: done           # draft | review | approved | in-progress | done | rejected
 created: 2026-10-08
 author: "Tiago"
 batch_size: "medium"   # small (≤ meio dia) | medium (≤1 dia)
@@ -182,15 +182,15 @@ usuário e só afeta consumidores diretos da API. A suíte de caracterização
 
 ## Critérios de aceite
 
-- [ ] `TestRascunhoService_Salvar` verde (subteste `chave_de_topo_desconhecida` incluído)
-- [ ] `TestAlteracaoRascunhoService_Salvar` verde (subteste `chave_de_topo_desconhecida` incluído)
-- [ ] `TestPostDraft` verde (subteste `chave_de_topo_desconhecida → 400 com corpo do Node`)
-- [ ] `TestCaracterizacaoAbertura` e `TestCaracterizacaoAlteracao` verdes contra o
+- [x] `TestRascunhoService_Salvar` verde (subteste `chave_de_topo_desconhecida` incluído)
+- [x] `TestAlteracaoRascunhoService_Salvar` verde (subteste `chave_de_topo_desconhecida` incluído)
+- [x] `TestPostDraft` verde (subteste `chave_de_topo_desconhecida → 400 com corpo do Node`)
+- [x] `TestCaracterizacaoAbertura` e `TestCaracterizacaoAlteracao` verdes contra o
   testdata regenerado (todos os casos, full + draft)
-- [ ] `make -C apps/backend test` e `make -C apps/backend test-integration` **100% verdes**
-- [ ] Gates do escopo tocado verdes (ver tabela em `.claude/commands/done.md`):
-  - `apps/backend/**` → `make -C apps/backend lint` + `make -C apps/backend test` + `docker compose build api-go`
-- [ ] testdata regenerada pelos scripts canônicos: exatamente 6 vereditos mudados
+- [x] `make -C apps/backend test` e `make -C apps/backend test-integration` **100% verdes**
+- [x] Gates do escopo tocado verdes (ver tabela em `.claude/commands/done.md`):
+  - `apps/backend/**` → `make -C apps/backend lint` + `make -C apps/backend test` + `docker compose build api` (o serviço do compose se chama `api`)
+- [x] testdata regenerada pelos scripts canônicos: exatamente 6 vereditos mudados
   (2× `draft_chave_topo_desconhecida` + `draft_sociedade_incompleta` +
   `draft_identificacao_inapta` + `draft_q05_aumento_incompleto` +
   `draft_q07_outras_sem_especificar`); `casos_*.json` inalterados
@@ -215,3 +215,8 @@ usuário e só afeta consumidores diretos da API. A suíte de caracterização
   newline), deixando `make lint` (fmt-check) vermelho no baseline. Corrigido com
   `gofmt -w` como condição do gate; arquivos: `domain/validation/{abertura,
   alteracao}.go` + 5 `infrastructure/*_test.go` de integração.
+- Encerrada em 2026-10-08: todos os critérios verificados — unit `-race` 100%,
+  `go vet`/`gofmt`/`golangci-lint v2` limpos, `docker compose build api` e
+  `test-integration` 100% verdes contra a stack local (subida/derrubada deste
+  worktree). Commits: `3433fdf` (ampliação da spec), `a922a5e` (fix),
+  `1d288d2` (gofmt) + este commit de fechamento.
