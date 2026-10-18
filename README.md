@@ -45,7 +45,7 @@ Em dev, `apps/web/next.config.mjs` tem um `rewrites()` que proxia `/api/:path*` 
 >
 > **Verificação cruzada de JWT (spec 024):** o token `prolink_aceite` assinado pela API Go tem que ser aceito pelo `jose` de `apps/web/middleware.ts`. `TestJWT_CompatibilidadeComJose` (`infrastructure/auth`) cobre isso automaticamente quando `node` está no PATH (pula caso contrário). Para checar um token na mão: `JWT_SECRET=<segredo> node scripts/verify-jwt-cross.mjs <token>`.
 >
-> **Variáveis AWS — dev vs. produção:** `AWS_ENDPOINT_URL`, `AWS_ACCESS_KEY_ID` e `AWS_SECRET_ACCESS_KEY` são **exclusivas do ambiente local** (Floci). Em produção (Fargate) **não existem credenciais estáticas**: cada task usa a **IAM Task Role**. Os segredos `JWT_SECRET` e `SMTP_PASSWORD` também **não** vão em env de produção — vêm do **AWS Secrets Manager** (`secrets[].valueFrom` nas task definitions). O provisionamento é feito por [`infra/aws/`](infra/aws/README.md); o fluxo está em [`deploy.md`](deploy.md).
+> **Variáveis AWS — dev vs. produção:** `AWS_ENDPOINT_URL`, `AWS_ACCESS_KEY_ID` e `AWS_SECRET_ACCESS_KEY` são **exclusivas do ambiente local** (Floci). Em produção (instância **Lightsail**, que não suporta IAM role) `api` e `worker` usam a access key de **IAM users próprios** (`ApiApp`/`WorkerApp`, menor privilégio), lida do `.env` não versionado do servidor como `API_AWS_*`/`WORKER_AWS_*` — nunca versionada. Os segredos `JWT_SECRET` e `SMTP_PASSWORD` vêm do mesmo `.env`. O provisionamento é feito por [`infra/aws/`](infra/aws/README.md); o fluxo está em [`deploy.md`](deploy.md).
 
 ### Testes unitários (npm)
 

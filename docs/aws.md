@@ -4,9 +4,9 @@ Mapeamento de todos os recursos AWS utilizados no projeto, com configuração, s
 
 > **Ambiente local:** todos os recursos são emulados via **Floci** (`floci/floci:latest`) na porta 4566. Scripts de provisionamento em `infra/local/`.
 >
-> **Autenticação em produção:** sempre por **IAM Role** — nunca IAM user com chaves. `apps/backend` (binário Go `cmd/api`) e `cmd/worker` rodam como tasks Fargate; o SDK Go v2 usa a cadeia de credenciais padrão e resolve a **Task Role** pelo endpoint de metadados do container quando `AWS_ENDPOINT_URL` está **ausente**. No local (Floci), `AWS_ENDPOINT_URL` está definido e `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` passam a ser obrigatórias. Nenhuma chave hardcoded em produção. O worker **não é Lambda** — é um processo long-running que faz long-polling na SQS (ver seção "Worker").
+> **Autenticação em produção:** `apps/backend` (binário Go `cmd/api`) e `cmd/worker` rodam como containers Docker numa **instância Lightsail**, que **não suporta IAM role/instance profile**. Por isso cada serviço usa a access key de um **IAM user próprio** (`ApiApp`, `WorkerApp`), com menor privilégio, injetada pelo `.env` não versionado do servidor. Sem `AWS_ENDPOINT_URL`, o SDK Go v2 usa a cadeia de credenciais padrão, que lê `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` do ambiente. No local (Floci), `AWS_ENDPOINT_URL` está definido e as chaves (fictícias) passam a ser obrigatórias. Nenhuma chave hardcoded ou versionada. O worker **não é Lambda** — é um processo long-running que faz long-polling na SQS (ver seção "Worker").
 >
-> **IaC de produção:** os recursos reais (DynamoDB, S3, SQS, IAM, Secrets Manager e task definitions) são provisionados de forma idempotente pelos scripts em [`infra/aws/`](../infra/aws/) — ver seção "IaC de produção".
+> **IaC de produção:** os recursos reais (DynamoDB, S3, SQS) são provisionados de forma idempotente pelos scripts em [`infra/aws/`](../infra/aws/) — ver seção "IaC de produção".
 >
 > **Config:** toda variável de ambiente é lida e validada uma única vez em `apps/backend/infrastructure/config` (boot falha rápido com erro agregado listando o que falta). Variáveis: `APP_ENV` (`dev`|`prod`), `JWT_SECRET`, `PORT`, `SESSION_EXPIRY_SECONDS`, `AWS_REGION`, `AWS_DYNAMODB_ABERTURA_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_TO`, `EMAIL_OUTPUT_DIR` e (só local) `AWS_ENDPOINT_URL` + chaves estáticas. O grupo `SMTP_*` é **opcional em dev** (sem `SMTP_HOST` o worker cai no fallback de arquivo); com `APP_ENV=prod`, `SMTP_HOST`/`SMTP_FROM`/`SMTP_TO` são obrigatórios.
 
@@ -19,13 +19,13 @@ Browser
   │
   ├─ PUT (presigned) ──────────────────────────────────→ S3
   │
-  └─ apps/backend (task Fargate — cmd/api)
+  └─ apps/backend (container no Lightsail — cmd/api)
         │
         ├─ DynamoDB   ← rascunhos, aceites LGPD, contador de protocolo
         ├─ S3         ← documentos dos sócios + backup JSON
         └─ SQS        ← fila de processamento assíncrono
               │
-              └─ apps/backend (task Fargate — cmd/worker, long-polling na SQS)
+              └─ apps/backend (container no Lightsail — cmd/worker, long-polling na SQS)
                     ├─ DynamoDB   ← lê payload, zera dados sensíveis, atualiza status
                     ├─ S3         ← assina URLs de download dos documentos
                     └─ SMTP       ← envia e-mail de notificação
@@ -64,7 +64,7 @@ Browser
 
 ### Segurança
 
-- Acesso exclusivo via **IAM Task Role** da task (`ApiTaskRole` / `WorkerTaskRole`) — sem chaves de acesso
+- Acesso exclusivo pelos IAM users da aplicação (`ApiApp` / `WorkerApp`), com menor privilégio
 - Point-in-Time Recovery (PITR) habilitado
 - Sem acesso público
 - Encryption at rest habilitada por padrão na AWS
@@ -139,7 +139,7 @@ Em dev, o CORS é aplicado automaticamente pelo `infra/local/init.sh` (origin fi
 - `key` da presigned URL nunca é retornada ao cliente — derivada server-side de `sessionId + campo`
 - `campo` validado com `/^[a-z0-9_]{1,80}$/` antes de compor a key (previne path traversal)
 - Encryption at rest: SSE-S3 (AES256); Versioning habilitado
-- Acesso via IAM Task Role (sem chaves de acesso)
+- Acesso exclusivo pelos IAM users da aplicação (`ApiApp` / `WorkerApp`)
 
 ### Estimativa de custo — 100 submissões/mês
 
@@ -178,7 +178,7 @@ Em dev, o CORS é aplicado automaticamente pelo `infra/local/init.sh` (origin fi
 
 ### Segurança
 
-- Acesso via IAM Task Role (a API publica com `SendMessage`; o worker consome com `ReceiveMessage`/`DeleteMessage`)
+- Acesso via IAM users da aplicação (a API publica com `SendMessage`; o worker consome com `ReceiveMessage`/`DeleteMessage`)
 - Sem acesso público
 
 ### Estimativa de custo — 100 submissões/mês
@@ -195,10 +195,10 @@ O worker envia o e-mail de notificação **diretamente por SMTP** (`apps/backend
 
 | Parâmetro | Origem |
 |---|---|
-| `SMTP_HOST`, `SMTP_PORT` | env do taskdef (não secreto) |
-| `SMTP_USER` | env do taskdef (não secreto) |
-| `SMTP_PASSWORD` | **AWS Secrets Manager** (`smtp-password`) — `secrets[].valueFrom` |
-| `SMTP_FROM`, `SMTP_TO` | env do taskdef (não secreto) |
+| `SMTP_HOST`, `SMTP_PORT` | `.env` do servidor (não secreto) |
+| `SMTP_USER` | `.env` do servidor (não secreto) |
+| `SMTP_PASSWORD` | `.env` do servidor (**secreto**, não versionado) |
+| `SMTP_FROM`, `SMTP_TO` | `.env` do servidor (não secreto) |
 
 > O custo do envio depende do provedor SMTP contratado — não é faturado pela AWS.
 
@@ -210,9 +210,9 @@ Scripts POSIX idempotentes (`create-or-update`) que provisionam os recursos reai
 
 ### Padrão de nomenclatura
 
-1. **PascalCase** nos recursos que aceitam maiúsculas (DynamoDB, SQS, IAM, CloudWatch Logs, Secrets Manager).
+1. **PascalCase** nos recursos que aceitam maiúsculas (DynamoDB, SQS, IAM).
 2. **Sem prefixo `prolink-`** — a conta AWS é dedicada à organização.
-3. **Exceções impostas pela AWS**: S3 (nome globalmente único + só minúsculas) mantém `prolink-fichas`; ECR (só minúsculas) usa `api`/`worker`.
+3. **Exceções impostas pela AWS**: S3 (nome globalmente único + só minúsculas) mantém `prolink-fichas`.
 4. **Fonte única de nomes**: `infra/aws/lib/params.sh` — nenhum nome hardcodeado fora dela.
 
 | Script | Provisiona |
@@ -220,39 +220,31 @@ Scripts POSIX idempotentes (`create-or-update`) que provisionam os recursos reai
 | `provision-dynamodb.sh` | 3 tabelas + TTL + PITR |
 | `provision-s3.sh` | bucket + Block Public Access + SSE-S3 + Versioning + Lifecycle + CORS |
 | `provision-sqs.sh` | fila + DLQ + redrive |
-| `provision-iam.sh` | roles, policies e log groups do ECS |
-| `provision-secrets.sh` | `jwt-secret` e `smtp-password` |
-| `register-task-defs.sh` | task definitions Fargate (`api`, `worker`) |
-| `provision-all.sh` | encadeia tudo na ordem (taskdefs se as imagens forem informadas) |
+
+> Os IAM users da aplicação (ver "IAM — credenciais da aplicação") ainda são criados à mão pelo operador.
 
 Ver [`infra/aws/README.md`](../infra/aws/README.md) para o passo a passo.
 
 ---
 
-## Fargate (containers)
+## Lightsail (hospedagem)
 
-**Task Definitions:** `api` e `worker` (registradas por `infra/aws/register-task-defs.sh`)
-**Runtime:** Fargate, `networkMode: awsvpc`
+**Runtime:** uma instância Lightsail com Docker rodando `docker-compose.prod.yml` (`web`, `api`, `worker`, `nginx`, `caddy`)
+**Imagens:** buildadas no próprio servidor (`docker compose up --build`) — sem container registry
+**Rede:** IP estático da instância; firewall do Lightsail libera só 22/80/443
 **Região:** `us-east-1`
-
-### Configuração
 
 | Parâmetro | Valor |
 |---|---|
-| CPU / Memória | 0.25 vCPU / 512MB |
 | Imagem `api` | build de `apps/backend/Dockerfile` com `APP=api` |
 | Imagem `worker` | build de `apps/backend/Dockerfile` com `APP=worker` |
-| Porta (só `api`) | 3001 |
+| Porta (só `api`) | 3001 (publicada no host, bloqueada no firewall) |
 
-> O cluster, os *services*, o ALB/TLS e a rede (VPC/subnets) **não** são criados por esta spec — são escopo da spec de rede (021b). Aqui ficam apenas as task definitions e as roles.
+### IAM — credenciais da aplicação
 
-### IAM Task Role
+O Lightsail não anexa IAM role à instância, então cada serviço usa a access key de um **IAM user próprio**, passada pelo `.env` do servidor (`API_AWS_*` / `WORKER_AWS_*`, repassadas pelo Compose como `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`). As policies usam ARNs explícitos (nenhum `Resource: "*"`).
 
-Cada task recebe permissões via **Task Role** — sem `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` em variáveis ou código. As policies estão versionadas em [`infra/aws/iam/`](../infra/aws/iam/) e usam ARNs explícitos (nenhum `Resource: "*"`).
-
-**`EcsExecutionRole`** (assumida pelo agente ECS): managed `AmazonECSTaskExecutionRolePolicy` (pull no ECR + logs) + `secretsmanager:GetSecretValue` restrito a `jwt-secret-*` e `smtp-password-*`.
-
-**`ApiTaskRole`** (runtime da API):
+**`ApiApp`** (runtime da API):
 
 | Serviço | Ações | Recurso |
 |---|---|---|
@@ -261,7 +253,7 @@ Cada task recebe permissões via **Task Role** — sem `AWS_ACCESS_KEY_ID`/`AWS_
 | S3 | `ListBucket` | `prolink-fichas` |
 | SQS | `SendMessage` | `FichasSubmissoes` |
 
-**`WorkerTaskRole`** (runtime do worker):
+**`WorkerApp`** (runtime do worker):
 
 | Serviço | Ações | Recurso |
 |---|---|---|
@@ -269,33 +261,33 @@ Cada task recebe permissões via **Task Role** — sem `AWS_ACCESS_KEY_ID`/`AWS_
 | S3 | `GetObject` | `prolink-fichas/*` |
 | SQS | `ReceiveMessage`, `DeleteMessage` | `FichasSubmissoes` |
 
-> **Princípio do menor privilégio:** cada role recebe apenas as ações necessárias nos recursos específicos — sem wildcards (`*`). O worker só **assina** URLs de download (`s3:GetObject`); o redrive da DLQ é feito pelo próprio SQS.
+> **Princípio do menor privilégio:** cada user recebe apenas as ações necessárias nos recursos específicos — sem wildcards (`*`). O worker só **assina** URLs de download (`s3:GetObject`); o redrive da DLQ é feito pelo próprio SQS.
 
 ---
 
 ## Worker (consumidor SQS)
 
-**Serviço:** `cmd/worker` do módulo Go `apps/backend` — **task Fargate**
+**Serviço:** `cmd/worker` do módulo Go `apps/backend` — **container no Lightsail**
 **Runtime:** binário Go (processo long-running, não Lambda)
 **Região:** `us-east-1`
 **Consumo:** long-polling `ReceiveMessage` na fila `FichasSubmissoes` (`WaitTimeSeconds: 20`)
 
-> **Por que task e não Lambda:** a stack já é containerizada; o volume (~100 fichas/mês) não justifica escala a zero. O processamento (`NotificarSubmissao.Processar`) é isolado do loop de polling e recebe dependências por injeção — migrar para Lambda no futuro é um wrapper fino sobre a mesma função.
+> **Por que container e não Lambda:** a stack já é containerizada; o volume (~100 fichas/mês) não justifica escala a zero. O processamento (`NotificarSubmissao.Processar`) é isolado do loop de polling e recebe dependências por injeção — migrar para Lambda no futuro é um wrapper fino sobre a mesma função.
 
-### IAM Role (Task Role)
+### IAM (user `WorkerApp`)
 
 | Serviço | Ações |
 |---|---|
 | DynamoDB | `GetItem`, `UpdateItem` em `FichasAbertura`/`FichasAlteracao` |
 | S3 | `GetObject` em `prolink-fichas/*` (assina URLs de download) |
 | SQS | `ReceiveMessage`, `DeleteMessage` em `FichasSubmissoes` |
-| SMTP | sem IAM — credenciais via Secrets Manager |
+| SMTP | sem IAM — credenciais via `.env` do servidor |
 
 ### Configuração
 
 | Parâmetro | Valor |
 |---|---|
-| Concorrência | 1 task, `MaxNumberOfMessages: 1` por poll |
+| Concorrência | 1 container, `MaxNumberOfMessages: 1` por poll |
 | `VisibilityTimeout` | 120s (definido na fila) |
 | Retry | Nativo do SQS — sem `DeleteMessage` em falha, a mensagem reentrega |
 | DLQ | `FichasSubmissoesDLQ`, `maxReceiveCount: 5` |
@@ -303,7 +295,7 @@ Cada task recebe permissões via **Task Role** — sem `AWS_ACCESS_KEY_ID`/`AWS_
 
 ### Estimativa de custo
 
-Task Fargate 0.25 vCPU / 512MB — ver custo de hospedagem abaixo.
+Roda na mesma instância Lightsail — ver custo de hospedagem abaixo.
 
 ---
 
@@ -316,7 +308,7 @@ Task Fargate 0.25 vCPU / 512MB — ver custo de hospedagem abaixo.
 | SQS | $0,00 (free tier) |
 | E-mail (SMTP externo) | conforme provedor |
 | **AWS (total)** | **~$0,03** |
-| Hospedagem (Fargate — api + worker 24/7) | a calcular com sizing definitivo |
+| Hospedagem (instância Lightsail — stack completa 24/7) | conforme o plano escolhido |
 | **Total geral** | a definir |
 
 > Os serviços gerenciados (DynamoDB, S3, SQS) somam centavos — escalam sem custo significativo até milhares de submissões/mês.
