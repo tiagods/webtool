@@ -13,12 +13,12 @@
 # shellcheck disable=SC2034
 
 # ─── Nomes dos recursos ──────────────────────────────────────────────────────
-DYNAMO_ABERTURA_TABLE="${AWS_DYNAMODB_TABLE:-fichas-abertura}"
-DYNAMO_ALTERACAO_TABLE="${AWS_DYNAMODB_ALTERACAO_TABLE:-fichas-alteracao}"
-DYNAMO_ACEITES_TABLE="${AWS_DYNAMODB_ACEITES_TABLE:-prolink-aceites-lgpd}"
+DYNAMO_ABERTURA_TABLE="${AWS_DYNAMODB_ABERTURA_TABLE:-FichasAbertura}"
+DYNAMO_ALTERACAO_TABLE="${AWS_DYNAMODB_ALTERACAO_TABLE:-FichasAlteracao}"
+DYNAMO_ACEITES_TABLE="${AWS_DYNAMODB_ACEITES_TABLE:-AceitesLgpd}"
 S3_BUCKET="${AWS_S3_BUCKET:-prolink-fichas}"
-SQS_QUEUE_NAME="${SQS_QUEUE_NAME:-prolink-abertura}"
-SQS_DLQ_NAME="${SQS_DLQ_NAME:-prolink-abertura-dlq}"
+SQS_QUEUE_NAME="${SQS_QUEUE_NAME:-FichasSubmissoes}"
+SQS_DLQ_NAME="${SQS_DLQ_NAME:-FichasSubmissoesDLQ}"
 
 # ─── DynamoDB — chaves e TTL ─────────────────────────────────────────────────
 DYNAMO_PK_ATTR="sessionId"
@@ -39,20 +39,20 @@ S3_LIFECYCLE_TAG_KEY="retention"
 S3_LIFECYCLE_TAG_VALUE="rascunho"
 
 # ─── Secrets Manager ─────────────────────────────────────────────────────────
-SECRET_JWT_NAME="${SECRET_JWT_NAME:-prolink/jwt-secret}"
-SECRET_SMTP_NAME="${SECRET_SMTP_NAME:-prolink/smtp-password}"
+SECRET_JWT_NAME="${SECRET_JWT_NAME:-jwt-secret}"
+SECRET_SMTP_NAME="${SECRET_SMTP_NAME:-smtp-password}"
 
 # ─── IAM / ECS ───────────────────────────────────────────────────────────────
-ECS_EXECUTION_ROLE_NAME="prolink-ecs-execution-role"
-API_TASK_ROLE_NAME="prolink-api-task-role"
-WORKER_TASK_ROLE_NAME="prolink-worker-task-role"
-ECS_API_LOG_GROUP="/ecs/prolink-api"
-ECS_WORKER_LOG_GROUP="/ecs/prolink-worker"
+ECS_EXECUTION_ROLE_NAME="EcsExecutionRole"
+API_TASK_ROLE_NAME="ApiTaskRole"
+WORKER_TASK_ROLE_NAME="WorkerTaskRole"
+ECS_API_LOG_GROUP="/ecs/api"
+ECS_WORKER_LOG_GROUP="/ecs/worker"
 ECS_LOG_RETENTION_DAYS="30"
 
 # ─── ECS — task definitions ──────────────────────────────────────────────────
-ECS_API_FAMILY="prolink-api"
-ECS_WORKER_FAMILY="prolink-worker"
+ECS_API_FAMILY="api"
+ECS_WORKER_FAMILY="worker"
 ECS_CPU="256"
 ECS_MEMORY="512"
 

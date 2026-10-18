@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 # Cria/atualiza os secrets de produção no AWS Secrets Manager (idempotente).
 #
-#   prolink/jwt-secret     — segredo de assinatura do JWT (web + api)
-#   prolink/smtp-password  — senha do servidor SMTP (worker)
+#   jwt-secret     — segredo de assinatura do JWT (web + api)
+#   smtp-password  — senha do servidor SMTP (worker)
 #
 # Os valores NUNCA entram no repositório: vêm das variáveis de ambiente
 # JWT_SECRET / SMTP_PASSWORD do operador. Se o JWT_SECRET não existir ainda e

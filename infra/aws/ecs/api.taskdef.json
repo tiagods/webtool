@@ -18,7 +18,7 @@
         { "name": "APP_ENV", "value": "prod" },
         { "name": "PORT", "value": "3001" },
         { "name": "AWS_REGION", "value": "${AWS_REGION}" },
-        { "name": "AWS_DYNAMODB_TABLE", "value": "${DYNAMO_ABERTURA_TABLE}" },
+        { "name": "AWS_DYNAMODB_ABERTURA_TABLE", "value": "${DYNAMO_ABERTURA_TABLE}" },
         { "name": "AWS_DYNAMODB_ALTERACAO_TABLE", "value": "${DYNAMO_ALTERACAO_TABLE}" },
         { "name": "AWS_DYNAMODB_ACEITES_TABLE", "value": "${DYNAMO_ACEITES_TABLE}" },
         { "name": "AWS_S3_BUCKET", "value": "${S3_BUCKET}" },
