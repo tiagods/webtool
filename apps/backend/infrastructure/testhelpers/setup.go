@@ -33,9 +33,9 @@ import (
 
 const (
 	// Recursos REAIS do Floci — cada repositório aponta para sua tabela.
-	testAberturaTable  = "fichas-abertura"
-	testAlteracaoTable = "fichas-alteracao"
-	testAceiteTable    = "prolink-aceites-lgpd"
+	testAberturaTable  = "FichasAbertura"
+	testAlteracaoTable = "FichasAlteracao"
+	testAceiteTable    = "AceitesLgpd"
 	testBucket         = "prolink-fichas"
 )
 
@@ -89,10 +89,10 @@ func SetupTestMain() {
 			panic("montar clients AWS: " + err.Error())
 		}
 
-		// Recria tabelas "sessionId" (PK) — fichas-abertura e fichas-alteracao
+		// Recria tabelas "sessionId" (PK) — FichasAbertura e FichasAlteracao
 		createOrReplaceDynamoTableFixed(ctx, clients, testAberturaTable)
 		createOrReplaceDynamoTableFixed(ctx, clients, testAlteracaoTable)
-		// prolink-aceites-lgpd NÃO é recriada (schema PK+SK diferente)
+		// AceitesLgpd NÃO é recriada (schema PK+SK diferente)
 		createOrReplaceBucketFixed(ctx, clients)
 		createOrReplaceQueueFixed(ctx, clients)
 

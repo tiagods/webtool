@@ -19,19 +19,19 @@ As imagens são produzidas pelo `apps/backend/Dockerfile` (um binário por build
 
 ```bash
 # uma vez: criar os repositórios
-aws ecr create-repository --repository-name prolink-api
-aws ecr create-repository --repository-name prolink-worker
+aws ecr create-repository --repository-name api
+aws ecr create-repository --repository-name worker
 
 # login
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <acct>.dkr.ecr.us-east-1.amazonaws.com
 
 # build + push (api e worker)
-docker build -f apps/backend/Dockerfile --build-arg APP=api    -t prolink-api:latest    apps/backend
-docker build -f apps/backend/Dockerfile --build-arg APP=worker -t prolink-worker:latest apps/backend
-docker tag prolink-api:latest    <acct>.dkr.ecr.us-east-1.amazonaws.com/prolink-api:latest
-docker tag prolink-worker:latest <acct>.dkr.ecr.us-east-1.amazonaws.com/prolink-worker:latest
-docker push <acct>.dkr.ecr.us-east-1.amazonaws.com/prolink-api:latest
-docker push <acct>.dkr.ecr.us-east-1.amazonaws.com/prolink-worker:latest
+docker build -f apps/backend/Dockerfile --build-arg APP=api    -t api:latest    apps/backend
+docker build -f apps/backend/Dockerfile --build-arg APP=worker -t worker:latest apps/backend
+docker tag api:latest    <acct>.dkr.ecr.us-east-1.amazonaws.com/api:latest
+docker tag worker:latest <acct>.dkr.ecr.us-east-1.amazonaws.com/worker:latest
+docker push <acct>.dkr.ecr.us-east-1.amazonaws.com/api:latest
+docker push <acct>.dkr.ecr.us-east-1.amazonaws.com/worker:latest
 ```
 
 > O pipeline de build/push automatizado é escopo de uma spec futura; por ora o push é manual.
@@ -50,8 +50,8 @@ export PROD_ORIGIN=https://prolinkcontabil.com.br
 `provision-all.sh` encadeia DynamoDB, S3, SQS, IAM (+ log groups) e Secrets Manager. Ele **pula** os task definitions se as imagens não forem informadas; para registrá-los:
 
 ```bash
-API_IMAGE_URI=<acct>.dkr.ecr.us-east-1.amazonaws.com/prolink-api:latest \
-WORKER_IMAGE_URI=<acct>.dkr.ecr.us-east-1.amazonaws.com/prolink-worker:latest \
+API_IMAGE_URI=<acct>.dkr.ecr.us-east-1.amazonaws.com/api:latest \
+WORKER_IMAGE_URI=<acct>.dkr.ecr.us-east-1.amazonaws.com/worker:latest \
 SMTP_HOST=smtp.exemplo.com SMTP_USER=usuario \
   ./infra/aws/register-task-defs.sh
 ```
@@ -60,7 +60,7 @@ Os valores de `JWT_SECRET` e `SMTP_PASSWORD` **não** entram no repositório: `p
 
 ### Passo 3: Subir os services Fargate
 
-Criar cluster, services (`api`, `worker`, futuramente `web`), ALB/TLS e rede (VPC/subnets) **não** é feito por estes scripts — é escopo da spec de rede (021b). As task definitions `prolink-api` e `prolink-worker` já ficam registradas e prontas para um service.
+Criar cluster, services (`api`, `worker`, futuramente `web`), ALB/TLS e rede (VPC/subnets) **não** é feito por estes scripts — é escopo da spec de rede (021b). As task definitions `api` e `worker` já ficam registradas e prontas para um service.
 
 > **Autenticação:** a task assume a Task Role automaticamente. Nenhuma variável `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` é configurada — o `api.taskdef.json`/`worker.taskdef.json` explicitamente não as inclui.
 
@@ -83,7 +83,7 @@ Caminho para um servidor com Docker instalado (VPS, Lightsail, EC2), usando `doc
      sudo ufw deny 3001/tcp
      sudo ufw enable
      ```
-4. Garanta que a instância tenha uma **IAM role** com acesso a DynamoDB/S3/SQS (em EC2/Lightsail, anexe uma role à instância). Sem `AWS_ENDPOINT_URL`, o SDK Go usa a cadeia de credenciais padrão (metadata da instância) — nenhuma mudança de código entre dev (Floci) e produção. As demais variáveis (`APP_ENV=prod`, `AWS_REGION`, `AWS_DYNAMODB_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL`, `JWT_SECRET` e os seis `SMTP_*`) são injetadas pelo `docker-compose.prod.yml` e são **obrigatórias** (o boot do binário Go falha rápido listando o que faltar).
+4. Garanta que a instância tenha uma **IAM role** com acesso a DynamoDB/S3/SQS (em EC2/Lightsail, anexe uma role à instância). Sem `AWS_ENDPOINT_URL`, o SDK Go usa a cadeia de credenciais padrão (metadata da instância) — nenhuma mudança de código entre dev (Floci) e produção. As demais variáveis (`APP_ENV=prod`, `AWS_REGION`, `AWS_DYNAMODB_ABERTURA_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL`, `JWT_SECRET` e os seis `SMTP_*`) são injetadas pelo `docker-compose.prod.yml` e são **obrigatórias** (o boot do binário Go falha rápido listando o que faltar).
 5. Os segredos `JWT_SECRET` e `SMTP_PASSWORD` vêm de um **`.env` não versionado** na raiz (lido pelo Compose). Nunca os versione.
 6. Aponte o DNS do domínio de produção (`prolinkcontabil.com.br` e `www.prolinkcontabil.com.br`) para o IP público do servidor — pré-requisito para a emissão automática do certificado TLS no Passo 4.
 7. Configure o CORS do bucket S3 real, restrito ao domínio de produção:

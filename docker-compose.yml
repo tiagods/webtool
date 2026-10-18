@@ -85,11 +85,11 @@ services:
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
-      AWS_DYNAMODB_TABLE: fichas-abertura
-      AWS_DYNAMODB_ALTERACAO_TABLE: fichas-alteracao
-      AWS_DYNAMODB_ACEITES_TABLE: prolink-aceites-lgpd
+      AWS_DYNAMODB_ABERTURA_TABLE: FichasAbertura
+      AWS_DYNAMODB_ALTERACAO_TABLE: FichasAlteracao
+      AWS_DYNAMODB_ACEITES_TABLE: AceitesLgpd
       AWS_S3_BUCKET: prolink-fichas
-      AWS_SQS_QUEUE_URL: http://floci:4566/000000000000/prolink-abertura
+      AWS_SQS_QUEUE_URL: http://floci:4566/000000000000/FichasSubmissoes
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
       interval: 5s
@@ -117,11 +117,11 @@ services:
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
-      AWS_DYNAMODB_TABLE: fichas-abertura
-      AWS_DYNAMODB_ALTERACAO_TABLE: fichas-alteracao
-      AWS_DYNAMODB_ACEITES_TABLE: prolink-aceites-lgpd
+      AWS_DYNAMODB_ABERTURA_TABLE: FichasAbertura
+      AWS_DYNAMODB_ALTERACAO_TABLE: FichasAlteracao
+      AWS_DYNAMODB_ACEITES_TABLE: AceitesLgpd
       AWS_S3_BUCKET: prolink-fichas
-      AWS_SQS_QUEUE_URL: http://floci:4566/000000000000/prolink-abertura
+      AWS_SQS_QUEUE_URL: http://floci:4566/000000000000/FichasSubmissoes
       # Opcionais em dev: sem SMTP_HOST o worker cai no fallback de arquivo
       # (HTML em /tmp dentro do container — spec 035).
       SMTP_HOST: ${SMTP_HOST}

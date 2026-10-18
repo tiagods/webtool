@@ -14,8 +14,8 @@ ENDPOINT="${AWS_ENDPOINT_URL:-http://localhost:4566}"
 REGION="${AWS_REGION:-us-east-1}"
 AWS="aws --endpoint-url $ENDPOINT --region $REGION"
 
-RASCUNHOS_TABLE="fichas-abertura"
-ACEITES_TABLE="prolink-aceites-lgpd"
+RASCUNHOS_TABLE="FichasAbertura"
+ACEITES_TABLE="AceitesLgpd"
 
 cmd="${1:-}"
 

@@ -79,7 +79,7 @@ func TestIntegrationAlteracao_SubmitSemTipo(t *testing.T) {
 
 	aceiteCookie := criarAceite(d, t)
 
-	// Cria sessão de alteração (armazenada em fichas-alteracao)
+	// Cria sessão de alteração (armazenada em FichasAlteracao)
 	resp := req(d, t, http.MethodPost, "/api/alteracao/session", "", []*http.Cookie{aceiteCookie})
 	assertStatus(t, resp, http.StatusOK)
 	sessCookie := extrairCookie(resp, auth.CookieSessao)
