@@ -3,6 +3,19 @@
 > Documento acumulativo. Nunca é resetado. Consultado no início de cada sessão.
 
 <!-- Adicionar lições no formato abaixo -->
+
+## 2026-10-18 — Spec 037 — `localhost` capturado por outro engine Docker (WSL)
+
+**Erro**: o E2E via `http://localhost/api` devolvia 500 em `/aceite-termo`, sem nenhuma linha
+no `docker logs prolink-api` — e a mesma chamada de dentro do container dava 200.
+**Causa raiz**: o Ubuntu do WSL roda um Docker Engine **próprio** (não o Docker Desktop) com
+outro stack `prolink-*` de um clone em `/home/tiago/workspace-prolink/webtool`. O `wslrelay`
+escuta em `127.0.0.1`/`::1` nas portas 80 e 3001 e ganha do Docker Desktop (que escuta em
+`0.0.0.0`/`::`), então `localhost` caía no stack errado. O `infra:owner` não vê esse engine.
+**Regra**: E2E que der erro sem log no container → conferir quem escuta a porta
+(`Get-NetTCPConnection -LocalPort 80,3001 -State Listen`). Com `wslrelay` na frente, mirar o
+IP da LAN (ex.: `http://192.168.56.1/api`) ou parar o stack do WSL — nunca derrubá-lo sem
+perguntar, é outro checkout.
 <!--
 ## [Data] — [Contexto]
 
