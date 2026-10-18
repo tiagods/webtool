@@ -134,18 +134,17 @@ Regras do padrão:
 
 - [x] `params.sh` define todos os defaults novos (tabelas, fila, DLQ, roles, log groups,
       families, secrets)
-- [/] `validate.sh` sem nomes hardcodeados (faz `source` do `params.sh`) e
-      `npm run infra:validate` passa após `npm run infra:reset` — código ok, gate
-      **bloqueado**: stack Floci de outra worktree
+- [x] `validate.sh` sem nomes hardcodeados (faz `source` do `params.sh`) e
+      `npm run infra:validate` passa após `npm run infra:reset`
 - [x] Env var `AWS_DYNAMODB_ABERTURA_TABLE` usada em todos os pontos (config.go, taskdefs,
       compose, docs) — nenhum resíduo de `AWS_DYNAMODB_TABLE`
-- [ ] E2E local (Floci) passando: abertura → SQS `FichasSubmissoes` → worker, e alteracao
+- [x] E2E local (Floci) passando: abertura → SQS `FichasSubmissoes` → worker, e alteracao
 - [x] `docs/aws.md` e `deploy.md` sem nenhum nome antigo residual
-- [/] Gates do escopo tocado verdes:
+- [x] Gates do escopo tocado verdes:
   - [x] `apps/backend/**` → `go vet` + `go test ./...` + `docker compose build api` verdes
     (executados via PowerShell; `make` disponível via Git Bash — lição 2026-09-07)
   - [x] `infra/**`, `scripts/**` → `sh -n` verde nos scripts tocados
-  - [/] E2E/validate → **bloqueado** (stack local de outra worktree)
+  - [x] E2E/validate → `npm run infra:reset` + `npm run infra:validate` verdes
 
 ## Notas
 
