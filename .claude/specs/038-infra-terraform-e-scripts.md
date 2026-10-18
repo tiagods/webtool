@@ -62,7 +62,7 @@ Criar a infraestrutura em **Terraform**, com dois root modules, e tirar o nginx 
    `docker-compose.yml` executa.
 2. **`scripts/terraform/production/`** — provisiona na **AWS real**: as mesmas tabelas (com
    TTL + PITR), o bucket (block public access, SSE, versioning, lifecycle, CORS), a fila + DLQ
-   e a **IAM role** da aplicação com menor privilégio sobre esses recursos.
+   e os **IAM users** da aplicação (`ApiApp`, `WorkerApp`) com menor privilégio sobre esses recursos.
 3. **`infra/nginx/` → `scripts/nginx/`** — move sem alterar conteúdo; atualiza o `build.context`
    nos dois compose.
 4. **Remover `infra/`** ao final, atualizando todos os consumidores (compose, `package.json`,
@@ -123,15 +123,16 @@ versioning, block public access).
 | Bucket S3 | `aws_s3_bucket` + `_cors_configuration` + `_lifecycle_configuration` | local + production |
 | Endurecimento do bucket | `_public_access_block`, `_server_side_encryption_configuration`, `_versioning` | production |
 | Fila SQS + DLQ | `aws_sqs_queue` ×2 + `redrive_policy` | local + production |
-| IAM role da aplicação | `aws_iam_role` + `aws_iam_role_policy` | production |
+| IAM users da aplicação | `aws_iam_user` ×2 + `aws_iam_user_policy` | production |
 
 - **CORS**: origem por variável (`cors_allowed_origins`) — `http://localhost:3000` no local, a
   origem pública em production.
-- **IAM role**: menor privilégio sobre as 3 tabelas (`GetItem`/`PutItem`/`UpdateItem`/
-  `DeleteItem`), o bucket (objetos + `ListBucket`) e a fila (`SendMessage` para a API;
-  `ReceiveMessage`/`DeleteMessage` para o worker). ARNs vêm dos outputs do módulo `dados`.
-- **Trust da role**: `ecs-tasks.amazonaws.com` — a aplicação roda em Fargate e assume a role
-  como task role.
+- **IAM users**: um por serviço, com as policies de menor privilégio de `docs/aws.md` —
+  `ApiApp` (CRUD nas 3 tabelas, objetos + `ListBucket` no bucket, `SendMessage` na fila) e
+  `WorkerApp` (`GetItem`/`UpdateItem` em 2 tabelas, `GetObject`, `ReceiveMessage`/
+  `DeleteMessage`). ARNs vêm dos outputs do módulo `dados`. O Terraform **não** cria access
+  key (`aws_iam_access_key` gravaria o secret no state): o operador gera as chaves e as põe no
+  `.env` do servidor.
 - **Guard de identidade**: `data.aws_caller_identity` + `check` recusando IAM user como
   operador do `apply` em production.
 
@@ -141,7 +142,7 @@ versioning, block public access).
       termina com exit 0 e os outputs listam tabelas, bucket e filas)
 - [ ] Segundo `terraform apply` em `local` reporta **zero mudanças** (idempotência real)
 - [ ] `scripts/terraform/production`: `terraform validate` verde e `terraform plan` cobrindo
-      tabelas, bucket, filas e a IAM role, com os mesmos nomes/atributos dos scripts atuais
+      tabelas, bucket, filas e os IAM users, com os mesmos nomes/atributos dos scripts atuais
 - [ ] `infra/nginx` movido para `scripts/nginx`; `docker compose build nginx` verde nos dois
       compose
 - [ ] Pasta `infra/` removida; nenhuma referência a `infra/` fora de `.claude/specs/` e
@@ -172,8 +173,9 @@ versioning, block public access).
 - **Ordem com a spec 037** — `depends_on: ["037"]`. A 038 só inicia com a 037 `done`.
 - **Segredos por variável de ambiente** — `JWT_SECRET` e `SMTP_PASSWORD` chegam à aplicação
   pelo `.env` não versionado; o Terraform não toca neles.
-- **IAM role, não IAM user** — a aplicação acessa a AWS por role; nenhuma access key
-  estática é criada. A aplicação roda em Fargate, então a trust é `ecs-tasks.amazonaws.com`.
+- **IAM user por serviço** — a aplicação roda numa instância Lightsail (Docker Compose), que
+  não suporta IAM role/instance profile; por isso `api` e `worker` usam access keys de users
+  distintos, mantendo o menor privilégio entre eles.
 - **`infra/local` é apagado** — `stack-owner.sh`, `stack-down.sh`, `validate.sh` e `init.sh`
   saem junto com `infra/aws`, depois do Terraform concluído e validado. Os scripts `infra:*`
   do `package.json` passam a chamar o `docker compose` direto.
