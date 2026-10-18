@@ -132,18 +132,20 @@ Regras do padrão:
 
 ## Critérios de aceite
 
-- [ ] `params.sh` define todos os defaults novos (tabelas, fila, DLQ, roles, log groups,
+- [x] `params.sh` define todos os defaults novos (tabelas, fila, DLQ, roles, log groups,
       families, secrets)
-- [ ] `validate.sh` sem nomes hardcodeados (faz `source` do `params.sh`) e
-      `npm run infra:validate` passa após `npm run infra:reset`
-- [ ] Env var `AWS_DYNAMODB_ABERTURA_TABLE` usada em todos os pontos (config.go, taskdefs,
+- [/] `validate.sh` sem nomes hardcodeados (faz `source` do `params.sh`) e
+      `npm run infra:validate` passa após `npm run infra:reset` — código ok, gate
+      **bloqueado**: stack Floci de outra worktree
+- [x] Env var `AWS_DYNAMODB_ABERTURA_TABLE` usada em todos os pontos (config.go, taskdefs,
       compose, docs) — nenhum resíduo de `AWS_DYNAMODB_TABLE`
 - [ ] E2E local (Floci) passando: abertura → SQS `FichasSubmissoes` → worker, e alteracao
-- [ ] `docs/aws.md` e `deploy.md` sem nenhum nome antigo residual
-- [ ] Gates do escopo tocado verdes:
-  - `apps/backend/**` → `make -C apps/backend lint` + `make -C apps/backend test` +
-    `docker compose build api`
-  - `infra/**`, `scripts/**` → `sh -n` (shellcheck quando disponível) nos scripts tocados
+- [x] `docs/aws.md` e `deploy.md` sem nenhum nome antigo residual
+- [/] Gates do escopo tocado verdes:
+  - [x] `apps/backend/**` → `go vet` + `go test ./...` + `docker compose build api` verdes
+    (executados via PowerShell; `make` disponível via Git Bash — lição 2026-09-07)
+  - [x] `infra/**`, `scripts/**` → `sh -n` verde nos scripts tocados
+  - [/] E2E/validate → **bloqueado** (stack local de outra worktree)
 
 ## Notas
 

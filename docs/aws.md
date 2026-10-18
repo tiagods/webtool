@@ -208,6 +208,13 @@ O worker envia o e-mail de notificação **diretamente por SMTP** (`apps/backend
 
 Scripts POSIX idempotentes (`create-or-update`) que provisionam os recursos reais. Rodam a partir de uma máquina autenticada por **role assumida** (SSO/`assume-role`) — `common.sh` recusa identidade `:user/` (break-glass: `PROLINK_ALLOW_IAM_USER=1`). Nomes e parâmetros estruturais vêm da fonte única `infra/aws/lib/params.sh`, compartilhada com o `init.sh` local (anti-drift).
 
+### Padrão de nomenclatura
+
+1. **PascalCase** nos recursos que aceitam maiúsculas (DynamoDB, SQS, IAM, CloudWatch Logs, Secrets Manager).
+2. **Sem prefixo `prolink-`** — a conta AWS é dedicada à organização.
+3. **Exceções impostas pela AWS**: S3 (nome globalmente único + só minúsculas) mantém `prolink-fichas`; ECR (só minúsculas) usa `api`/`worker`.
+4. **Fonte única de nomes**: `infra/aws/lib/params.sh` — nenhum nome hardcodeado fora dela.
+
 | Script | Provisiona |
 |---|---|
 | `provision-dynamodb.sh` | 3 tabelas + TTL + PITR |
