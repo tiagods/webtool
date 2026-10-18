@@ -93,7 +93,7 @@ type raw struct {
 	AWSEndpointURL          string `env:"AWS_ENDPOINT_URL"`
 	AWSAccessKeyID          string `env:"AWS_ACCESS_KEY_ID"`
 	AWSSecretAccessKey      string `env:"AWS_SECRET_ACCESS_KEY"`
-	AWSDynamoAberturaTable  string `env:"AWS_DYNAMODB_TABLE,required,notEmpty"`
+	AWSDynamoAberturaTable  string `env:"AWS_DYNAMODB_ABERTURA_TABLE,required,notEmpty"`
 	AWSDynamoAlteracaoTable string `env:"AWS_DYNAMODB_ALTERACAO_TABLE,required,notEmpty"`
 	AWSDynamoAceitesTable   string `env:"AWS_DYNAMODB_ACEITES_TABLE,required,notEmpty"`
 	AWSS3Bucket             string `env:"AWS_S3_BUCKET,required,notEmpty"`

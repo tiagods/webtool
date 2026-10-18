@@ -38,9 +38,9 @@ services:
     environment:
       APP_ENV: prod
       AWS_REGION: ${AWS_REGION:-us-east-1}
-      AWS_DYNAMODB_TABLE: ${AWS_DYNAMODB_TABLE:-fichas-abertura}
-      AWS_DYNAMODB_ALTERACAO_TABLE: ${AWS_DYNAMODB_ALTERACAO_TABLE:-fichas-alteracao}
-      AWS_DYNAMODB_ACEITES_TABLE: ${AWS_DYNAMODB_ACEITES_TABLE:-prolink-aceites-lgpd}
+      AWS_DYNAMODB_ABERTURA_TABLE: ${AWS_DYNAMODB_ABERTURA_TABLE:-FichasAbertura}
+      AWS_DYNAMODB_ALTERACAO_TABLE: ${AWS_DYNAMODB_ALTERACAO_TABLE:-FichasAlteracao}
+      AWS_DYNAMODB_ACEITES_TABLE: ${AWS_DYNAMODB_ACEITES_TABLE:-AceitesLgpd}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET:-prolink-fichas}
       AWS_SQS_QUEUE_URL: ${AWS_SQS_QUEUE_URL}
       JWT_SECRET: ${JWT_SECRET}   # .env não versionado (Fargate: Secrets Manager)
@@ -60,9 +60,9 @@ services:
       APP_ENV: prod
       JWT_SECRET: ${JWT_SECRET}   # .env não versionado (Fargate: Secrets Manager)
       AWS_REGION: ${AWS_REGION:-us-east-1}
-      AWS_DYNAMODB_TABLE: ${AWS_DYNAMODB_TABLE:-fichas-abertura}
-      AWS_DYNAMODB_ALTERACAO_TABLE: ${AWS_DYNAMODB_ALTERACAO_TABLE:-fichas-alteracao}
-      AWS_DYNAMODB_ACEITES_TABLE: ${AWS_DYNAMODB_ACEITES_TABLE:-prolink-aceites-lgpd}
+      AWS_DYNAMODB_ABERTURA_TABLE: ${AWS_DYNAMODB_ABERTURA_TABLE:-FichasAbertura}
+      AWS_DYNAMODB_ALTERACAO_TABLE: ${AWS_DYNAMODB_ALTERACAO_TABLE:-FichasAlteracao}
+      AWS_DYNAMODB_ACEITES_TABLE: ${AWS_DYNAMODB_ACEITES_TABLE:-AceitesLgpd}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET:-prolink-fichas}
       AWS_SQS_QUEUE_URL: ${AWS_SQS_QUEUE_URL}
       SMTP_HOST: ${SMTP_HOST:?SMTP_HOST é obrigatória}

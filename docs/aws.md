@@ -8,7 +8,7 @@ Mapeamento de todos os recursos AWS utilizados no projeto, com configuração, s
 >
 > **IaC de produção:** os recursos reais (DynamoDB, S3, SQS, IAM, Secrets Manager e task definitions) são provisionados de forma idempotente pelos scripts em [`infra/aws/`](../infra/aws/) — ver seção "IaC de produção".
 >
-> **Config:** toda variável de ambiente é lida e validada uma única vez em `apps/backend/infrastructure/config` (boot falha rápido com erro agregado listando o que falta). Variáveis: `APP_ENV` (`dev`|`prod`), `JWT_SECRET`, `PORT`, `SESSION_EXPIRY_SECONDS`, `AWS_REGION`, `AWS_DYNAMODB_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_TO`, `EMAIL_OUTPUT_DIR` e (só local) `AWS_ENDPOINT_URL` + chaves estáticas. O grupo `SMTP_*` é **opcional em dev** (sem `SMTP_HOST` o worker cai no fallback de arquivo); com `APP_ENV=prod`, `SMTP_HOST`/`SMTP_FROM`/`SMTP_TO` são obrigatórios.
+> **Config:** toda variável de ambiente é lida e validada uma única vez em `apps/backend/infrastructure/config` (boot falha rápido com erro agregado listando o que falta). Variáveis: `APP_ENV` (`dev`|`prod`), `JWT_SECRET`, `PORT`, `SESSION_EXPIRY_SECONDS`, `AWS_REGION`, `AWS_DYNAMODB_ABERTURA_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_TO`, `EMAIL_OUTPUT_DIR` e (só local) `AWS_ENDPOINT_URL` + chaves estáticas. O grupo `SMTP_*` é **opcional em dev** (sem `SMTP_HOST` o worker cai no fallback de arquivo); com `APP_ENV=prod`, `SMTP_HOST`/`SMTP_FROM`/`SMTP_TO` são obrigatórios.
 
 ---
 
@@ -37,7 +37,7 @@ Browser
 
 ## DynamoDB
 
-**Tabelas:** `fichas-abertura`, `fichas-alteracao`, `prolink-aceites-lgpd`
+**Tabelas:** `FichasAbertura`, `FichasAlteracao`, `AceitesLgpd`
 **Modo:** On-demand (PAY_PER_REQUEST)
 **Região:** `us-east-1`
 
@@ -45,9 +45,9 @@ Browser
 
 | Tabela | Partition Key | Sort Key |
 |---|---|---|
-| `fichas-abertura` | `sessionId` (S) | — |
-| `fichas-alteracao` | `sessionId` (S) | — |
-| `prolink-aceites-lgpd` | `sessionId` (S) | `versaoTermo` (S) |
+| `FichasAbertura` | `sessionId` (S) | — |
+| `FichasAlteracao` | `sessionId` (S) | — |
+| `AceitesLgpd` | `sessionId` (S) | `versaoTermo` (S) |
 
 ### Tipos de item e TTL
 
@@ -64,7 +64,7 @@ Browser
 
 ### Segurança
 
-- Acesso exclusivo via **IAM Task Role** da task (`prolink-api-task-role` / `prolink-worker-task-role`) — sem chaves de acesso
+- Acesso exclusivo via **IAM Task Role** da task (`ApiTaskRole` / `WorkerTaskRole`) — sem chaves de acesso
 - Point-in-Time Recovery (PITR) habilitado
 - Sem acesso público
 - Encryption at rest habilitada por padrão na AWS
@@ -155,7 +155,7 @@ Em dev, o CORS é aplicado automaticamente pelo `infra/local/init.sh` (origin fi
 
 ## SQS
 
-**Fila:** `prolink-abertura`
+**Fila:** `FichasSubmissoes`
 **Tipo:** Standard
 **Região:** `us-east-1`
 
@@ -165,8 +165,8 @@ Em dev, o CORS é aplicado automaticamente pelo `infra/local/init.sh` (origin fi
 |---|---|---|
 | `VisibilityTimeout` | 120s | Janela de processamento do worker |
 | `MessageRetentionPeriod` | 86400s (24h) | Reprocessamento em caso de falha |
-| `MaxReceiveCount` (DLQ) | 5 | Redireciona para `prolink-abertura-dlq` após 5 falhas |
-| `prolink-abertura-dlq` | retenção 14 dias | Inspeção/reprocessamento manual pelo operador |
+| `MaxReceiveCount` (DLQ) | 5 | Redireciona para `FichasSubmissoesDLQ` após 5 falhas |
+| `FichasSubmissoesDLQ` | retenção 14 dias | Inspeção/reprocessamento manual pelo operador |
 
 ### Payload da mensagem
 
@@ -197,7 +197,7 @@ O worker envia o e-mail de notificação **diretamente por SMTP** (`apps/backend
 |---|---|
 | `SMTP_HOST`, `SMTP_PORT` | env do taskdef (não secreto) |
 | `SMTP_USER` | env do taskdef (não secreto) |
-| `SMTP_PASSWORD` | **AWS Secrets Manager** (`prolink/smtp-password`) — `secrets[].valueFrom` |
+| `SMTP_PASSWORD` | **AWS Secrets Manager** (`smtp-password`) — `secrets[].valueFrom` |
 | `SMTP_FROM`, `SMTP_TO` | env do taskdef (não secreto) |
 
 > O custo do envio depende do provedor SMTP contratado — não é faturado pela AWS.
@@ -214,8 +214,8 @@ Scripts POSIX idempotentes (`create-or-update`) que provisionam os recursos reai
 | `provision-s3.sh` | bucket + Block Public Access + SSE-S3 + Versioning + Lifecycle + CORS |
 | `provision-sqs.sh` | fila + DLQ + redrive |
 | `provision-iam.sh` | roles, policies e log groups do ECS |
-| `provision-secrets.sh` | `prolink/jwt-secret` e `prolink/smtp-password` |
-| `register-task-defs.sh` | task definitions Fargate (`prolink-api`, `prolink-worker`) |
+| `provision-secrets.sh` | `jwt-secret` e `smtp-password` |
+| `register-task-defs.sh` | task definitions Fargate (`api`, `worker`) |
 | `provision-all.sh` | encadeia tudo na ordem (taskdefs se as imagens forem informadas) |
 
 Ver [`infra/aws/README.md`](../infra/aws/README.md) para o passo a passo.
@@ -224,7 +224,7 @@ Ver [`infra/aws/README.md`](../infra/aws/README.md) para o passo a passo.
 
 ## Fargate (containers)
 
-**Task Definitions:** `prolink-api` e `prolink-worker` (registradas por `infra/aws/register-task-defs.sh`)
+**Task Definitions:** `api` e `worker` (registradas por `infra/aws/register-task-defs.sh`)
 **Runtime:** Fargate, `networkMode: awsvpc`
 **Região:** `us-east-1`
 
@@ -243,24 +243,24 @@ Ver [`infra/aws/README.md`](../infra/aws/README.md) para o passo a passo.
 
 Cada task recebe permissões via **Task Role** — sem `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` em variáveis ou código. As policies estão versionadas em [`infra/aws/iam/`](../infra/aws/iam/) e usam ARNs explícitos (nenhum `Resource: "*"`).
 
-**`prolink-ecs-execution-role`** (assumida pelo agente ECS): managed `AmazonECSTaskExecutionRolePolicy` (pull no ECR + logs) + `secretsmanager:GetSecretValue` restrito a `prolink/jwt-secret-*` e `prolink/smtp-password-*`.
+**`EcsExecutionRole`** (assumida pelo agente ECS): managed `AmazonECSTaskExecutionRolePolicy` (pull no ECR + logs) + `secretsmanager:GetSecretValue` restrito a `jwt-secret-*` e `smtp-password-*`.
 
-**`prolink-api-task-role`** (runtime da API):
+**`ApiTaskRole`** (runtime da API):
 
 | Serviço | Ações | Recurso |
 |---|---|---|
-| DynamoDB | `GetItem`, `PutItem`, `UpdateItem`, `DeleteItem` | `fichas-abertura`, `fichas-alteracao`, `prolink-aceites-lgpd` |
+| DynamoDB | `GetItem`, `PutItem`, `UpdateItem`, `DeleteItem` | `FichasAbertura`, `FichasAlteracao`, `AceitesLgpd` |
 | S3 | `GetObject`, `PutObject`, `DeleteObject`, `PutObjectTagging` | `prolink-fichas/*` |
 | S3 | `ListBucket` | `prolink-fichas` |
-| SQS | `SendMessage` | `prolink-abertura` |
+| SQS | `SendMessage` | `FichasSubmissoes` |
 
-**`prolink-worker-task-role`** (runtime do worker):
+**`WorkerTaskRole`** (runtime do worker):
 
 | Serviço | Ações | Recurso |
 |---|---|---|
-| DynamoDB | `GetItem`, `UpdateItem` | `fichas-abertura`, `fichas-alteracao` |
+| DynamoDB | `GetItem`, `UpdateItem` | `FichasAbertura`, `FichasAlteracao` |
 | S3 | `GetObject` | `prolink-fichas/*` |
-| SQS | `ReceiveMessage`, `DeleteMessage` | `prolink-abertura` |
+| SQS | `ReceiveMessage`, `DeleteMessage` | `FichasSubmissoes` |
 
 > **Princípio do menor privilégio:** cada role recebe apenas as ações necessárias nos recursos específicos — sem wildcards (`*`). O worker só **assina** URLs de download (`s3:GetObject`); o redrive da DLQ é feito pelo próprio SQS.
 
@@ -271,7 +271,7 @@ Cada task recebe permissões via **Task Role** — sem `AWS_ACCESS_KEY_ID`/`AWS_
 **Serviço:** `cmd/worker` do módulo Go `apps/backend` — **task Fargate**
 **Runtime:** binário Go (processo long-running, não Lambda)
 **Região:** `us-east-1`
-**Consumo:** long-polling `ReceiveMessage` na fila `prolink-abertura` (`WaitTimeSeconds: 20`)
+**Consumo:** long-polling `ReceiveMessage` na fila `FichasSubmissoes` (`WaitTimeSeconds: 20`)
 
 > **Por que task e não Lambda:** a stack já é containerizada; o volume (~100 fichas/mês) não justifica escala a zero. O processamento (`NotificarSubmissao.Processar`) é isolado do loop de polling e recebe dependências por injeção — migrar para Lambda no futuro é um wrapper fino sobre a mesma função.
 
@@ -279,9 +279,9 @@ Cada task recebe permissões via **Task Role** — sem `AWS_ACCESS_KEY_ID`/`AWS_
 
 | Serviço | Ações |
 |---|---|
-| DynamoDB | `GetItem`, `UpdateItem` em `fichas-abertura`/`fichas-alteracao` |
+| DynamoDB | `GetItem`, `UpdateItem` em `FichasAbertura`/`FichasAlteracao` |
 | S3 | `GetObject` em `prolink-fichas/*` (assina URLs de download) |
-| SQS | `ReceiveMessage`, `DeleteMessage` em `prolink-abertura` |
+| SQS | `ReceiveMessage`, `DeleteMessage` em `FichasSubmissoes` |
 | SMTP | sem IAM — credenciais via Secrets Manager |
 
 ### Configuração
@@ -291,7 +291,7 @@ Cada task recebe permissões via **Task Role** — sem `AWS_ACCESS_KEY_ID`/`AWS_
 | Concorrência | 1 task, `MaxNumberOfMessages: 1` por poll |
 | `VisibilityTimeout` | 120s (definido na fila) |
 | Retry | Nativo do SQS — sem `DeleteMessage` em falha, a mensagem reentrega |
-| DLQ | `prolink-abertura-dlq`, `maxReceiveCount: 5` |
+| DLQ | `FichasSubmissoesDLQ`, `maxReceiveCount: 5` |
 | Shutdown | `SIGTERM` encerra o loop |
 
 ### Estimativa de custo
