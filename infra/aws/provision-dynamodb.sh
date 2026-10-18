@@ -2,9 +2,9 @@
 # Provisiona as tabelas DynamoDB de produção de forma idempotente.
 #
 # Recursos:
-#   - fichas-abertura       PK sessionId (S)
-#   - fichas-alteracao      PK sessionId (S)
-#   - prolink-aceites-lgpd  PK sessionId (S) + SK versaoTermo (S)
+#   - FichasAbertura     PK sessionId (S)
+#   - FichasAlteracao    PK sessionId (S)
+#   - AceitesLgpd        PK sessionId (S) + SK versaoTermo (S)
 # Todas em PAY_PER_REQUEST, com TTL no atributo `ttl` e Point-in-Time Recovery
 # habilitado. Se a tabela já existe, apenas garante TTL/PITR (não recria).
 #

@@ -1,9 +1,9 @@
 #!/usr/bin/env sh
 # Provisiona as filas SQS de produção de forma idempotente.
 #
-#   - prolink-abertura-dlq  (MessageRetentionPeriod 14 dias)
-#   - prolink-abertura      (VisibilityTimeout 120s, retenção 24h,
-#                            redrive para a DLQ após 5 falhas)
+#   - FichasSubmissoesDLQ (MessageRetentionPeriod 14 dias)
+#   - FichasSubmissoes    (VisibilityTimeout 120s, retenção 24h,
+#                          redrive para a DLQ após 5 falhas)
 # Se as filas já existem, apenas reaplica os atributos estruturais.
 #
 # Uso: AWS_REGION=us-east-1 ./infra/aws/provision-sqs.sh

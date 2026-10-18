@@ -1,17 +1,17 @@
 #!/usr/bin/env sh
 # Cria/atualiza as IAM roles de produção (idempotente) e os log groups do ECS.
 #
-#   prolink-ecs-execution-role  — pull de imagem no ECR + logs + leitura dos
-#                                 secrets injetados (JWT_SECRET, SMTP_PASSWORD)
-#   prolink-api-task-role       — runtime da API (DynamoDB, S3, SQS)
-#   prolink-worker-task-role    — runtime do worker (DynamoDB, S3, SQS)
+#   EcsExecutionRole  — pull de imagem no ECR + logs + leitura dos
+#                       secrets injetados (JWT_SECRET, SMTP_PASSWORD)
+#   ApiTaskRole       — runtime da API (DynamoDB, S3, SQS)
+#   WorkerTaskRole    — runtime do worker (DynamoDB, S3, SQS)
 #
 # As policies ficam em iam/*.json, com placeholders ${...} resolvidos de
 # params.sh. Nenhum Resource: "*" — ARNs explícitos por recurso. O worker só
 # recebe GetObject no S3 (assina URLs de download) e GetItem/UpdateItem no
 # DynamoDB; o redrive da DLQ é feito pelo próprio SQS.
 #
-# Log groups: /ecs/prolink-api e /ecs/prolink-worker (retenção 30d).
+# Log groups: /ecs/api e /ecs/worker (retenção 30d).
 #
 # Uso: AWS_REGION=us-east-1 ./infra/aws/provision-iam.sh
 
@@ -86,9 +86,9 @@ aws_r iam attach-role-policy \
   --role-name "$ECS_EXECUTION_ROLE_NAME" \
   --policy-arn "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 
-put_inline_policy "$ECS_EXECUTION_ROLE_NAME" "prolink-secrets-read" "$IAM_DIR/ecs-execution-role.policy.json"
-put_inline_policy "$API_TASK_ROLE_NAME" "prolink-api-task-policy" "$IAM_DIR/api-task-role.policy.json"
-put_inline_policy "$WORKER_TASK_ROLE_NAME" "prolink-worker-task-policy" "$IAM_DIR/worker-task-role.policy.json"
+put_inline_policy "$ECS_EXECUTION_ROLE_NAME" "secrets-read" "$IAM_DIR/ecs-execution-role.policy.json"
+put_inline_policy "$API_TASK_ROLE_NAME" "api-task-policy" "$IAM_DIR/api-task-role.policy.json"
+put_inline_policy "$WORKER_TASK_ROLE_NAME" "worker-task-policy" "$IAM_DIR/worker-task-role.policy.json"
 
 # ─── Log groups ──────────────────────────────────────────────────────────────
 ensure_log_group "$ECS_API_LOG_GROUP"

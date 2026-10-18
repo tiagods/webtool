@@ -31,8 +31,8 @@ export PROD_ORIGIN=https://prolinkcontabil.com.br
 JWT_SECRET=... SMTP_PASSWORD=... ./infra/aws/provision-secrets.sh
 
 # Task definitions (exige as imagens já publicadas no ECR):
-API_IMAGE_URI=<acct>.dkr.ecr.us-east-1.amazonaws.com/prolink-api:<tag> \
-WORKER_IMAGE_URI=<acct>.dkr.ecr.us-east-1.amazonaws.com/prolink-worker:<tag> \
+API_IMAGE_URI=<acct>.dkr.ecr.us-east-1.amazonaws.com/api:<tag> \
+WORKER_IMAGE_URI=<acct>.dkr.ecr.us-east-1.amazonaws.com/worker:<tag> \
 SMTP_HOST=smtp.exemplo.com SMTP_USER=usuario \
   ./infra/aws/register-task-defs.sh
 ```
@@ -53,7 +53,7 @@ Todos os scripts podem ser rodados várias vezes: cada um checa o estado atual
 | `lib/common.sh` | helpers (log, `init_aws`, ARNs, checagens de existência, guard de identidade, `render_template`) |
 | `lib/params.sh` | fonte única de nomes e parâmetros estruturais |
 | `provision-*.sh` | recursos (DynamoDB, S3, SQS, IAM, Secrets) |
-| `register-task-defs.sh` | registra `prolink-api` e `prolink-worker` |
+| `register-task-defs.sh` | registra `api` e `worker` |
 | `provision-all.sh` | encadeia tudo na ordem |
 | `iam/*.json` | trust policies e policies inline (placeholders `${...}`) |
 | `ecs/*.taskdef.json` | templates das task definitions (placeholders `${...}`) |
