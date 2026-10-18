@@ -1,7 +1,7 @@
 ---
 id: "037"
 title: "Nomenclatura padrão dos recursos AWS (PascalCase, sem prefixo prolink)"
-status: in-progress
+status: done
 created: 2026-09-27
 author: "Tiago"
 batch_size: "small"
