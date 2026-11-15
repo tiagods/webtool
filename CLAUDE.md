@@ -39,7 +39,7 @@ running `make -C apps/backend test` / `npm run lint` in parallel worktrees is fi
 name). `npm run infra:down` (`docker compose down`) only affects the project of the current directory,
 so clean a stopped stack from the worktree that created it.
 
-**Infrastructure as code:** `scripts/terraform/` — `modules/dados` (DynamoDB + S3 + SQS, shared),
+**Infrastructure as code:** `scripts/terraform/` — `dynamodb.tf`/`s3.tf`/`sqs.tf` (shared, symlinked into each env),
 `local/` (Floci; run by the `aws-init` container on `infra:up`) and `production/` (real AWS + IAM users
 `ApiApp`/`WorkerApp`, run manually by the operator). See `scripts/terraform/README.md`.
 

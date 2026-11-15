@@ -269,7 +269,7 @@ webtool/                          ← raiz do monorepo
 ├── fichas/                       ← Word originais (referência)
 │
 ├── scripts/
-│   ├── terraform/                ← IaC: modules/dados, local (Floci), production (AWS)
+│   ├── terraform/                ← IaC: recursos comuns + local (Floci) e production (AWS)
 │   └── nginx/
 │       └── default.conf          ← proxy: "/" → web, "/api/" → api
 │

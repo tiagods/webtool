@@ -12,25 +12,25 @@ data "aws_iam_policy_document" "api" {
   statement {
     sid       = "DynamoDBRascunhosEAceites"
     actions   = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"]
-    resources = values(module.dados.table_arns)
+    resources = values(aws_dynamodb_table.this)[*].arn
   }
 
   statement {
     sid       = "S3DocumentosObjetos"
     actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:PutObjectTagging"]
-    resources = ["${module.dados.bucket_arn}/*"]
+    resources = ["${aws_s3_bucket.fichas.arn}/*"]
   }
 
   statement {
     sid       = "S3ListarBucket"
     actions   = ["s3:ListBucket"]
-    resources = [module.dados.bucket_arn]
+    resources = [aws_s3_bucket.fichas.arn]
   }
 
   statement {
     sid       = "SQSPublicarSubmissao"
     actions   = ["sqs:SendMessage"]
-    resources = [module.dados.queue_arn]
+    resources = [aws_sqs_queue.submissoes.arn]
   }
 }
 
@@ -38,19 +38,19 @@ data "aws_iam_policy_document" "worker" {
   statement {
     sid       = "DynamoDBRascunhos"
     actions   = ["dynamodb:GetItem", "dynamodb:UpdateItem"]
-    resources = [module.dados.table_arns["abertura"], module.dados.table_arns["alteracao"]]
+    resources = [aws_dynamodb_table.this["abertura"].arn, aws_dynamodb_table.this["alteracao"].arn]
   }
 
   statement {
     sid       = "S3PresignDownload"
     actions   = ["s3:GetObject"]
-    resources = ["${module.dados.bucket_arn}/*"]
+    resources = ["${aws_s3_bucket.fichas.arn}/*"]
   }
 
   statement {
     sid       = "SQSConsumirSubmissao"
     actions   = ["sqs:ReceiveMessage", "sqs:DeleteMessage"]
-    resources = [module.dados.queue_arn]
+    resources = [aws_sqs_queue.submissoes.arn]
   }
 }
 

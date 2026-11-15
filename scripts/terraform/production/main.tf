@@ -1,9 +1,6 @@
-module "dados" {
-  source = "../modules/dados"
-
-  cors_allowed_origins = var.cors_allowed_origins
+locals {
   enable_pitr          = true
-  harden_bucket        = true
+  cors_allowed_origins = var.cors_allowed_origins
 }
 
 data "aws_caller_identity" "operador" {}
