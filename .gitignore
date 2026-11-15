@@ -67,3 +67,11 @@ Thumbs.db
 # Links locais para .claude (symlinks/junctions) - ver AGENTS.md
 .clinerules/
 .agents/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log

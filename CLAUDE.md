@@ -35,13 +35,13 @@ available at `http://localhost` (port 80, via Nginx).
 and publishes fixed host ports (4566, 3000, 3001, 80), so `npm run infra:up`, `npm run dev` and
 `make -C apps/backend test-integration` can only run in one worktree at a time. Editing code and
 running `make -C apps/backend test` / `npm run lint` in parallel worktrees is fine.
-`npm run infra:owner` says which worktree owns the stack (read from the
-`com.docker.compose.project.working_dir` label Compose writes; a *stopped* container still holds
-the name). `infra:up` and `infra:reset` refuse to run when the stack belongs to another worktree.
-`npm run infra:down` tears down the stack of its **owner**: a stopped one can be cleaned from any
-worktree, a running one only by the owner. It passes `-p <owner project>` because the Compose
-project name comes from the directory name (`webtool` here, the worktree's own name elsewhere), so
-a bare `docker compose down` run from a worktree would target the wrong project and remove nothing.
+`docker ps --filter name=prolink-` shows whether a stack is up (a *stopped* container still holds the
+name). `npm run infra:down` (`docker compose down`) only affects the project of the current directory,
+so clean a stopped stack from the worktree that created it.
+
+**Infrastructure as code:** `scripts/terraform/` — `modules/dados` (DynamoDB + S3 + SQS, shared),
+`local/` (Floci; run by the `aws-init` container on `infra:up`) and `production/` (real AWS + IAM users
+`ApiApp`/`WorkerApp`, run manually by the operator). See `scripts/terraform/README.md`.
 
 The Go module has unit + integration tests (`make -C apps/backend test`); `apps/web` has no test command yet.
 The Go validator is verified against the shared Zod schemas by a characterization suite
@@ -54,7 +54,7 @@ The Go validator is verified against the shared Zod schemas by a characterizatio
 - `apps/backend` — **Go** (Echo + Clean Architecture): `/api/session`, `/api/draft`, `/api/upload-url`, `/api/submit`, `/api/aceite-termo`, `/api/alteracao/*`, `DELETE /api/session`. `cmd/api` (HTTP) + `cmd/worker` (SQS consumer, Phase 7). Rewrite of the original Next.js backend (specs 022–028). **Not exposed publicly in production** — port 3001 is published in `docker-compose*.yml` for local debug, but the production server firewall blocks external access; only Nginx (and same-host traffic) can reach it. Layers: `domain/{entity,ports,service,validation}`, `adapter/web/{handler,presenter}`, `infrastructure/{config,auth,aws,middleware,...}`.
 - `apps/worker` — [Planned Phase 7] the `cmd/worker` binary of the `apps/backend` Go module, run as a long-running Docker container: PDF generation, email via SNS→SES. See [`.claude/specs/013-worker-pdf-email.md`](.claude/specs/013-worker-pdf-email.md)
 - `packages/shared` — `@prolink/shared`: Zod schemas and TypeScript types consumed by `apps/web`; the Go validator in `apps/backend` mirrors these schemas (characterization-tested).
-- `infra/nginx` — reverse proxy, the recommended public entry point (port 80); routes `/` → `web`, `/api/*` → `api`
+- `scripts/nginx` — reverse proxy, the recommended public entry point (port 80); routes `/` → `web`, `/api/*` → `api`
 
 **Main user flow** (`/abertura`):
 1. Multi-step company registration form (5–6 steps depending on `tipoSociedade`: Ltda vs SLU)

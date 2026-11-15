@@ -54,7 +54,7 @@
 
 | Camada | Pacote / App | Tecnologia | Responsabilidade |
 |---|---|---|---|
-| Borda / proxy | `infra/nginx` | Nginx | Único ponto de entrada público (porta 80); roteia por path para `web` ou `api` |
+| Borda / proxy | `scripts/nginx` | Nginx | Único ponto de entrada público (porta 80); roteia por path para `web` ou `api` |
 | Frontend | `apps/web` | Next.js 14+ (App Router) | Formulário multi-step, validação, upload — sem acesso a AWS |
 | Backend / API | `apps/backend` | **Go** (Echo + Clean Architecture, `cmd/api`) | Sessão, draft, presigned URL, submit, protocolo, alteração — **não exposto publicamente** |
 | Worker | `apps/worker` | `cmd/worker` do módulo Go de `apps/backend`, container long-running (não Lambda) | Long-polling na SQS, gerar PDF e publicar evento no SNS |
@@ -268,8 +268,8 @@ webtool/                          ← raiz do monorepo
 ├── docs/                         ← documentação do projeto
 ├── fichas/                       ← Word originais (referência)
 │
-├── infra/
-│   ├── local/                    ← provisionamento Floci (dev)
+├── scripts/
+│   ├── terraform/                ← IaC: modules/dados, local (Floci), production (AWS)
 │   └── nginx/
 │       └── default.conf          ← proxy: "/" → web, "/api/" → api
 │

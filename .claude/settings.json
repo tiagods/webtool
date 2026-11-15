@@ -36,10 +36,8 @@
       "Bash(docker compose ps*)",
       "Bash(docker ps*)",
       "Bash(docker inspect*)",
-      "Bash(npm run infra:owner*)",
       "Bash(npm run infra:up*)",
-      "Bash(npm run infra:logs*)",
-      "Bash(npm run infra:validate*)"
+      "Bash(npm run infra:logs*)"
     ],
     "ask": [
       "Bash(npm run infra:down*)",

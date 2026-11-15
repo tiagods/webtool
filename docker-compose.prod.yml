@@ -78,7 +78,7 @@ services:
   # público (TLS termina no Caddy, que repassa para nginx:80 na rede interna).
   nginx:
     build:
-      context: ./infra/nginx
+      context: ./scripts/nginx
     container_name: prolink-nginx
     expose:
       - "80"

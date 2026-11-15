@@ -27,7 +27,7 @@ Se for Cline, use `.clinerules` e leia suas subspastas
 - **Commits nunca globais** — sem `git add .`, sem `-A`, sem `commit -am`; sempre caminhos explícitos
 - **Push só com a spec comprovadamente concluída** — todo `[x]`, critérios `[x]`, gates verdes, `status: done`
 - **Confirmação do usuário para perda de dados** — `reset --hard`, `clean`, `restore`, `push --force`, `branch -D`, `stash drop/clear`
-- **Uma stack Docker por máquina** — `npm run infra:owner` diz de quem ela é
+- **Uma stack Docker por máquina** — `docker ps` mostra se `prolink-*` já está no ar (containers e portas são fixos)
 
 ## Recriando os links (clone novo)
 

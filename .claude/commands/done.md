@@ -15,13 +15,14 @@ Finalize o batch atual: prove a conclusão, submeta e feche a worktree.
    - Gate vermelho: **pare**, corrija e rode de novo — não prossiga para o push
 2b. **Gate de integração** (`make -C apps/backend test-integration`) — exigido **somente quando o
    diff toca `apps/backend/infrastructure/aws/**`** (é onde vivem os testes `//go:build
-   integration`). Quando exigido, ele precisa do Floci de pé; rode `npm run infra:owner` antes:
+   integration`). Quando exigido, ele precisa do Floci de pé; rode `docker ps --filter name=prolink-`
+   antes (containers e portas são fixos, então só há uma stack por máquina):
    | Estado da stack | Ação |
    |-----------------|------|
-   | livre | `npm run infra:up` e rode o gate |
-   | dona é esta worktree | rode o gate |
-   | dona é outra, containers **parados** | `npm run infra:down` (limpa os nomes), sobe e roda |
-   | dona é outra, **no ar** | **desfecho bloqueado** (abaixo) — nunca derrube a stack alheia |
+   | nenhum `prolink-*` | `npm run infra:up` e rode o gate |
+   | no ar, subido por esta worktree | rode o gate |
+   | **parados**, de outra worktree | `npm run infra:down` (limpa os nomes), sobe e roda |
+   | no ar, de outra worktree | **desfecho bloqueado** (abaixo) — nunca derrube a stack alheia |
 
    **Desfecho bloqueado:** pare aqui. Não pushe, não abra PR, **não** marque a spec como `done`;
    mantenha a worktree e o `todo.md` como estão e relate:

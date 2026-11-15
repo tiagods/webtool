@@ -10,18 +10,18 @@ A produção roda numa **instância AWS Lightsail** com Docker, usando `docker-c
 
 ### Passo 0: Provisionar os recursos AWS
 
-A partir de uma máquina autenticada por **role assumida** (SSO/`assume-role`):
+A partir de uma máquina com Terraform ≥ 1.6 autenticada por **role assumida** (SSO/`assume-role`):
 
 ```bash
-export AWS_REGION=us-east-1
-export PROD_ORIGIN=https://prolinkcontabil.com.br
-
-./infra/aws/provision-dynamodb.sh
-./infra/aws/provision-s3.sh
-./infra/aws/provision-sqs.sh
+cd scripts/terraform/production
+terraform init
+terraform plan    # revisar o que será criado
+terraform apply
 ```
 
-**Credenciais da aplicação:** instâncias Lightsail **não suportam IAM role/instance profile**, então `api` e `worker` acessam a AWS por **access key de IAM user**. São dois users, um por serviço, com as permissões de menor privilégio descritas em [`docs/aws.md`](docs/aws.md#iam--credenciais-da-aplicação) (`ApiApp` e `WorkerApp`). As chaves são geradas pelo operador (`aws iam create-access-key --user-name <user>`) e vão **apenas** no `.env` do servidor — nunca no repositório.
+Cria as 3 tabelas DynamoDB, o bucket S3 (CORS para `https://prolinkcontabil.com.br` por padrão; ajuste com `-var 'cors_allowed_origins=["https://..."]'`), a fila + DLQ e os IAM users `ApiApp` e `WorkerApp`. O state fica em `scripts/terraform/production/terraform.tfstate` (gitignorado) — faça backup fora do repo. Ver [`scripts/terraform/README.md`](scripts/terraform/README.md).
+
+**Credenciais da aplicação:** instâncias Lightsail **não suportam IAM role/instance profile**, então `api` e `worker` acessam a AWS por **access key de IAM user**. São dois users, um por serviço, com as permissões de menor privilégio descritas em [`docs/aws.md`](docs/aws.md#iam--credenciais-da-aplicação) (`ApiApp` e `WorkerApp`). O Terraform cria os users e suas policies, mas **não** as chaves (o secret iria para o state). As chaves são geradas pelo operador (`aws iam create-access-key --user-name <user>`) e vão **apenas** no `.env` do servidor — nunca no repositório.
 
 ### Passo 1: Preparar o servidor
 
@@ -58,9 +58,9 @@ cd prolink-webtool
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-Isso builda e sobe quatro containers: `web` (:3000, Next.js), `api` (:3001, binário Go), `nginx` (interno, sem porta publicada) e `caddy` (:80, :443). O Nginx roteia `/` → `web` e `/api/*` → `api` (ver `infra/nginx/default.conf`); o Caddy termina TLS e repassa tudo para o Nginx internamente (ver Passo 4). A aplicação fica disponível em `https://prolinkcontabil.com.br`.
+Isso builda e sobe quatro containers: `web` (:3000, Next.js), `api` (:3001, binário Go), `nginx` (interno, sem porta publicada) e `caddy` (:80, :443). O Nginx roteia `/` → `web` e `/api/*` → `api` (ver `scripts/nginx/default.conf`); o Caddy termina TLS e repassa tudo para o Nginx internamente (ver Passo 4). A aplicação fica disponível em `https://prolinkcontabil.com.br`.
 
-> **Rollback do cutover Go→Node:** `git revert` do commit da migração Go (specs 022–028) restaura a implementação Next.js (`apps/api`) e os serviços antigos de `docker-compose*.yml`. `infra/nginx` não muda em nenhuma direção.
+> **Rollback do cutover Go→Node:** `git revert` do commit da migração Go (specs 022–028) restaura a implementação Next.js (`apps/api`) e os serviços antigos de `docker-compose*.yml`. `scripts/nginx` não muda em nenhuma direção.
 
 ### Passo 4: TLS/HTTPS (Caddy)
 
