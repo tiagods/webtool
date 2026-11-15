@@ -16,6 +16,15 @@ escuta em `127.0.0.1`/`::1` nas portas 80 e 3001 e ganha do Docker Desktop (que 
 (`Get-NetTCPConnection -LocalPort 80,3001 -State Listen`). Com `wslrelay` na frente, mirar o
 IP da LAN (ex.: `http://192.168.56.1/api`) ou parar o stack do WSL — nunca derrubá-lo sem
 perguntar, é outro checkout.
+## 2026-11-15 — Spec 038 — `localhost:80` e bake no Windows
+
+**Erro**: o Playwright (`baseURL: http://localhost`) passou, mas o `prolink-api` não registrou nenhum submit.
+**Causa raiz**: `wslrelay` escuta em `127.0.0.1:80`/`::1:80` e atende `localhost` com o stack do WSL, não com o Docker Desktop.
+**Regra**: antes de E2E, conferir `Get-NetTCPConnection -LocalPort 80,3001 -State Listen`; com `wslrelay` na frente, rodar com `baseURL` no IP da LAN (`http://192.168.56.1`) e confirmar nos logs do `prolink-api`/`prolink-worker` que o tráfego caiu no stack certo.
+
+**Erro**: `docker compose build <svc>` com `context` em subpasta falha com `additional privileges requested: pass "--allow=fs.read=..."`.
+**Regra**: no Windows, exportar `BUILDX_BAKE_ENTITLEMENTS_FS=0` (peculiaridade do bake com `\` no path), não mexer no compose.
+
 <!--
 ## [Data] — [Contexto]
 

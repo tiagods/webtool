@@ -151,7 +151,7 @@ versioning, block public access).
 - [x] `package.json` sem nenhum script apontando para `infra/`; `CLAUDE.md`, `README.md`, `deploy.md` e `docs/aws.md`
       atualizados para os novos caminhos e para o fluxo Terraform
 - [x] Nenhum state, `.terraform/` ou `*.tfvars` com valor real versionado
-- [ ] E2E local (Floci) passando: abertura → SQS → worker, e alteração
+- [x] E2E local (Floci) passando: abertura → SQS → worker, e alteração
 - [x] Gates do escopo tocado verdes:
   - `scripts/terraform/**` → `terraform fmt -check -recursive` + `terraform validate` em
     `local` e `production`
