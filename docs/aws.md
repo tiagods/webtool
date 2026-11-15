@@ -2,11 +2,11 @@
 
 Mapeamento de todos os recursos AWS utilizados no projeto, com configuração, segurança e estimativa de custo.
 
-> **Ambiente local:** todos os recursos são emulados via **Floci** (`floci/floci:latest`) na porta 4566. Scripts de provisionamento em `infra/local/`.
+> **Ambiente local:** todos os recursos são emulados via **Floci** (`floci/floci:latest`) na porta 4566. Provisionado por Terraform em [`scripts/terraform/local/`](../scripts/terraform/local/), executado pelo container `aws-init`.
 >
 > **Autenticação em produção:** `apps/backend` (binário Go `cmd/api`) e `cmd/worker` rodam como containers Docker numa **instância Lightsail**, que **não suporta IAM role/instance profile**. Por isso cada serviço usa a access key de um **IAM user próprio** (`ApiApp`, `WorkerApp`), com menor privilégio, injetada pelo `.env` não versionado do servidor. Sem `AWS_ENDPOINT_URL`, o SDK Go v2 usa a cadeia de credenciais padrão, que lê `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` do ambiente. No local (Floci), `AWS_ENDPOINT_URL` está definido e as chaves (fictícias) passam a ser obrigatórias. Nenhuma chave hardcoded ou versionada. O worker **não é Lambda** — é um processo long-running que faz long-polling na SQS (ver seção "Worker").
 >
-> **IaC de produção:** os recursos reais (DynamoDB, S3, SQS) são provisionados de forma idempotente pelos scripts em [`infra/aws/`](../infra/aws/) — ver seção "IaC de produção".
+> **IaC de produção:** os recursos reais (DynamoDB, S3, SQS) são provisionados por Terraform em [`scripts/terraform/production/`](../scripts/terraform/production/) — ver seção "IaC de produção".
 >
 > **Config:** toda variável de ambiente é lida e validada uma única vez em `apps/backend/infrastructure/config` (boot falha rápido com erro agregado listando o que falta). Variáveis: `APP_ENV` (`dev`|`prod`), `JWT_SECRET`, `PORT`, `SESSION_EXPIRY_SECONDS`, `AWS_REGION`, `AWS_DYNAMODB_ABERTURA_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_TO`, `EMAIL_OUTPUT_DIR` e (só local) `AWS_ENDPOINT_URL` + chaves estáticas. O grupo `SMTP_*` é **opcional em dev** (sem `SMTP_HOST` o worker cai no fallback de arquivo); com `APP_ENV=prod`, `SMTP_HOST`/`SMTP_FROM`/`SMTP_TO` são obrigatórios.
 
@@ -123,7 +123,7 @@ Apenas operações de upload do browser. Sem acesso GET via CORS.
 | AllowedOrigins | `https://prolinkcontabil.com.br` (produção) / `http://localhost:3000` (local) |
 | AllowedHeaders | `Content-Type`, `Content-Length`, `x-amz-*` |
 
-Em dev, o CORS é aplicado automaticamente pelo `infra/local/init.sh` (origin fixo `http://localhost:3000`). Em produção, o CORS é aplicado por [`infra/aws/provision-s3.sh`](../infra/aws/provision-s3.sh) (parametrizado por `PROD_ORIGIN`); [`infra/aws/set-cors-producao.sh`](../infra/aws/set-cors-producao.sh) foi mantido como wrapper de compatibilidade.
+Em dev, o CORS é aplicado pelo Terraform local (origin `http://localhost:3000`). Em produção, pelo Terraform de `production` (variável `cors_allowed_origins`).
 
 ### Lifecycle Rules
 
@@ -204,26 +204,18 @@ O worker envia o e-mail de notificação **diretamente por SMTP** (`apps/backend
 
 ---
 
-## IaC de produção (`infra/aws/`)
+## IaC (`scripts/terraform/`)
 
-Scripts POSIX idempotentes (`create-or-update`) que provisionam os recursos reais. Rodam a partir de uma máquina autenticada por **role assumida** (SSO/`assume-role`) — `common.sh` recusa identidade `:user/` (break-glass: `PROLINK_ALLOW_IAM_USER=1`). Nomes e parâmetros estruturais vêm da fonte única `infra/aws/lib/params.sh`, compartilhada com o `init.sh` local (anti-drift).
+Terraform com um módulo compartilhado (`modules/dados`: DynamoDB, S3, SQS) e dois roots: `local` (Floci, rodado pelo `aws-init`) e `production` (AWS real, rodado à mão pelo operador com **role assumida**). Local e produção instanciam o mesmo módulo, então schema, lifecycle e filas não divergem; o que difere (PITR, endurecimento do bucket, CORS) entra por variável. O `production` também cria os IAM users `ApiApp` e `WorkerApp` com as policies de "IAM — credenciais da aplicação", mas **não** as access keys.
 
 ### Padrão de nomenclatura
 
 1. **PascalCase** nos recursos que aceitam maiúsculas (DynamoDB, SQS, IAM).
 2. **Sem prefixo `prolink-`** — a conta AWS é dedicada à organização.
 3. **Exceções impostas pela AWS**: S3 (nome globalmente único + só minúsculas) mantém `prolink-fichas`.
-4. **Fonte única de nomes**: `infra/aws/lib/params.sh` — nenhum nome hardcodeado fora dela.
+4. **Fonte única de nomes**: defaults das variáveis em `scripts/terraform/modules/dados/variables.tf`.
 
-| Script | Provisiona |
-|---|---|
-| `provision-dynamodb.sh` | 3 tabelas + TTL + PITR |
-| `provision-s3.sh` | bucket + Block Public Access + SSE-S3 + Versioning + Lifecycle + CORS |
-| `provision-sqs.sh` | fila + DLQ + redrive |
-
-> Os IAM users da aplicação (ver "IAM — credenciais da aplicação") ainda são criados à mão pelo operador.
-
-Ver [`infra/aws/README.md`](../infra/aws/README.md) para o passo a passo.
+Ver [`scripts/terraform/README.md`](../scripts/terraform/README.md) para o passo a passo.
 
 ---
 
