@@ -1,7 +1,7 @@
 ---
 id: "038"
 title: "Infra como Terraform (local + production) e nginx em scripts/"
-status: in-progress
+status: done
 created: 2026-10-05
 author: "Tiago"
 batch_size: "medium"
