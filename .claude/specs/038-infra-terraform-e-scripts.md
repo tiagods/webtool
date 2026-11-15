@@ -1,7 +1,7 @@
 ---
 id: "038"
 title: "Infra como Terraform (local + production) e nginx em scripts/"
-status: approved
+status: in-progress
 created: 2026-10-05
 author: "Tiago"
 batch_size: "medium"
@@ -138,21 +138,21 @@ versioning, block public access).
 
 ## Critérios de aceite
 
-- [ ] `scripts/terraform/local` aplica limpo no Floci após `npm run infra:reset` (o `aws-init`
+- [x] `scripts/terraform/local` aplica limpo no Floci após `npm run infra:reset` (o `aws-init`
       termina com exit 0 e os outputs listam tabelas, bucket e filas)
-- [ ] Segundo `terraform apply` em `local` reporta **zero mudanças** (idempotência real)
-- [ ] `scripts/terraform/production`: `terraform validate` verde e `terraform plan` cobrindo
+- [x] Segundo `terraform apply` em `local` reporta **zero mudanças** (idempotência real)
+- [x] `scripts/terraform/production`: `terraform validate` verde e `terraform plan` cobrindo
       tabelas, bucket, filas e os IAM users, com os mesmos nomes/atributos dos scripts atuais
-- [ ] `infra/nginx` movido para `scripts/nginx`; `docker compose build nginx` verde nos dois
+- [x] `infra/nginx` movido para `scripts/nginx`; `docker compose build nginx` verde nos dois
       compose
-- [ ] Pasta `infra/` removida; nenhuma referência a `infra/` fora de `.claude/specs/` e
+- [x] Pasta `infra/` removida; nenhuma referência a `infra/` fora de `.claude/specs/` e
       `docs/security/` (histórico)
-- [ ] Nenhuma referência a `infra:owner`/`infra:validate` em `CLAUDE.md` e `.claude/commands/`
-- [ ] `package.json` sem nenhum script apontando para `infra/`; `CLAUDE.md`, `README.md`, `deploy.md` e `docs/aws.md`
+- [x] Nenhuma referência a `infra:owner`/`infra:validate` em `CLAUDE.md` e `.claude/commands/`
+- [x] `package.json` sem nenhum script apontando para `infra/`; `CLAUDE.md`, `README.md`, `deploy.md` e `docs/aws.md`
       atualizados para os novos caminhos e para o fluxo Terraform
-- [ ] Nenhum state, `.terraform/` ou `*.tfvars` com valor real versionado
+- [x] Nenhum state, `.terraform/` ou `*.tfvars` com valor real versionado
 - [ ] E2E local (Floci) passando: abertura → SQS → worker, e alteração
-- [ ] Gates do escopo tocado verdes:
+- [x] Gates do escopo tocado verdes:
   - `scripts/terraform/**` → `terraform fmt -check -recursive` + `terraform validate` em
     `local` e `production`
   - `docker-compose*.yml` → `docker compose config -q` + `docker compose build nginx`
