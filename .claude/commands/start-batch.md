@@ -54,18 +54,18 @@ board. O que **não** é paralelizável: o stack local (`npm run infra:up`, `npm
 `make -C apps/backend test-integration`) usa `container_name` e portas fixas, então roda em
 **uma worktree por vez**.
 
-Antes de qualquer `infra:up`, rode **`npm run infra:owner`** — ele lê o label
-`com.docker.compose.project.working_dir` que o Compose grava e diz de quem é a stack.
+Antes de qualquer `infra:up`, rode `docker ps --filter name=prolink-` — os nomes de container
+são fixos, então qualquer `prolink-*` no ar é de outra worktree (ou de outro checkout).
 
 **Encontrar a stack ocupada não interrompe o batch.** Editar código, `npm run lint`,
 `make -C apps/backend test` e commitar não tocam o Docker; só `infra:up`, `npm run dev` e
 `test-integration` ficam adiados.
 
-| Estado da stack | `infra:up` | `infra:down` |
-|-----------------|-----------|--------------|
-| livre / dona é esta worktree | segue | segue |
-| dona é outra, containers **parados** | recusa; `infra:down` libera os nomes | limpa (lixo, não interrompe ninguém) |
-| dona é outra, **no ar** | recusa e nomeia a dona | recusa — a decisão é do usuário |
+| Estado da stack | Ação |
+|-----------------|------|
+| nenhum `prolink-*` | `infra:up` segue |
+| containers **parados** de outra worktree | `infra:down` libera os nomes (lixo, não interrompe ninguém) |
+| containers **no ar** de outra worktree | não suba nem derrube — a decisão é do usuário |
 
 Se o batch precisar do gate de integração e a stack estiver de pé por outra worktree, o `/done`
 tem um desfecho próprio (**bloqueado**, sem push) — ver `.claude/commands/done.md`.
