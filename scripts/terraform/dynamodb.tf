@@ -1,12 +1,13 @@
+# Compartilhado: cada ambiente liga este arquivo por symlink e define local.enable_pitr.
 locals {
   partition_key = "sessionId"
   sort_key      = "versaoTermo"
 
   # Só os aceites têm sort key (um aceite por sessão e versão do termo).
   tables = {
-    abertura  = { name = var.abertura_table_name, sort = false }
-    alteracao = { name = var.alteracao_table_name, sort = false }
-    aceites   = { name = var.aceites_table_name, sort = true }
+    abertura  = { name = "FichasAbertura", sort = false }
+    alteracao = { name = "FichasAlteracao", sort = false }
+    aceites   = { name = "AceitesLgpd", sort = true }
   }
 }
 
@@ -32,11 +33,11 @@ resource "aws_dynamodb_table" "this" {
   }
 
   ttl {
-    attribute_name = var.ttl_attribute
+    attribute_name = "ttl"
     enabled        = true
   }
 
   point_in_time_recovery {
-    enabled = var.enable_pitr
+    enabled = local.enable_pitr
   }
 }

@@ -206,14 +206,14 @@ O worker envia o e-mail de notificação **diretamente por SMTP** (`apps/backend
 
 ## IaC (`scripts/terraform/`)
 
-Terraform com um módulo compartilhado (`modules/dados`: DynamoDB, S3, SQS) e dois roots: `local` (Floci, rodado pelo `aws-init`) e `production` (AWS real, rodado à mão pelo operador com **role assumida**). Local e produção instanciam o mesmo módulo, então schema, lifecycle e filas não divergem; o que difere (PITR, endurecimento do bucket, CORS) entra por variável. O `production` também cria os IAM users `ApiApp` e `WorkerApp` com as policies de "IAM — credenciais da aplicação", mas **não** as access keys.
+Terraform com os recursos comuns em `scripts/terraform/{dynamodb,s3,sqs}.tf` e dois roots: `local` (Floci, rodado pelo `aws-init`) e `production` (AWS real, rodado à mão pelo operador com **role assumida**). Cada root liga esses arquivos por **symlink** (`ln -s ../dynamodb.tf`), então schema, lifecycle e filas não divergem; o que difere (PITR, CORS) entra por `locals` do root e o endurecimento do bucket vive só em `production/s3_hardening.tf`. Quem não usa um recurso simplesmente não cria o link. O `production` também cria os IAM users `ApiApp` e `WorkerApp` com as policies de "IAM — credenciais da aplicação", mas **não** as access keys.
 
 ### Padrão de nomenclatura
 
 1. **PascalCase** nos recursos que aceitam maiúsculas (DynamoDB, SQS, IAM).
 2. **Sem prefixo `prolink-`** — a conta AWS é dedicada à organização.
 3. **Exceções impostas pela AWS**: S3 (nome globalmente único + só minúsculas) mantém `prolink-fichas`.
-4. **Fonte única de nomes**: defaults das variáveis em `scripts/terraform/modules/dados/variables.tf`.
+4. **Fonte única de nomes**: literais em `scripts/terraform/{dynamodb,s3,sqs}.tf`.
 
 Ver [`scripts/terraform/README.md`](../scripts/terraform/README.md) para o passo a passo.
 

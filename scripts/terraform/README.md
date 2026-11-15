@@ -2,13 +2,18 @@
 
 ```
 scripts/terraform/
-├── modules/dados/   # DynamoDB ×3 + S3 + SQS (fila + DLQ) — usado por local e production
-├── local/           # Floci (dev) — rodado pelo container aws-init no `npm run infra:up`
-└── production/      # AWS real + IAM users ApiApp/WorkerApp — rodado à mão pelo operador
+├── dynamodb.tf s3.tf sqs.tf   # recursos comuns — única definição
+├── local/                     # Floci (dev) — rodado pelo container aws-init no `npm run infra:up`
+└── production/                # AWS real + IAM users + s3_hardening.tf — rodado à mão pelo operador
 ```
 
-O módulo `dados` é a única definição de tabelas, bucket e filas: o que difere entre os
-ambientes entra por variável (`cors_allowed_origins`, `enable_pitr`, `harden_bucket`).
+Cada root liga os arquivos comuns por **symlink relativo** (`ln -s ../dynamodb.tf dynamodb.tf`);
+quem não usa um recurso não cria o link. O que difere entre ambientes entra por `locals`
+no `main.tf` do root (`enable_pitr`, `cors_allowed_origins`). Novo recurso comum: crie o `.tf`
+aqui e o link em cada root que o usa.
+
+> No Windows, o Git precisa de `core.symlinks=true` e do modo desenvolvedor ativo; no Git Bash,
+> `export MSYS=winsymlinks:nativestrict` antes do `ln -s`.
 
 ## Local (Floci)
 
@@ -37,7 +42,7 @@ terraform apply
   Gere com `aws iam create-access-key --user-name ApiApp` (e `WorkerApp`) e ponha no `.env`
   do servidor como `API_AWS_*` / `WORKER_AWS_*`.
 - **Recursos já existentes** (criados pelos scripts antigos): `terraform import` antes do
-  primeiro `apply`, ex.: `terraform import 'module.dados.aws_dynamodb_table.this["abertura"]' FichasAbertura`.
+  primeiro `apply`, ex.: `terraform import 'aws_dynamodb_table.this["abertura"]' FichasAbertura`.
 
 ## Formatação e validação
 
