@@ -4,7 +4,7 @@
 # nunca em texto plano neste arquivo.
 #
 # Credenciais AWS: o Lightsail não suporta IAM role na instância, então api e
-# worker usam access key de IAM users distintos (ApiApp/WorkerApp) — cada serviço
+# worker usam access key de IAM users distintos (fichas-api/fichas-worker) — cada serviço
 # recebe só a sua, para manter o menor privilégio. Sem AWS_ENDPOINT_URL, a cadeia
 # padrão do SDK lê AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY do ambiente.
 services:

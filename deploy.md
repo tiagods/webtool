@@ -19,9 +19,9 @@ terraform plan    # revisar o que será criado
 terraform apply
 ```
 
-Cria as 3 tabelas DynamoDB, o bucket S3 (CORS para `https://prolinkcontabil.com.br` por padrão; ajuste com `-var 'cors_allowed_origins=["https://..."]'`), a fila + DLQ e os IAM users `ApiApp` e `WorkerApp`. O state fica em `scripts/terraform/production/terraform.tfstate` (gitignorado) — faça backup fora do repo. Ver [`scripts/terraform/README.md`](scripts/terraform/README.md).
+Cria as 3 tabelas DynamoDB, o bucket S3 (CORS para `https://prolinkcontabil.com.br` por padrão; ajuste com `-var 'cors_allowed_origins=["https://..."]'`), a fila + DLQ e os IAM users `fichas-api` e `fichas-worker`. O state fica em `scripts/terraform/production/terraform.tfstate` (gitignorado) — faça backup fora do repo. Ver [`scripts/terraform/README.md`](scripts/terraform/README.md).
 
-**Credenciais da aplicação:** instâncias Lightsail **não suportam IAM role/instance profile**, então `api` e `worker` acessam a AWS por **access key de IAM user**. São dois users, um por serviço, com as permissões de menor privilégio descritas em [`docs/aws.md`](docs/aws.md#iam--credenciais-da-aplicação) (`ApiApp` e `WorkerApp`). O Terraform cria os users e suas policies, mas **não** as chaves (o secret iria para o state). As chaves são geradas pelo operador (`aws iam create-access-key --user-name <user>`) e vão **apenas** no `.env` do servidor — nunca no repositório.
+**Credenciais da aplicação:** instâncias Lightsail **não suportam IAM role/instance profile**, então `api` e `worker` acessam a AWS por **access key de IAM user**. São dois users, um por serviço, com as permissões de menor privilégio descritas em [`docs/aws.md`](docs/aws.md#iam--credenciais-da-aplicação) (`fichas-api` e `fichas-worker`). O Terraform cria os users e suas policies, mas **não** as chaves (o secret iria para o state). As chaves são geradas pelo operador (`aws iam create-access-key --user-name <user>`) e vão **apenas** no `.env` do servidor — nunca no repositório.
 
 ### Passo 1: Preparar o servidor
 
@@ -39,8 +39,8 @@ Cria as 3 tabelas DynamoDB, o bucket S3 (CORS para `https://prolinkcontabil.com.
      ```
 5. Crie o **`.env` não versionado** na raiz do projeto (lido pelo Compose) com os segredos e as credenciais da aplicação. Nunca o versione:
    - `JWT_SECRET`, `SMTP_PASSWORD` (e os demais `SMTP_*`, `AWS_SQS_QUEUE_URL`);
-   - `API_AWS_ACCESS_KEY_ID` / `API_AWS_SECRET_ACCESS_KEY` — chave do user `ApiApp`;
-   - `WORKER_AWS_ACCESS_KEY_ID` / `WORKER_AWS_SECRET_ACCESS_KEY` — chave do user `WorkerApp`.
+   - `API_AWS_ACCESS_KEY_ID` / `API_AWS_SECRET_ACCESS_KEY` — chave do user `fichas-api`;
+   - `WORKER_AWS_ACCESS_KEY_ID` / `WORKER_AWS_SECRET_ACCESS_KEY` — chave do user `fichas-worker`.
 
    O Compose repassa a cada serviço só a sua chave, como `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`. Sem `AWS_ENDPOINT_URL`, o SDK Go usa a cadeia de credenciais padrão, que lê essas variáveis — nenhuma mudança de código entre dev (Floci) e produção. As demais variáveis (`APP_ENV=prod`, `AWS_REGION`, `AWS_DYNAMODB_ABERTURA_TABLE`, `AWS_DYNAMODB_ALTERACAO_TABLE`, `AWS_DYNAMODB_ACEITES_TABLE`, `AWS_S3_BUCKET`, `AWS_SQS_QUEUE_URL`, `JWT_SECRET` e os seis `SMTP_*`) são injetadas pelo `docker-compose.prod.yml` e são **obrigatórias** (o boot do binário Go falha rápido listando o que faltar).
 6. Aponte o DNS do domínio de produção (`prolinkcontabil.com.br` e `www.prolinkcontabil.com.br`) para o IP estático da instância — pré-requisito para a emissão automática do certificado TLS no Passo 4.

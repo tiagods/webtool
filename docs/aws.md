@@ -4,7 +4,7 @@ Mapeamento de todos os recursos AWS utilizados no projeto, com configuração, s
 
 > **Ambiente local:** todos os recursos são emulados via **Floci** (`floci/floci:latest`) na porta 4566. Provisionado por Terraform em [`scripts/terraform/local/`](../scripts/terraform/local/), executado pelo container `aws-init`.
 >
-> **Autenticação em produção:** `apps/backend` (binário Go `cmd/api`) e `cmd/worker` rodam como containers Docker numa **instância Lightsail**, que **não suporta IAM role/instance profile**. Por isso cada serviço usa a access key de um **IAM user próprio** (`ApiApp`, `WorkerApp`), com menor privilégio, injetada pelo `.env` não versionado do servidor. Sem `AWS_ENDPOINT_URL`, o SDK Go v2 usa a cadeia de credenciais padrão, que lê `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` do ambiente. No local (Floci), `AWS_ENDPOINT_URL` está definido e as chaves (fictícias) passam a ser obrigatórias. Nenhuma chave hardcoded ou versionada. O worker **não é Lambda** — é um processo long-running que faz long-polling na SQS (ver seção "Worker").
+> **Autenticação em produção:** `apps/backend` (binário Go `cmd/api`) e `cmd/worker` rodam como containers Docker numa **instância Lightsail**, que **não suporta IAM role/instance profile**. Por isso cada serviço usa a access key de um **IAM user próprio** (`fichas-api`, `fichas-worker`), com menor privilégio, injetada pelo `.env` não versionado do servidor. Sem `AWS_ENDPOINT_URL`, o SDK Go v2 usa a cadeia de credenciais padrão, que lê `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` do ambiente. No local (Floci), `AWS_ENDPOINT_URL` está definido e as chaves (fictícias) passam a ser obrigatórias. Nenhuma chave hardcoded ou versionada. O worker **não é Lambda** — é um processo long-running que faz long-polling na SQS (ver seção "Worker").
 >
 > **IaC de produção:** os recursos reais (DynamoDB, S3, SQS) são provisionados por Terraform em [`scripts/terraform/production/`](../scripts/terraform/production/) — ver seção "IaC de produção".
 >
@@ -64,7 +64,7 @@ Browser
 
 ### Segurança
 
-- Acesso exclusivo pelos IAM users da aplicação (`ApiApp` / `WorkerApp`), com menor privilégio
+- Acesso exclusivo pelos IAM users da aplicação (`fichas-api` / `fichas-worker`), com menor privilégio
 - Point-in-Time Recovery (PITR) habilitado
 - Sem acesso público
 - Encryption at rest habilitada por padrão na AWS
@@ -139,7 +139,7 @@ Em dev, o CORS é aplicado pelo Terraform local (origin `http://localhost:3000`)
 - `key` da presigned URL nunca é retornada ao cliente — derivada server-side de `sessionId + campo`
 - `campo` validado com `/^[a-z0-9_]{1,80}$/` antes de compor a key (previne path traversal)
 - Encryption at rest: SSE-S3 (AES256); Versioning habilitado
-- Acesso exclusivo pelos IAM users da aplicação (`ApiApp` / `WorkerApp`)
+- Acesso exclusivo pelos IAM users da aplicação (`fichas-api` / `fichas-worker`)
 
 ### Estimativa de custo — 100 submissões/mês
 
@@ -206,7 +206,7 @@ O worker envia o e-mail de notificação **diretamente por SMTP** (`apps/backend
 
 ## IaC (`scripts/terraform/`)
 
-Terraform com os recursos comuns em `scripts/terraform/{dynamodb,s3,sqs}.tf` e dois roots: `local` (Floci, rodado pelo `aws-init`) e `production` (AWS real, rodado à mão pelo operador com **role assumida**). Cada root liga esses arquivos por **symlink** (`ln -s ../dynamodb.tf`), então schema, lifecycle e filas não divergem; o que difere (PITR, CORS) entra por `locals` do root e o endurecimento do bucket vive só em `production/s3_hardening.tf`. Quem não usa um recurso simplesmente não cria o link. O `production` também cria os IAM users `ApiApp` e `WorkerApp` com as policies de "IAM — credenciais da aplicação", mas **não** as access keys.
+Terraform com os recursos comuns em `scripts/terraform/{dynamodb,s3,sqs}.tf` e dois roots: `local` (Floci, rodado pelo `aws-init`) e `production` (AWS real, rodado à mão pelo operador com **role assumida**). Cada root liga esses arquivos por **symlink** (`ln -s ../dynamodb.tf`), então schema, lifecycle e filas não divergem; o que difere (PITR, CORS) entra por `locals` do root e o endurecimento do bucket vive só em `production/s3_hardening.tf`. Quem não usa um recurso simplesmente não cria o link. O `production` também cria os IAM users `fichas-api` e `fichas-worker` com as policies de "IAM — credenciais da aplicação", mas **não** as access keys.
 
 ### Padrão de nomenclatura
 
@@ -236,7 +236,7 @@ Ver [`scripts/terraform/README.md`](../scripts/terraform/README.md) para o passo
 
 O Lightsail não anexa IAM role à instância, então cada serviço usa a access key de um **IAM user próprio**, passada pelo `.env` do servidor (`API_AWS_*` / `WORKER_AWS_*`, repassadas pelo Compose como `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`). As policies usam ARNs explícitos (nenhum `Resource: "*"`).
 
-**`ApiApp`** (runtime da API):
+**`fichas-api`** (runtime da API):
 
 | Serviço | Ações | Recurso |
 |---|---|---|
@@ -245,7 +245,7 @@ O Lightsail não anexa IAM role à instância, então cada serviço usa a access
 | S3 | `ListBucket` | `prolink-fichas` |
 | SQS | `SendMessage` | `FichasSubmissoes` |
 
-**`WorkerApp`** (runtime do worker):
+**`fichas-worker`** (runtime do worker):
 
 | Serviço | Ações | Recurso |
 |---|---|---|
@@ -266,7 +266,7 @@ O Lightsail não anexa IAM role à instância, então cada serviço usa a access
 
 > **Por que container e não Lambda:** a stack já é containerizada; o volume (~100 fichas/mês) não justifica escala a zero. O processamento (`NotificarSubmissao.Processar`) é isolado do loop de polling e recebe dependências por injeção — migrar para Lambda no futuro é um wrapper fino sobre a mesma função.
 
-### IAM (user `WorkerApp`)
+### IAM (user `fichas-worker`)
 
 | Serviço | Ações |
 |---|---|

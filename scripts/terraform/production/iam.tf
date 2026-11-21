@@ -1,11 +1,11 @@
 # Sem aws_iam_access_key: o secret iria para o state. O operador gera as chaves
 # no console/CLI e as põe no .env do servidor.
 resource "aws_iam_user" "api" {
-  name = "ApiApp"
+  name = "fichas-api"
 }
 
 resource "aws_iam_user" "worker" {
-  name = "WorkerApp"
+  name = "fichas-worker"
 }
 
 data "aws_iam_policy_document" "api" {
@@ -55,13 +55,13 @@ data "aws_iam_policy_document" "worker" {
 }
 
 resource "aws_iam_user_policy" "api" {
-  name   = "ApiAppPolicy"
+  name   = "fichas-api-policy"
   user   = aws_iam_user.api.name
   policy = data.aws_iam_policy_document.api.json
 }
 
 resource "aws_iam_user_policy" "worker" {
-  name   = "WorkerAppPolicy"
+  name   = "fichas-worker-policy"
   user   = aws_iam_user.worker.name
   policy = data.aws_iam_policy_document.worker.json
 }

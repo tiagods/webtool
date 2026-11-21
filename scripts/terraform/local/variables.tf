@@ -1,5 +1,5 @@
 variable "endpoint_url" {
-  description = "Endpoint do Floci. Dentro da rede do compose é http://floci:4566."
+  description = "Endpoint do localstack"
   type        = string
   default     = "http://floci:4566"
 }
